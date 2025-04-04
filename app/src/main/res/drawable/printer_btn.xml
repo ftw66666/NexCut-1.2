@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <!-- 按钮的背景颜色 -->
+    <corners android:radius="20dp" />
+    <solid android:color="@color/white" />
+    <item android:drawable="@drawable/btn1"/>
+    <!-- 按钮的边框，可设置圆角或者其他样式 -->
+    <item android:right="200dp" android:left="10dp" android:top="10dp" android:bottom="10dp">
+        <bitmap
+            android:src="@drawable/printer_icon"
+            android:gravity="left" /> <!-- 图片居中 -->
+    </item>
+</layer-list>

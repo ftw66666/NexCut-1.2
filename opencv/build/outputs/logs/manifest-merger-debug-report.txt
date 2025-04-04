@@ -1,0 +1,35 @@
+-- Merging decision tree log ---
+manifest
+ADDED from D:\androidproject\NexCut0404\opencv\java\AndroidManifest.xml:2:1-14:12
+INJECTED from D:\androidproject\NexCut0404\opencv\java\AndroidManifest.xml:2:1-14:12
+	package
+		ADDED from D:\androidproject\NexCut0404\opencv\java\AndroidManifest.xml:3:7-27
+		INJECTED from D:\androidproject\NexCut0404\opencv\java\AndroidManifest.xml
+	xmlns:android
+		ADDED from D:\androidproject\NexCut0404\opencv\java\AndroidManifest.xml:2:11-69
+uses-permission#android.permission.CAMERA
+ADDED from D:\androidproject\NexCut0404\opencv\java\AndroidManifest.xml:4:5-65
+	android:name
+		ADDED from D:\androidproject\NexCut0404\opencv\java\AndroidManifest.xml:4:22-62
+uses-feature#android.hardware.camera
+ADDED from D:\androidproject\NexCut0404\opencv\java\AndroidManifest.xml:5:5-83
+	android:required
+		ADDED from D:\androidproject\NexCut0404\opencv\java\AndroidManifest.xml:5:58-81
+	android:name
+		ADDED from D:\androidproject\NexCut0404\opencv\java\AndroidManifest.xml:5:19-57
+queries
+ADDED from D:\androidproject\NexCut0404\opencv\java\AndroidManifest.xml:6:5-10:15
+intent#action:name:android.media.action.IMAGE_CAPTURE
+ADDED from D:\androidproject\NexCut0404\opencv\java\AndroidManifest.xml:7:13-9:22
+action#android.media.action.IMAGE_CAPTURE
+ADDED from D:\androidproject\NexCut0404\opencv\java\AndroidManifest.xml:8:17-77
+	android:name
+		ADDED from D:\androidproject\NexCut0404\opencv\java\AndroidManifest.xml:8:25-74
+uses-sdk
+INJECTED from D:\androidproject\NexCut0404\opencv\java\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from D:\androidproject\NexCut0404\opencv\java\AndroidManifest.xml
+INJECTED from D:\androidproject\NexCut0404\opencv\java\AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from D:\androidproject\NexCut0404\opencv\java\AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from D:\androidproject\NexCut0404\opencv\java\AndroidManifest.xml

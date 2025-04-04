@@ -1,0 +1,19 @@
+@echo off
+"E:\\Android\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\cmake.exe" ^
+  "-HE:\\Android\\250401\\NexCut\\opencv\\libcxx_helper" ^
+  "-DCMAKE_SYSTEM_NAME=Android" ^
+  "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON" ^
+  "-DCMAKE_SYSTEM_VERSION=21" ^
+  "-DANDROID_PLATFORM=android-21" ^
+  "-DANDROID_ABI=x86" ^
+  "-DCMAKE_ANDROID_ARCH_ABI=x86" ^
+  "-DANDROID_NDK=E:\\Android\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973" ^
+  "-DCMAKE_ANDROID_NDK=E:\\Android\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973" ^
+  "-DCMAKE_TOOLCHAIN_FILE=E:\\Android\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973\\build\\cmake\\android.toolchain.cmake" ^
+  "-DCMAKE_MAKE_PROGRAM=E:\\Android\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe" ^
+  "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=E:\\Android\\250401\\NexCut\\opencv\\build\\intermediates\\cxx\\RelWithDebInfo\\3x6v126y\\obj\\x86" ^
+  "-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=E:\\Android\\250401\\NexCut\\opencv\\build\\intermediates\\cxx\\RelWithDebInfo\\3x6v126y\\obj\\x86" ^
+  "-DCMAKE_BUILD_TYPE=RelWithDebInfo" ^
+  "-BE:\\Android\\250401\\NexCut\\opencv\\.cxx\\RelWithDebInfo\\3x6v126y\\x86" ^
+  -GNinja ^
+  "-DANDROID_STL=c++_shared"

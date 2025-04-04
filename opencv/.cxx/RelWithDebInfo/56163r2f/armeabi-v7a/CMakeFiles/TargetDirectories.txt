@@ -1,0 +1,3 @@
+D:/AndroidProject/NexCut/NexCut/opencv/.cxx/RelWithDebInfo/56163r2f/armeabi-v7a/CMakeFiles/opencv_jni_shared.dir
+D:/AndroidProject/NexCut/NexCut/opencv/.cxx/RelWithDebInfo/56163r2f/armeabi-v7a/CMakeFiles/edit_cache.dir
+D:/AndroidProject/NexCut/NexCut/opencv/.cxx/RelWithDebInfo/56163r2f/armeabi-v7a/CMakeFiles/rebuild_cache.dir

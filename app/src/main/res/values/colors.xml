@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="gray">#FF808080</color>
+    <color name="light_black">#FF1E1E1E</color>
+    <color name="main">#63C3FF</color>
+    <color name="actionbar_title_color">@android:color/white</color>
+    <color name="background_color">#fff2f2f2</color>
+    <color name="colorPrimary">#ffffffff</color>
+    <color name="toolbar">#ff0c016a</color>
+    <color name="command_1">#8abd60</color>
+    <color name="command_2">#e3be31</color>
+    <color name="command_3">#ea3850</color>
+    <color name="command_4">#508dd0</color>
+    <color name="command_5">#cc5bb3</color>
+    <color name="command_6">#3a4a59</color>
+    <color name="DI_True">#00fe05</color>
+    <color name="DI_False">#f2f2f2</color>
+    <color name="orange_500">#FF9800</color>
+    <color name="gray_700">#616161</color>
+    <color name="button_gray">#616161</color>
+    <color name="arrow_gray">#BDBDBD</color>
+    <color name="background_white">#FFFFFF</color>
+</resources>

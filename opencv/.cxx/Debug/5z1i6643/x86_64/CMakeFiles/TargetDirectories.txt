@@ -1,0 +1,3 @@
+D:/androidproject/NexCut0404/opencv/.cxx/Debug/5z1i6643/x86_64/CMakeFiles/opencv_jni_shared.dir
+D:/androidproject/NexCut0404/opencv/.cxx/Debug/5z1i6643/x86_64/CMakeFiles/edit_cache.dir
+D:/androidproject/NexCut0404/opencv/.cxx/Debug/5z1i6643/x86_64/CMakeFiles/rebuild_cache.dir

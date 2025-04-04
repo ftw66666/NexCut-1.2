@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/toolbar"
+        android:title="@string/app_name"
+        app:titleTextColor="@android:color/white" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/background_color"
+        android:gravity="top"
+        android:orientation="vertical"
+        android:weightSum="1"
+        tools:context=".MainActivity">
+        <ScrollView
+            android:layout_height="0dp"
+            android:layout_width="match_parent"
+            android:layout_weight="0.925">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/background_color"
+                android:gravity="top"
+                android:orientation="vertical"
+                android:padding="16dp"
+                tools:context=".MainActivity">
+
+                <ImageButton
+                    android:id="@+id/myImageView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center|center_vertical"
+                    android:adjustViewBounds="true"
+                    android:contentDescription="@string/company_name"
+                    android:scaleType="fitCenter"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/banner" />
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/button0"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center|end"
+                    android:layout_marginVertical="10dp"
+                    android:adjustViewBounds="true"
+                    android:background="@drawable/printer_btn"
+                    android:backgroundTint="@android:color/transparent"
+                    android:backgroundTintMode="screen"
+                    android:minHeight="180dp"
+                    android:textSize="24sp"
+                    android:text="NextCut-X1\n未连接"
+                    android:textColorLink="@color/light_black"
+                    android:drawableRight="@drawable/right_arrow_icon_s"
+                    android:drawablePadding="-200dp"
+                    android:stateListAnimator="@anim/anim_scale_in"
+                    android:onClick="onClickDevice"
+                    />
+
+                <androidx.gridlayout.widget.GridLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="0dp"
+
+                    app:alignmentMode="alignMargins"
+                    app:columnCount="2"
+                    app:rowCount="2">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="30dp"
+                        android:orientation="vertical"
+                        app:layout_column="0"
+                        app:layout_columnWeight="1"
+                        app:layout_row="0"
+                        app:layout_rowWeight="1">
+
+                        <androidx.appcompat.widget.AppCompatButton
+                            android:id="@+id/button1"
+                            android:layout_width="match_parent"
+                            android:layout_height="100dp"
+                            android:layout_gravity="center"
+                            android:layout_margin="5dp"
+                            android:textSize="24dp"
+                            android:background="@drawable/btn1"
+                            android:gravity="center"
+                            android:minHeight="80dp"
+                            android:onClick="captureImage"
+                            android:stateListAnimator="@anim/anim_scale_in"
+                            android:textAlignment="center"
+                            android:text="@string/CAMERA"
+                            android:textColorLink="@color/light_black" />
+
+                        <TextView
+                            android:id="@+id/text1"
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:gravity="center"
+                            android:text="Text1"
+                            android:textColor="#03A9F4" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        app:layout_column="1"
+                        app:layout_columnWeight="1"
+                        app:layout_row="0"
+                        app:layout_rowWeight="1">
+
+                        <androidx.appcompat.widget.AppCompatButton
+                            android:id="@+id/button2"
+                            android:layout_width="match_parent"
+                            android:minHeight="100dp"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center|center_vertical"
+                            android:layout_margin="5dp"
+                            android:background="@drawable/btn1"
+                            android:gravity="center"
+                            android:onClick="selectImage"
+                            android:stateListAnimator="@anim/anim_scale_in"
+                            android:textSize="24dp"
+                            android:text="@string/GALLERY"
+                            android:textColorLink="@color/light_black"/>
+
+                        <TextView
+                            android:id="@+id/text2"
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:gravity="center"
+                            android:text="@string/GALLERY"
+                            android:textColor="#03A9F4" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        app:layout_column="0"
+                        app:layout_columnWeight="1"
+                        app:layout_row="1"
+                        app:layout_rowWeight="1">
+
+                        <androidx.appcompat.widget.AppCompatButton
+                            android:id="@+id/button3"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:minHeight="100dp"
+                            android:layout_gravity="center"
+                            android:layout_margin="5dp"
+                            android:background="@drawable/btn1"
+                            android:gravity="center"
+                            android:onClick="readGCode"
+                            android:stateListAnimator="@anim/anim_scale_in"
+                            android:textSize="24dp"
+                            android:text="@string/Prefab"
+                            android:textColorLink="@color/light_black"/>
+
+                        <TextView
+                            android:id="@+id/text3"
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:gravity="center"
+                            android:text="@string/Prefab"
+                            android:textColor="#03A9F4" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        app:layout_column="1"
+                        app:layout_columnWeight="1"
+                        app:layout_row="1"
+                        app:layout_rowWeight="1">
+
+                        <androidx.appcompat.widget.AppCompatButton
+                            android:id="@+id/button4"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:layout_margin="5dp"
+                            android:background="@drawable/btn1"
+                            android:backgroundTint="@color/white"
+                            android:backgroundTintMode="screen"
+                            android:minHeight="100dp"
+                            android:onClick="readGCode"
+                            android:stateListAnimator="@anim/anim_scale_in"
+                            android:text="@string/File"
+                            android:textColorLink="@color/light_black"
+                            android:textSize="24dp" />
+
+                        <TextView
+                            android:id="@+id/text4"
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:gravity="center"
+                            android:text="@string/File"
+                            android:textColor="#03A9F4" />
+                    </LinearLayout>
+
+
+                </androidx.gridlayout.widget.GridLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginVertical="5dp"
+                    android:gravity="bottom"
+                    android:minHeight="30dp"
+                    app:layout_column="2"
+                    app:layout_columnWeight="1"
+                    app:layout_row="1"
+                    app:layout_rowWeight="1">
+                    <TextView
+                        android:id="@+id/title2"
+                        android:layout_width="0dp"
+                        android:layout_weight="0.8"
+                        android:layout_height="match_parent"
+                        android:gravity="left"
+                        android:text="精选图库"
+                        android:autoSizeTextType="uniform"
+                        android:textColor="@color/light_black" />
+
+                    <TextView
+                        android:id="@+id/button5"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.2"
+                        android:gravity="center"
+                        android:onClick="readGCode"
+                        android:text="查看更多 >"
+                        android:textColor="@color/gray" />
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginVertical="5dp"
+                    android:gravity="top"
+                    android:minHeight="30dp"
+                    app:layout_column="2"
+                    app:layout_columnWeight="1"
+                    app:layout_row="1"
+                    app:layout_rowWeight="1">
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_weight="1"
+                        android:layout_margin="5dp"
+                        app:layout_column="1"
+                        app:layout_columnWeight="1"
+                        app:layout_row="1"
+                        app:layout_rowWeight="1">
+                        <ImageView
+                            android:id="@+id/image1"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/picture0"
+                            android:adjustViewBounds="true"
+                            android:scaleType="fitCenter"
+                            android:textColor="@color/white" />
+                        <TextView
+                            android:id="@+id/imageName1"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:text="Prefab1.nc"
+                            android:textColor="#03A9F4" />
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_weight="1"
+                        android:layout_margin="5dp"
+                        app:layout_column="1"
+                        app:layout_columnWeight="1"
+                        app:layout_row="1"
+                        app:layout_rowWeight="1">
+                        <ImageView
+                            android:id="@+id/image2"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:src="@drawable/picture1"
+                            android:adjustViewBounds="true"
+                            android:scaleType="fitCenter"
+                            android:textColor="@color/gray" />
+                        <TextView
+                            android:id="@+id/imageName2"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:text="Prefab2.nc"
+                            android:textColor="#03A9F4" />
+                    </LinearLayout>
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </ScrollView>
+
+        <LinearLayout
+            android:id="@+id/rg_tab"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.075"
+            android:background="@color/white"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:weightSum="1">
+
+            <ImageButton
+                android:id="@+id/bottom_button1"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_marginVertical="10dp"
+                android:layout_weight="0.4"
+                android:adjustViewBounds="true"
+                android:src="@drawable/home_icon"
+                android:background="@null"
+
+                android:scaleType="fitCenter" />
+
+            <ImageButton
+                android:id="@+id/bottom_button2"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_marginVertical="0dp"
+                android:layout_weight="0.2"
+                android:adjustViewBounds="true"
+                android:src="@drawable/add_icon"
+                android:background="@null"
+                android:onClick="editImage"
+                android:scaleType="fitCenter" />
+
+            <ImageButton
+                android:id="@+id/bottom_button3"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_marginVertical="10dp"
+                android:layout_weight="0.4"
+                android:adjustViewBounds="true"
+                android:src="@drawable/setting_icon"
+                android:background="@null"
+                android:onClick="onClickDevice"
+                android:scaleType="fitCenter" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

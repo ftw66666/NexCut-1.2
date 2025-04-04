@@ -1,0 +1,67 @@
+plugins {
+    alias(libs.plugins.android.application)
+}
+
+
+android {
+    namespace 'com.example.opencv'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.example.opencv"
+        minSdk 26
+        targetSdk 35
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    buildFeatures {
+        viewBinding true
+    }
+    packagingOptions {
+        // 排除所有 Netty 的重复索引文件
+        exclude 'META-INF/INDEX.LIST'
+        exclude 'META-INF/io.netty.versions.properties'
+
+        // 可选排除其他冗余文件（减小APK体积）
+        exclude 'META-INF/*.md'
+        exclude 'META-INF/NOTICE'
+    }
+}
+
+dependencies {
+
+    implementation libs.appcompat
+    implementation libs.material
+    implementation libs.activity
+    implementation libs.constraintlayout
+    implementation project(':opencv')
+    implementation libs.gridlayout
+    //implementation libs.firebase.crashlytics.buildtools
+    implementation "commons-codec:commons-codec:1.16.0"
+    implementation "commons-logging:commons-logging:1.2"
+    implementation 'io.netty:netty-buffer:4.1.97.Final'    // 缓冲区实现
+    implementation 'io.netty:netty-transport:4.1.97.Final' // 传输层抽象
+    implementation 'io.netty:netty-codec:4.1.97.Final'       // 基础编解码
+    implementation 'io.netty:netty-handler:4.1.97.Final'   // 通用处理器
+    implementation libs.junit
+    implementation project(':app:whiteboardlib')
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
+    implementation 'com.github.yalantis:ucrop:2.2.10'
+    implementation 'com.squareup.picasso:picasso:2.8'
+    implementation 'io.fotoapparat:fotoapparat:2.7.0'
+
+}

@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".image.ImageEditActivity">
+
+<!--    &lt;!&ndash; 顶部按钮区域 &ndash;&gt;-->
+<!--    <LinearLayout-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:orientation="horizontal"-->
+<!--        android:gravity="center">-->
+
+<!--        &lt;!&ndash; 选择图片按钮 &ndash;&gt;-->
+<!--        <Button-->
+<!--            android:id="@+id/btnSelect"-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_weight="1"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="选择图片" />-->
+
+<!--        &lt;!&ndash; 拍摄照片按钮 &ndash;&gt;-->
+<!--        <Button-->
+<!--            android:id="@+id/btnCapture"-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_weight="1"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="拍摄照片" />-->
+<!--    </LinearLayout>-->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/toolbar"
+        android:title="@string/app_name"
+        app:titleTextColor="@android:color/white" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/background_color"
+        android:gravity="top"
+        android:orientation="vertical"
+        android:weightSum="1">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:background="@color/background_color"
+            android:gravity="top"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:layout_weight="0.925">
+        <!-- 图片显示区域 -->
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:scaleType="fitCenter"
+            android:background="@android:color/darker_gray" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        android:padding="0dp"
+                        android:visibility="visible">
+                        <TextView
+                            android:id="@+id/seekBar1Text"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:text="Option 1"
+                            android:gravity="center"/>
+
+                        <SeekBar
+                            android:id="@+id/seekBar1"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:max="100"
+                            android:progress="0"
+                            android:layout_margin="16dp"/>
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        android:padding="0dp">
+                        <TextView
+                            android:id="@+id/seekBar2Text"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:text="Option 2"
+                            android:gravity="center"/>
+
+                        <SeekBar
+                            android:id="@+id/seekBar2"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:max="100"
+                            android:progress="0"
+                            android:layout_margin="16dp"/>
+                    </LinearLayout>
+                </LinearLayout>
+                <!-- 底部滑动操作栏 -->
+                <!-- 编辑操作栏 -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:padding="0dp">
+
+                    <HorizontalScrollView
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="match_parent"
+                        android:scrollbars="none">
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center"
+                            android:paddingHorizontal="8dp">
+
+                            <Button
+                                android:id="@+id/btnGrayscale"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="灰度" />
+
+                            <Button
+                                android:id="@+id/btnBinary"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="黑白"
+                                android:layout_marginStart="8dp" />
+
+                            <Button
+                                android:id="@+id/btnBlur"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="高斯模糊"
+                                android:layout_marginStart="8dp"/>
+
+                            <!-- 半调网屏 -->
+                            <Button
+                                android:id="@+id/btnHalftone"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:text="半调网屏" />
+
+                            <Button
+                                android:id="@+id/btnRotate"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:text="旋转"/>
+
+                            <Button
+                                android:id="@+id/btnCrop"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="裁剪"
+                                android:layout_marginStart="8dp"/>
+
+                            <Button
+                                android:id="@+id/btnHorizontalFlip"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="水平翻转"
+                                android:layout_marginStart="8dp"/>
+
+                            <Button
+                                android:id="@+id/btnVerticalFlip"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="垂直翻转"
+                                android:layout_marginStart="8dp"/>
+                            <Button
+                                android:id="@+id/BackToOrigin"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:layout_marginEnd="8dp"
+                                android:text="撤销操作"
+                                android:visibility="visible" />
+
+                            <Button
+                                android:id="@+id/btnSave"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="保存"
+                                android:layout_marginStart="8dp"
+                                android:visibility="gone"/>
+
+                            <!-- 生成G代码 -->
+                            <Button
+                                android:id="@+id/GCodeGen"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:layout_marginEnd="8dp"
+                                android:visibility="gone"
+                                android:text="生成G代码" />
+
+                        </LinearLayout>
+                    </HorizontalScrollView>
+
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:paddingHorizontal="8dp"
+                    android:weightSum="1"
+                    android:visibility="gone">
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        android:paddingHorizontal="8dp"
+                        android:layout_weight="0.5">
+                        <Button
+                            android:id="@+id/graffiti"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="下一步" />
+                    </LinearLayout>
+
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/rg_tab"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.075"
+            android:background="@color/white"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:weightSum="1">
+
+            <ImageButton
+                android:id="@+id/bottom_button1"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_marginVertical="10dp"
+                android:layout_weight="0.4"
+                android:adjustViewBounds="true"
+                android:src="@drawable/home_icon"
+                android:background="@null"
+                android:onClick="mainPage"
+                android:scaleType="fitCenter" />
+
+            <ImageButton
+                android:id="@+id/bottom_button2"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_marginVertical="0dp"
+                android:layout_weight="0.2"
+                android:adjustViewBounds="true"
+                android:src="@drawable/add_icon"
+                android:background="@null"
+                android:onClick="editImage"
+                android:scaleType="fitCenter" />
+
+            <ImageButton
+                android:id="@+id/bottom_button3"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_marginVertical="10dp"
+                android:layout_weight="0.4"
+                android:adjustViewBounds="true"
+                android:src="@drawable/continue_icon"
+                android:onClick="goNext"
+                android:background="@null"
+                android:scaleType="fitCenter" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

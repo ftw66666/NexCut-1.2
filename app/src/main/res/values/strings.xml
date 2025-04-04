@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">NexCut-X1 Space</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+    <string name="CAMERA">拍摄</string>
+    <string name="GALLERY">相册</string>
+    <string name="EditImage">编辑</string>
+    <string name="Prefab">预设</string>
+    <string name="noboringactionbar_title">Beautiful picture</string>
+    <string name="company_name">au3tech</string>
+    <string name="user">user</string>
+    <string name="File">文件</string>
+    <string name="action_settings">Settings</string>
+    <string-array name="axis_numbers">
+        <item>轴0</item>
+        <item>轴1</item>
+        <item>轴2</item>
+        <item>轴3</item>
+    </string-array>
+</resources>
