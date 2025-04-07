@@ -16,6 +16,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
 
@@ -32,6 +33,7 @@ import android.widget.SeekBar;
 import android.widget.Toast;
 
 import com.example.opencv.Constant;
+import com.example.opencv.Utils.ProgressBarUtils;
 import com.example.opencv.device.DeviceActivity;
 import com.example.opencv.device.DeviceInfoActivity;
 import com.yalantis.ucrop.UCrop;
@@ -89,7 +91,8 @@ public class ImageEditActivity extends AppCompatActivity {
     private SeekBar contrastSeekBar;
     private float brightnessValue = 0f; // 范围：-255 到 255
     private float contrastValue = 1f;   // 范围：0.1 到 3
-
+    ProgressBarUtils progressHelper;
+    android.os.Handler handler;
 
 
     ModbusTCPClient mtcp = ModbusTCPClient.getInstance();
@@ -171,6 +174,8 @@ public class ImageEditActivity extends AppCompatActivity {
         Button btnVerticalFlip = findViewById(R.id.btnVerticalFlip);
         Button btnHorizontalFlip = findViewById(R.id.btnHorizontalFlip);
         Button btnBack = findViewById(R.id.BackToOrigin);
+        handler = new Handler(Looper.getMainLooper());
+        progressHelper = new ProgressBarUtils();
         InitialImage();
         graffitiToGCode();
 
@@ -630,7 +635,7 @@ public class ImageEditActivity extends AppCompatActivity {
     }
 
     private void applyHalftone() {
-        Toast.makeText(this, "运算中", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "半调网屏运算中", Toast.LENGTH_LONG).show();
         if (selectedBitmap != null) {
             selectedBitmap = HalftoneDithering.applyHalftone(selectedBitmap);
             imageView.setImageBitmap(selectedBitmap);
@@ -655,8 +660,15 @@ public class ImageEditActivity extends AppCompatActivity {
     private void graffitiToGCode() {
         if (getIntent().getStringExtra("GCodeimageUri") == null) return;
         else {
+
             float corpAspectRatio = getIntent().getFloatExtra("printerAspectRatio",1.2f);
             try {
+//                handler.post(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        runOnUiThread(() -> progressHelper.showProgressDialog(ImageEditActivity.this,"GCode生成中")) ;// 显示对话框
+//                    }
+//                });
                 imageUri = Uri.parse(getIntent().getStringExtra("GCodeimageUri"));
                 selectedBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
                 originalBitmap = selectedBitmap.copy(selectedBitmap.getConfig(), true);
@@ -667,6 +679,7 @@ public class ImageEditActivity extends AppCompatActivity {
 
                 Mat m = ImageProcessor.bitmapToMat(selectedBitmap);
                 Mat createdMat = GCode.cropGCode(ImageProcessor.bitmapToMat(selectedBitmap), Constant.PlatformWidth,Constant.PlatformHeight);
+                Toast.makeText(this, "图片处理中", Toast.LENGTH_LONG).show();
                 selectedBitmap = ImageProcessor.matToBitmap(GCode.cropGCode(ImageProcessor.bitmapToMat(selectedBitmap), Constant.PlatformWidth,Constant.PlatformHeight));
 
                 if(getIntent().getBooleanExtra("isHalftone",false))
@@ -677,6 +690,12 @@ public class ImageEditActivity extends AppCompatActivity {
 
                 createdMat = ImageProcessor.bitmapToMat(selectedBitmap);
                 String gcode = GCode.generateGCode0(createdMat,48,Constant.PlatformWidth,Constant.PlatformHeight);
+//                handler.post(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        runOnUiThread(() -> progressHelper.dismissDialog());
+//                    }
+//                });
                 showSaveDialog(this, gcode); // 弹出文件名输入框
 
 

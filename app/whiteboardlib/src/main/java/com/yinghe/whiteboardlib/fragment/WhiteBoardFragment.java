@@ -859,10 +859,10 @@ public class WhiteBoardFragment extends Fragment implements SketchView.OnDrawCha
             @Override
             public void onDismiss() {
                 if (!strokeET.getText().toString().equals("")) {
-                    record.text = strokeET.getText().toString();
-                    record.textPaint.setTextSize(strokeET.getTextSize());
-                    record.textWidth = strokeET.getMaxWidth();
-                    mSketchView.addStrokeRecord(record);
+//                    record.text = strokeET.getText().toString();
+//                    record.textPaint.setTextSize(strokeET.getTextSize());
+//                    record.textWidth = strokeET.getMaxWidth();
+//                    mSketchView.addStrokeRecord(record);
                     createTextImage(strokeET.getText().toString(),record);
                 }
             }
@@ -875,17 +875,18 @@ public class WhiteBoardFragment extends Fragment implements SketchView.OnDrawCha
         TextPaint textPaint = new TextPaint(record.textPaint);
         textPaint.setColor(mSketchView.strokeRealColor); // 使用当前画笔颜色
         //120 神秘参数
-        textPaint.setTextSize(mSketchView.strokeSize * 120); // 调整文字大小
+        textPaint.setTextSize(mSketchView.strokeSize * 114); // 调整文字大小
 
         Paint.FontMetrics fontMetrics = textPaint.getFontMetrics();
 
         // 计算文本尺寸（包含上升和下降部分）
-        int padding = 0;
+        int padding = 20;
         int width = (int) textPaint.measureText(text) + padding * 2;
         int height = (int) (fontMetrics.descent - fontMetrics.ascent) + padding * 2;
 
         Bitmap textBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas textCanvas = new Canvas(textBitmap);
+        FrameLayout whiteboard = getView().findViewById(R.id.whiteBoard);
 
         // 2. 绘制透明背景
         textCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
@@ -903,7 +904,9 @@ public class WhiteBoardFragment extends Fragment implements SketchView.OnDrawCha
             out.flush();
             out.close();
 
-            addPhotoByPath(Uri.fromFile(photoTextFile).getPath());
+            addPhotoByPath(Uri.fromFile(photoTextFile).getPath(),
+                    2*record.textOffX - whiteboard.getWidth()/2f + width/4f,
+                    2*record.textOffY - whiteboard.getHeight()/2f + height/4f);
             // 5. 添加到画板
 //            if (photoTextFile != null) {
 //                addPhotoByPath(photoTextFile.getAbsolutePath());

@@ -9,6 +9,8 @@ import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -31,6 +33,7 @@ import androidx.fragment.app.FragmentTransaction;
 import com.example.opencv.Constant;
 import com.example.opencv.MainActivity;
 import com.example.opencv.R;
+import com.example.opencv.Utils.ProgressBarUtils;
 import com.example.opencv.image.ImageEditActivity;
 import com.yinghe.whiteboardlib.fragment.WhiteBoardFragment;
 
@@ -51,6 +54,9 @@ public class WhiteboardActivity extends AppCompatActivity {
     private FrameLayout whiteboardlayout;
 
     public Toolbar toolbar;
+
+    public Handler handler;
+    public ProgressBarUtils progressHelper;
 
     private static int TARGET_WIDTH=1600;
 
@@ -81,6 +87,9 @@ public class WhiteboardActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0);
             return insets;
         });
+
+        handler = new Handler(Looper.getMainLooper());
+        progressHelper = new ProgressBarUtils();
 
         FragmentTransaction ts = getSupportFragmentManager().beginTransaction();
         ts.add(R.id.fl_main, whiteBoardFragment, "wb").commitNow();
@@ -312,10 +321,17 @@ public class WhiteboardActivity extends AppCompatActivity {
         builder.setPositiveButton("确认", (dialog, which) -> {
             //boolean isHalftone = halftoneCheckbox.isChecked();
             imageEditActivityGCode(halftoneCheckbox.isChecked());
+//            handler.post(new Runnable() {
+//                @Override
+//                public void run() {
+//                    runOnUiThread(() -> progressHelper.showProgressDialog(WhiteboardActivity.this,"GCode生成中")) ;// 显示对话框
+//                }
+//            });
             //Toast.makeText(context, "你选择了：" + (useHalftone ? "使用" : "不使用") + "半调网屏", Toast.LENGTH_SHORT).show();
         });
 
         builder.setNegativeButton("取消", (dialog, which) -> dialog.dismiss());
+
 
         builder.show();
     }
