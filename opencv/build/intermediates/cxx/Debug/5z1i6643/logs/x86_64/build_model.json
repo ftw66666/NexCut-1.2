@@ -154,7 +154,7 @@
         "rootBuildGradleFolder": "E:\\Android\\NexCut04",
         "sdkFolder": "E:\\Android\\AppData\\Local\\Android\\Sdk",
         "isBuildOnlyTargetAbiEnabled": true,
-        "ideBuildTargetAbi": "x86_64,arm64-v8a",
+        "ideBuildTargetAbi": "x86_64",
         "isCmakeBuildCohabitationEnabled": false,
         "isPrefabEnabled": false
       },

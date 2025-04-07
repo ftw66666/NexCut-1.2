@@ -1,4 +1,2 @@
-# Auto detect text files and perform LF normalization
-* text=auto
-opencv/build/intermediates/local_aar_for_lint/release/out.aar filter=lfs diff=lfs merge=lfs -text
-app/src/main/jniLibs/x86_64/libopencv_java454.so filter=lfs diff=lfs merge=lfs -text
+*.arr filter=lfs diff=lfs merge=lfs -text
+*.aar filter=lfs diff=lfs merge=lfs -text
