@@ -39,46 +39,69 @@ public class GCode {
         int rows = grayImage.rows();
         int cols = grayImage.cols();
 
-        // 物理尺寸直接使用目标尺寸
         double width_mm = targetWidth;
         double height_mm = targetHeight;
-        double pixelWidth = width_mm / cols; // X轴每像素毫米数
-        double yStep = 1.0 / rho;           // Y轴步进量（毫米/线）
+        double pixelWidth = width_mm / cols;
+        double yStep = 1.0 / rho;
 
-        // 计算总Y步数 = 目标高度(mm) * 线密度(rho)
         int totalYSteps = (int) (height_mm * rho);
 
         for (int step = 0; step < totalYSteps; step++) {
-            double currentY = step * yStep; // 当前物理Y位置
-            // 映射到原图像行（最近邻插值）
+            double currentY = step * yStep;
+            double flippedY = height_mm - currentY; // 翻转Y轴，图像从下往上雕刻
             int yPixel = (int) (currentY / height_mm * rows);
             if (yPixel >= rows) yPixel = rows - 1;
 
             boolean isEngraving = false;
             double xStart = -1;
 
-            for (int x = 0; x < cols; x++) {
-                double grayValue = grayImage.get(yPixel, x)[0];
-                boolean shouldEngrave = grayValue < 128;
+            if (step % 2 == 0) {
+                // 偶数行：从左到右
+                for (int x = 0; x < cols; x++) {
+                    double grayValue = grayImage.get(yPixel, x)[0];
+                    boolean shouldEngrave = grayValue < 128;
 
-                if (shouldEngrave) {
-                    if (!isEngraving) {
-                        xStart = x * pixelWidth;
-                        gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart, currentY));
-                        isEngraving = true;
-                    }
-                } else {
-                    if (isEngraving) {
+                    if (shouldEngrave) {
+                        if (!isEngraving) {
+                            xStart = x * pixelWidth;
+                            gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart, flippedY));
+                            isEngraving = true;
+                        }
+                    } else if (isEngraving) {
                         double xEnd = (x - 1) * pixelWidth;
-                        gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd, currentY, laserPower));
+                        gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd, flippedY, laserPower));
                         isEngraving = false;
                     }
                 }
-            }
 
-            if (isEngraving) {
-                double xEnd = (cols - 1) * pixelWidth;
-                gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd, currentY, laserPower));
+                if (isEngraving) {
+                    double xEnd = (cols - 1) * pixelWidth;
+                    gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd, flippedY, laserPower));
+                }
+
+            } else {
+                // 奇数行：从右到左
+                for (int x = cols - 1; x >= 0; x--) {
+                    double grayValue = grayImage.get(yPixel, x)[0];
+                    boolean shouldEngrave = grayValue < 128;
+
+                    if (shouldEngrave) {
+                        if (!isEngraving) {
+                            xStart = x * pixelWidth;
+                            gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart, flippedY));
+                            isEngraving = true;
+                        }
+                    } else if (isEngraving) {
+                        double xEnd = (x + 1) * pixelWidth;
+                        gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd, flippedY, laserPower));
+                        isEngraving = false;
+                    }
+                }
+
+                if (isEngraving) {
+                    double xEnd = 0;
+                    gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd, flippedY, laserPower));
+                }
             }
         }
 

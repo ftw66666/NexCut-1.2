@@ -67,53 +67,58 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:visibility="gone">
+                    android:visibility="visible">
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
                         android:gravity="center"
+                        android:orientation="horizontal"
                         android:padding="0dp"
                         android:visibility="visible">
+
                         <TextView
                             android:id="@+id/seekBar1Text"
                             android:layout_width="wrap_content"
                             android:layout_height="match_parent"
-                            android:text="Option 1"
-                            android:gravity="center"/>
+                            android:gravity="center"
+                            android:text="亮度" />
 
                         <SeekBar
                             android:id="@+id/seekBar1"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:layout_margin="16dp"
                             android:max="100"
-                            android:progress="0"
-                            android:layout_margin="16dp"/>
+                            android:progress="0" />
                     </LinearLayout>
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
                         android:gravity="center"
+                        android:orientation="horizontal"
                         android:padding="0dp">
+
                         <TextView
                             android:id="@+id/seekBar2Text"
                             android:layout_width="wrap_content"
                             android:layout_height="match_parent"
-                            android:text="Option 2"
-                            android:gravity="center"/>
+                            android:gravity="center"
+                            android:text="对比度" />
 
                         <SeekBar
                             android:id="@+id/seekBar2"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:layout_margin="16dp"
                             android:max="100"
-                            android:progress="0"
-                            android:layout_margin="16dp"/>
+                            android:progress="0" />
                     </LinearLayout>
                 </LinearLayout>
                 <!-- 底部滑动操作栏 -->
@@ -147,7 +152,14 @@
                                 android:id="@+id/btnBinary"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="黑白"
+                                android:text="二值化"
+                                android:layout_marginStart="8dp" />
+
+                            <Button
+                                android:id="@+id/btnInvert"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="反色"
                                 android:layout_marginStart="8dp" />
 
                             <Button
@@ -163,7 +175,8 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="8dp"
-                                android:text="半调网屏" />
+                                android:text="半调网屏"
+                                android:visibility="gone" />
 
                             <Button
                                 android:id="@+id/btnRotate"
