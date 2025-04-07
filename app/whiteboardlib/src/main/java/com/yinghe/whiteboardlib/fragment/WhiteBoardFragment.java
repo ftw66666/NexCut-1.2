@@ -12,14 +12,15 @@ import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
+import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 
+import android.text.TextPaint;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -53,6 +54,7 @@ import com.yinghe.whiteboardlib.view.SketchView;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -70,7 +72,14 @@ import androidx.fragment.app.Fragment;
 public class WhiteBoardFragment extends Fragment implements SketchView.OnDrawChangedListener, View.OnClickListener {
 
     final String TAG = getClass().getSimpleName();
-
+    File photoTextFile;
+    public void setPhotoTextFile(File imageFile) {
+        photoTextFile = imageFile;
+    }
+    public File getPhotoTextFile()
+    {
+        return photoTextFile;
+    }
     public interface SendBtnCallback {
         void onSendBtnClick(File filePath);
     }
@@ -232,6 +241,13 @@ public class WhiteBoardFragment extends Fragment implements SketchView.OnDrawCha
      * create at 16/6/21 下午3:42
      */
     public void addPhotoByPath(String imgPath, float x, float y) {
+        showSketchView(true);
+        mSketchView.addPhotoByPath(imgPath);
+        mSketchView.setEditMode(SketchView.EDIT_PHOTO);//切换图片编辑模式
+        mSketchView.onDragAction(x,y);
+    }
+
+    public void addPhotoByPath(String imgPath) {
         showSketchView(true);
         mSketchView.addPhotoByPath(imgPath);
         mSketchView.setEditMode(SketchView.EDIT_PHOTO);//切换图片编辑模式
@@ -847,9 +863,55 @@ public class WhiteBoardFragment extends Fragment implements SketchView.OnDrawCha
                     record.textPaint.setTextSize(strokeET.getTextSize());
                     record.textWidth = strokeET.getMaxWidth();
                     mSketchView.addStrokeRecord(record);
+                    createTextImage(strokeET.getText().toString(),record);
                 }
             }
         });
+    }
+
+    // 新增方法：创建文字图片并添加到画板
+    private void createTextImage(String text, StrokeRecord record) {
+        // 1. 创建透明背景的Bitmap
+        TextPaint textPaint = new TextPaint(record.textPaint);
+        textPaint.setColor(mSketchView.strokeRealColor); // 使用当前画笔颜色
+        //120 神秘参数
+        textPaint.setTextSize(mSketchView.strokeSize * 120); // 调整文字大小
+
+        Paint.FontMetrics fontMetrics = textPaint.getFontMetrics();
+
+        // 计算文本尺寸（包含上升和下降部分）
+        int padding = 0;
+        int width = (int) textPaint.measureText(text) + padding * 2;
+        int height = (int) (fontMetrics.descent - fontMetrics.ascent) + padding * 2;
+
+        Bitmap textBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        Canvas textCanvas = new Canvas(textBitmap);
+
+        // 2. 绘制透明背景
+        textCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+
+        // 3. 绘制文字
+        textCanvas.drawText(text, padding, textPaint.getTextSize() + padding/2, textPaint);
+
+        // 4. 保存临时文件
+        String fileName = "text_" + System.currentTimeMillis() + ".png";
+
+        try {
+
+            FileOutputStream out = new FileOutputStream(photoTextFile);
+            textBitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+            out.flush();
+            out.close();
+
+            addPhotoByPath(Uri.fromFile(photoTextFile).getPath());
+            // 5. 添加到画板
+//            if (photoTextFile != null) {
+//                addPhotoByPath(photoTextFile.getAbsolutePath());
+//            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
 
@@ -1176,4 +1238,5 @@ public class WhiteBoardFragment extends Fragment implements SketchView.OnDrawCha
             }
         });
     }
+
 }

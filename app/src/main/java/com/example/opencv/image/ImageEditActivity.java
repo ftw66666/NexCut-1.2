@@ -83,7 +83,7 @@ public class ImageEditActivity extends AppCompatActivity {
 
     private Uri imageUri;
 
-    public static Toolbar toolbar;
+    public Toolbar toolbar;
     private SeekBar brightnessSeekBar;
     private SeekBar contrastSeekBar;
     private float brightnessValue = 0f; // 范围：-255 到 255

@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
     public static Uri imageUri;
 
     public static Bitmap bitmap;
-    public static Toolbar toolbar;
+    public Toolbar toolbar;
 
     public static int textColor;
     public static int backgroundColor;

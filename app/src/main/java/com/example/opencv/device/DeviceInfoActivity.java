@@ -43,7 +43,7 @@ public class DeviceInfoActivity extends AppCompatActivity {
     private Handler handler;
     private Thread readThread;
     private volatile boolean isRunning = true;
-    public static Toolbar toolbar;
+    public Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

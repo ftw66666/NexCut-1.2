@@ -56,9 +56,9 @@ public class DeviceActivity extends AppCompatActivity implements UdpReceiver.OnD
     private RecyclerView deviceTable;
     private ExecutorService executorService;
     private Handler expirationHandler = new Handler(Looper.getMainLooper());
-    public static ImageView noDeviceImage;
+    public ImageView noDeviceImage;
 
-    public static Toolbar toolbar;
+    public Toolbar toolbar;
 
 
     @Override

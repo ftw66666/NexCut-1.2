@@ -15,9 +15,11 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -45,6 +47,8 @@ public class WhiteboardActivity extends AppCompatActivity {
 
     private FrameLayout whiteboardlayout;
 
+    public Toolbar toolbar;
+
     private static int TARGET_WIDTH=1600;
 
     @Override
@@ -54,6 +58,13 @@ public class WhiteboardActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_whiteboard);
         whiteBoardFragment = WhiteBoardFragment.newInstance();
+
+        try {
+            whiteBoardFragment.setPhotoTextFile(createImageFile());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         whiteBoardFragment.setPrinterAspectRatio(Constant.PlatformWidth / (float) Constant.PlatformHeight);
         whiteBoardFragment.setPlatformWidth(Constant.PlatformWidth);
         whiteBoardFragment.setPlatformHeight(Constant.PlatformHeight);
@@ -71,8 +82,10 @@ public class WhiteboardActivity extends AppCompatActivity {
         FragmentTransaction ts = getSupportFragmentManager().beginTransaction();
         ts.add(R.id.fl_main, whiteBoardFragment, "wb").commitNow();
 
-        whiteboardlayout = findViewById(R.id.fl_main); // whiteboardlayout
 
+        whiteboardlayout = findViewById(R.id.fl_main); // whiteboardlayout
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
 
         whiteBoardFragment.setOnFragmentReadyListener(() -> {
@@ -80,6 +93,7 @@ public class WhiteboardActivity extends AppCompatActivity {
         });
 
     }
+
 
     public void setPrinterAspectRatio(float printerAspectRatio) {
         whiteBoardFragment.setPrinterAspectRatio(printerAspectRatio);
@@ -99,7 +113,8 @@ public class WhiteboardActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         whiteBoardFragment.addPhotoByPath(
-                                imageUri.getPath(), whiteboardlayout.getWidth(), whiteboardlayout.getHeight());
+                                imageUri.getPath());
+                                //imageUri.getPath(), whiteboardlayout.getWidth(), whiteboardlayout.getHeight());
                     }
                 });
                 //whiteBoardFragment.setCurBackgroundByPath(imageUri.getPath());
@@ -109,27 +124,44 @@ public class WhiteboardActivity extends AppCompatActivity {
         }
     }
 
+    // 加载 Toolbar 菜单
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.toolbar_menu, menu);
         return true;
     }
 
+    // 监听 Toolbar 按钮点击事件
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (item.getItemId() == R.id.User_image) {
+            Toast.makeText(this, "社区功能开发中", Toast.LENGTH_SHORT).show();
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
+
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        // Inflate the menu; this adds items to the action bar if it is present.
+//        getMenuInflater().inflate(R.menu.menu_main, menu);
+//        return true;
+//    }
+//
+//    @Override
+//    public boolean onOptionsItemSelected(MenuItem item) {
+//        // Handle action bar item clicks here. The action bar will
+//        // automatically handle clicks on the Home/Up button, so long
+//        // as you specify a parent activity in AndroidManifest.xml.
+//        int id = item.getItemId();
+//
+//        //noinspection SimplifiableIfStatement
+//        if (id == R.id.action_settings) {
+//            return true;
+//        }
+//
+//        return super.onOptionsItemSelected(item);
+//    }
 
 //    @Override
 //    public void onBackPressed() {

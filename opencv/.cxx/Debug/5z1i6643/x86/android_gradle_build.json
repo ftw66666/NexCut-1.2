@@ -1,19 +1,19 @@
 {
   "buildFiles": [
-    "D:\\androidproject\\NexCut0404\\opencv\\libcxx_helper\\CMakeLists.txt"
+    "E:\\Android\\NexCut04\\opencv\\libcxx_helper\\CMakeLists.txt"
   ],
   "cleanCommandsComponents": [
     [
-      "C:\\Users\\yukikaze\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+      "E:\\Android\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
       "-C",
-      "D:\\androidproject\\NexCut0404\\opencv\\.cxx\\Debug\\5z1i6643\\x86",
+      "E:\\Android\\NexCut04\\opencv\\.cxx\\Debug\\5z1i6643\\x86",
       "clean"
     ]
   ],
   "buildTargetsCommandComponents": [
-    "C:\\Users\\yukikaze\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+    "E:\\Android\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
     "-C",
-    "D:\\androidproject\\NexCut0404\\opencv\\.cxx\\Debug\\5z1i6643\\x86",
+    "E:\\Android\\NexCut04\\opencv\\.cxx\\Debug\\5z1i6643\\x86",
     "{LIST_OF_TARGETS_TO_BUILD}"
   ],
   "libraries": {
@@ -21,13 +21,13 @@
       "toolchain": "toolchain",
       "abi": "x86",
       "artifactName": "opencv_jni_shared",
-      "output": "D:\\androidproject\\NexCut0404\\opencv\\.cxx\\Debug\\5z1i6643\\x86\\libopencv_jni_shared.a"
+      "output": "E:\\Android\\NexCut04\\opencv\\.cxx\\Debug\\5z1i6643\\x86\\libopencv_jni_shared.a"
     }
   },
   "toolchains": {
     "toolchain": {
-      "cCompilerExecutable": "C:\\Users\\yukikaze\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang.exe",
-      "cppCompilerExecutable": "C:\\Users\\yukikaze\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe"
+      "cCompilerExecutable": "E:\\Android\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang.exe",
+      "cppCompilerExecutable": "E:\\Android\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe"
     }
   },
   "cFileExtensions": [],

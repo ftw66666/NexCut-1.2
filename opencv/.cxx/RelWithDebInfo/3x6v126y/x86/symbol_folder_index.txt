@@ -1,1 +1,1 @@
-D:\AndroidProject\NexCut\opencv\build\intermediates\cxx\RelWithDebInfo\3x6v126y\obj\x86
+E:\Android\NexCut04\opencv\build\intermediates\cxx\RelWithDebInfo\3x6v126y\obj\x86

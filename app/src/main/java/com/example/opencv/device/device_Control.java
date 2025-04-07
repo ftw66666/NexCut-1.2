@@ -68,7 +68,7 @@ public class device_Control extends AppCompatActivity {
     private List<ImageView> DIImageViews;
     private Button button_Zup;
     private Button button_Zdown;
-    private static Toolbar toolbar;
+    private Toolbar toolbar;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
