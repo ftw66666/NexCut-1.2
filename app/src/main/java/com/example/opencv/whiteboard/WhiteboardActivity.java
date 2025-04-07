@@ -1,6 +1,8 @@
 package com.example.opencv.whiteboard;
 
 
+import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
@@ -13,6 +15,7 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.CheckBox;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -208,7 +211,32 @@ public class WhiteboardActivity extends AppCompatActivity {
         Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
         view.startAnimation(scaleIn);
 
+        showHalftoneDialog(this);
         //bitmap = whiteBoardFragment.getResultBitmap();
+//        bitmap = resizeBitmapByWidth(whiteBoardFragment.getResultBitmap(), Constant.PlatformWidth);
+//        try {
+//            File tempFile = createImageFile(); // 创建临时文件
+//            FileOutputStream out = new FileOutputStream(tempFile);
+//            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+//            out.flush();
+//            out.close();
+//
+//            imageUri = Uri.fromFile(tempFile);
+//
+//            // 传递 URI 给下一个 Activity
+//            Intent intent = new Intent(this, ImageEditActivity.class);
+//            intent.putExtra("GCodeimageUri", imageUri.toString());
+//            intent.putExtra("printerAspectRatio", getPrinterAspectRatio());
+//            startActivity(intent);
+//
+//            //imageView.setImageBitmap(bitmap);
+//
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+    }
+    public void imageEditActivityGCode(boolean isHalftone)
+    {
         bitmap = resizeBitmapByWidth(whiteBoardFragment.getResultBitmap(), Constant.PlatformWidth);
         try {
             File tempFile = createImageFile(); // 创建临时文件
@@ -222,6 +250,7 @@ public class WhiteboardActivity extends AppCompatActivity {
             // 传递 URI 给下一个 Activity
             Intent intent = new Intent(this, ImageEditActivity.class);
             intent.putExtra("GCodeimageUri", imageUri.toString());
+            intent.putExtra("isHalftone",isHalftone);
             intent.putExtra("printerAspectRatio", getPrinterAspectRatio());
             startActivity(intent);
 
@@ -231,6 +260,7 @@ public class WhiteboardActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+
 
     public static Bitmap resizeBitmapByWidth(Bitmap originalBitmap, int targetWidth) {
         // 获取原始尺寸
@@ -257,6 +287,37 @@ public class WhiteboardActivity extends AppCompatActivity {
                 matrix,
                 true
         );
+    }
+
+
+    public void showHalftoneDialog(Context context) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("GCode选项");
+
+        // 创建一个垂直方向的 LinearLayout 作为容器
+        LinearLayout layout = new LinearLayout(context);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        int padding = (int) (context.getResources().getDisplayMetrics().density * 20); // 20dp padding
+        layout.setPadding(padding, padding, padding, padding);
+
+        // 创建 CheckBox
+        CheckBox halftoneCheckbox = new CheckBox(context);
+        halftoneCheckbox.setText("启用半调网屏");
+
+        // 添加到布局中
+        layout.addView(halftoneCheckbox);
+
+        builder.setView(layout);
+
+        builder.setPositiveButton("确认", (dialog, which) -> {
+            //boolean isHalftone = halftoneCheckbox.isChecked();
+            imageEditActivityGCode(halftoneCheckbox.isChecked());
+            //Toast.makeText(context, "你选择了：" + (useHalftone ? "使用" : "不使用") + "半调网屏", Toast.LENGTH_SHORT).show();
+        });
+
+        builder.setNegativeButton("取消", (dialog, which) -> dialog.dismiss());
+
+        builder.show();
     }
 }
 

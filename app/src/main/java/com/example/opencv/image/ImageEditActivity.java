@@ -31,6 +31,7 @@ import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
+import com.example.opencv.Constant;
 import com.example.opencv.device.DeviceActivity;
 import com.example.opencv.device.DeviceInfoActivity;
 import com.yalantis.ucrop.UCrop;
@@ -424,12 +425,12 @@ public class ImageEditActivity extends AppCompatActivity {
 
 
     private void generateCode() {
-        if (selectedBitmap != null) {
-            Mat m = ImageProcessor.bitmapToMat(selectedBitmap);
-            //rho:线密度
-            String gcode = GCode.generateGCode(m, 96,ImageEditActivity.this,400,400);
-            showSaveDialog(this, gcode); // 弹出文件名输入框
-        }
+//        if (selectedBitmap != null) {
+//            Mat m = ImageProcessor.bitmapToMat(selectedBitmap);
+//            //rho:线密度
+//            String gcode = GCode.cropGCode(m, 96,ImageEditActivity.this, Constant.PlatformWidth,Constant.PlatformHeight);
+//            showSaveDialog(this, gcode); // 弹出文件名输入框
+//        }
     }
 
 
@@ -658,11 +659,29 @@ public class ImageEditActivity extends AppCompatActivity {
             try {
                 imageUri = Uri.parse(getIntent().getStringExtra("GCodeimageUri"));
                 selectedBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
+                originalBitmap = selectedBitmap.copy(selectedBitmap.getConfig(), true);
 
-                //applyCorp()
-                imageView.setImageBitmap(selectedBitmap);
+//                Mat m = ImageProcessor.bitmapToMat(selectedBitmap);
+//                Mat createdMat = GCode.cropGCode(m, Constant.PlatformWidth,Constant.PlatformHeight);
+//                selectedBitmap = ImageProcessor.matToBitmap(createdMat);
 
-                generateCode();
+                Mat m = ImageProcessor.bitmapToMat(selectedBitmap);
+                Mat createdMat = GCode.cropGCode(ImageProcessor.bitmapToMat(selectedBitmap), Constant.PlatformWidth,Constant.PlatformHeight);
+                selectedBitmap = ImageProcessor.matToBitmap(GCode.cropGCode(ImageProcessor.bitmapToMat(selectedBitmap), Constant.PlatformWidth,Constant.PlatformHeight));
+
+                if(getIntent().getBooleanExtra("isHalftone",false))
+                {
+                    applyHalftone();
+                }
+                else imageView.setImageBitmap(selectedBitmap);
+
+                createdMat = ImageProcessor.bitmapToMat(selectedBitmap);
+                String gcode = GCode.generateGCode0(createdMat,48,Constant.PlatformWidth,Constant.PlatformHeight);
+                showSaveDialog(this, gcode); // 弹出文件名输入框
+
+
+
+
             } catch (IOException e) {
                 e.printStackTrace();
             }

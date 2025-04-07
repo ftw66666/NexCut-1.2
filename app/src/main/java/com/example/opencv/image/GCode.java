@@ -87,7 +87,7 @@ public class GCode {
         return gcode.toString();
     }
 
-    public static String generateGCode(Mat image, int rho, Context context, int targetWidth, int targetHeight) {
+    public static Mat cropGCode (Mat image, int targetWidth, int targetHeight) {
         Bitmap bitmap = ImageProcessor.matToBitmap(image);
 
         // 仅裁剪不缩放
@@ -107,7 +107,7 @@ public class GCode {
         Bitmap croppedBitmap = Bitmap.createBitmap(bitmap, x1, y1, cropWidth, cropHeight);
 
         Mat croppedMat = ImageProcessor.bitmapToMat(croppedBitmap);
-        return generateGCode0(croppedMat, rho, targetWidth, targetHeight);
+        return croppedMat;
     }
 
     // 保存方法保持不变
