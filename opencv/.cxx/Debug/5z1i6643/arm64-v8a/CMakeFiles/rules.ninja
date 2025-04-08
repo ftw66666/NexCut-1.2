@@ -42,7 +42,7 @@ rule CUSTOM_COMMAND
 # Rule for re-running cmake.
 
 rule RERUN_CMAKE
-  command = D:\Android\SDK\cmake\3.22.1\bin\cmake.exe --regenerate-during-build -SD:\AndroidProject\NexCut\opencv\libcxx_helper -BD:\AndroidProject\NexCut\opencv\.cxx\Debug\5z1i6643\arm64-v8a
+  command = D:\Android\SDK\cmake\3.22.1\bin\cmake.exe --regenerate-during-build -SD:\AndroidProject\NexCut-1.2\opencv\libcxx_helper -BD:\AndroidProject\NexCut-1.2\opencv\.cxx\Debug\5z1i6643\arm64-v8a
   description = Re-running CMake...
   generator = 1
 

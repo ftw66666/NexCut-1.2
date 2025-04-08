@@ -377,7 +377,17 @@ public class ModbusTCPClient {
             throw new ModbusException("Communication error: " + e.getMessage());
         }
     }
-
+    public List<Integer> ReadMachineInfo() throws ModbusException {
+        try {
+            // 读取Modbus机床信息寄存器
+            List<Integer> readData = readReg(Constant.MachineAddr, Constant.MachineRegCount);
+            // 合并高低字节
+            readData = mergeList(readData);
+            return readData;
+        } catch (ModbusException e) {
+            throw new ModbusException("Communication error: " + e.getMessage());
+        }
+    }
     public List<Integer> ReadAxisInfo() throws ModbusException {
         try {
             // 读取Modbus轴信息寄存器
@@ -492,24 +502,26 @@ public class ModbusTCPClient {
         }
     }
 
-    class FileSendTask implements Callable<Void> {
-        private final int fileAddr;
-        private final byte[] data;
-
-        public FileSendTask(int fileAddr, byte[] data) {
-            this.fileAddr = fileAddr;
-            this.data = data;
+    public void ControlWorkBroder() throws ModbusException {
+        try {
+            List<Integer> value = new ArrayList<>();
+            value.add(Constant.WorkBroder);
+            value = byteToint(value);
+            writeReg(Constant.CommandAddr, value);
+        } catch (ModbusException e) {
+            throw new ModbusException("Communication error: " + e.getMessage());
         }
+    }
 
-        @Override
-        public Void call() {
-            try {
-                FileTransportByte(fileAddr, data);
-                //Log.d("TCPtest", "数据块 " + index + " 发送完成");
-            } catch (ModbusException e) {
-                //Log.e("TCPtest", "数据块 " + index + " 发送失败", e);
-            }
-            return null;
+    public void ControlOfflineProcess(int val) throws ModbusException {
+        try {
+            List<Integer> value = new ArrayList<>();
+            value.add(Constant.OfflineProcess);
+            value.add(val);
+            value = byteToint(value);
+            writeReg(Constant.CommandAddr, value);
+        } catch (ModbusException e) {
+            throw new ModbusException("Communication error: " + e.getMessage());
         }
     }
 

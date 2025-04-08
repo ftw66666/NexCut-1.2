@@ -96,8 +96,6 @@ public class  ImageEditActivity extends AppCompatActivity {
     private float brightnessValue = 0f; // 范围：-255 到 255
     private float contrastValue = 1f;   // 范围：0.1 到 3
 
-
-
     ModbusTCPClient mtcp = ModbusTCPClient.getInstance();
 
     @Override

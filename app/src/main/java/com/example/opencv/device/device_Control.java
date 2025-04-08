@@ -383,6 +383,27 @@ public class device_Control extends AppCompatActivity {
         }).start();
     }
 
+    public void workBroder(View view) {
+        new Thread(new Runnable() {
+            Handler handler = new Handler(Looper.getMainLooper());
+
+            @Override
+            public void run() {
+                try {
+                    mtcp.ControlWorkBroder();
+                } catch (ModbusTCPClient.ModbusException e) {
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            mtcp.onWriteFailed(device_Control.this);
+                        }
+                    });
+                    Log.d("TCPTest", e.getMessage());
+                }
+            }
+        }).start();
+    }
+
     public void mainPage(View view) {
         Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
         view.startAnimation(scaleIn);

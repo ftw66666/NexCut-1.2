@@ -1,1 +1,1 @@
-D:\androidproject\NexCut-1.2\opencv\build\intermediates\cxx\Debug\5z1i6643\obj\x86
+D:\AndroidProject\NexCut-1.2\opencv\build\intermediates\cxx\Debug\5z1i6643\obj\x86
