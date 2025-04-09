@@ -1,1 +1,1 @@
-E:\Android\NexCut04\opencv\libcxx_helper\CMakeLists.txt
+D:\androidproject\NexCut-1.2\opencv\libcxx_helper\CMakeLists.txt

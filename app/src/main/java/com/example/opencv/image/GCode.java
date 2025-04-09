@@ -29,7 +29,7 @@ import android.widget.Toast;
 public class GCode {
     private static final int MAX_POWER = 255;
 
-    public static String generateGCode0(Mat image, double rho, int targetWidth, int targetHeight) {
+    public static String generateGCode0(Mat image, double rho, int targetWidth, int targetHeight,double startX,double startY) {
         int laserPower = 20;
         StringBuilder gcode = new StringBuilder();
         gcode.append("G0 X0 Y0 F1000\n");

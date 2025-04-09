@@ -706,9 +706,10 @@ public class  ImageEditActivity extends AppCompatActivity {
                 imageUri = Uri.parse(getIntent().getStringExtra("GCodeimageUri"));
                 selectedBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
                 originalBitmap = selectedBitmap.copy(selectedBitmap.getConfig(), true);
-
+                GCode.saveBitmapToFile(originalBitmap, this, "original.png");
                 Mat m = ImageProcessor.bitmapToMat(selectedBitmap);
-                Mat createdMat = GCode.cropGCode(m, Constant.PlatformWidth,Constant.PlatformHeight);
+                Mat createdMat = GCode.cropGCode(m, Constant.Printwidth,Constant.Printheight);
+                GCode.saveBitmapToFile(ImageProcessor.matToBitmap(createdMat), this, "created.png");
                 selectedBitmap = ImageProcessor.matToBitmap(createdMat);
 //               Mat m = ImageProcessor.bitmapToMat(selectedBitmap);
 //                Mat createdMat = GCode.cropGCode(ImageProcessor.bitmapToMat(selectedBitmap), Constant.PlatformWidth,Constant.PlatformHeight);
@@ -734,9 +735,10 @@ public class  ImageEditActivity extends AppCompatActivity {
                 Handler handler = new Handler(Looper.getMainLooper());
 
                 Mat finalCreatedMat = createdMat;
+                GCode.saveBitmapToFile(ImageProcessor.matToBitmap(finalCreatedMat), this, "final.png");
                 executor.execute(() -> {
                     try {
-                        String gcode = GCode.generateGCode0(finalCreatedMat, 6, Constant.PlatformWidth, Constant.PlatformHeight);
+                        String gcode = GCode.generateGCode0(finalCreatedMat, 6, Constant.Printwidth, Constant.Printheight,Constant.PrintStartX,Constant.PrintStartY);
 
                         handler.post(() -> {
                             progressDialog.dismiss();
