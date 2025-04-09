@@ -16,6 +16,8 @@ import android.content.Context;
 import android.graphics.Bitmap;
 
 import org.opencv.core.Mat;
+import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -33,33 +35,35 @@ public class GCode {
         gcode.append("G0 X0 Y0 F1000\n");
         gcode.append("M4 S0\n");
 
+        // 1. 原图转灰度图
         Bitmap bitmap = ImageProcessor.matToBitmap(image);
-        Bitmap grayImageBit = ImageProcessor.toGrayscale(bitmap);
-        Mat grayImage = ImageProcessor.bitmapToMat(grayImageBit);
-        int rows = grayImage.rows();
-        int cols = grayImage.cols();
+        Bitmap grayBitmap = ImageProcessor.toGrayscale(bitmap);
+        Mat grayImage = ImageProcessor.bitmapToMat(grayBitmap);
 
-        double width_mm = targetWidth;
-        double height_mm = targetHeight;
-        double pixelWidth = width_mm / cols;
-        double yStep = 1.0 / rho;
+        // 2. 放大图像到目标尺寸对应的像素（单位为像素）
+        int targetCols = (int) (targetWidth * rho);
+        int targetRows = (int) (targetHeight * rho);
+        Mat resized = new Mat();
+        Imgproc.resize(grayImage, resized, new Size(targetCols, targetRows), 0, 0, Imgproc.INTER_LINEAR);
 
-        int totalYSteps = (int) (height_mm * rho);
+        // 3. 用放大图像生成 GCode
+        int rows = resized.rows();
+        int cols = resized.cols();
 
-        for (int step = 0; step < totalYSteps; step++) {
-            double currentY = step * yStep;
-            double flippedY = height_mm - currentY; // 翻转Y轴，图像从下往上雕刻
-            int yPixel = (int) (currentY / height_mm * rows);
-            if (yPixel >= rows) yPixel = rows - 1;
+        double pixelWidth = (double) targetWidth / cols;
+        double pixelHeight = (double) targetHeight / rows;
+
+        for (int y = 0; y < rows; y++) {
+            double flippedY = targetHeight - y * pixelHeight;
 
             boolean isEngraving = false;
             double xStart = -1;
 
-            if (step % 2 == 0) {
-                // 偶数行：从左到右
+            if (y % 2 == 0) {
+                // 偶数行：左 → 右
                 for (int x = 0; x < cols; x++) {
-                    double grayValue = grayImage.get(yPixel, x)[0];
-                    boolean shouldEngrave = grayValue < 128;
+                    double gray = resized.get(y, x)[0];
+                    boolean shouldEngrave = gray < 128;
 
                     if (shouldEngrave) {
                         if (!isEngraving) {
@@ -73,17 +77,16 @@ public class GCode {
                         isEngraving = false;
                     }
                 }
-
                 if (isEngraving) {
                     double xEnd = (cols - 1) * pixelWidth;
                     gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd, flippedY, laserPower));
                 }
 
             } else {
-                // 奇数行：从右到左
+                // 奇数行：右 → 左
                 for (int x = cols - 1; x >= 0; x--) {
-                    double grayValue = grayImage.get(yPixel, x)[0];
-                    boolean shouldEngrave = grayValue < 128;
+                    double gray = resized.get(y, x)[0];
+                    boolean shouldEngrave = gray < 128;
 
                     if (shouldEngrave) {
                         if (!isEngraving) {
@@ -97,18 +100,32 @@ public class GCode {
                         isEngraving = false;
                     }
                 }
-
                 if (isEngraving) {
                     double xEnd = 0;
                     gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd, flippedY, laserPower));
+                }
+            }
+
+            // Y 方向放大：重复输出这一行
+            int repeatCount = (int) Math.round(pixelHeight);  // 重复次数由 Y 方向的放大比例决定
+            for (int i = 1; i < repeatCount; i++) {
+                double newFlippedY = flippedY - i * pixelHeight;
+                gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart, newFlippedY));
+                if (isEngraving) {
+                    double xEnd = (cols - 1) * pixelWidth;
+                    gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd, newFlippedY, laserPower));
                 }
             }
         }
 
         gcode.append("M5\n");
         grayImage.release();
+        resized.release();
         return gcode.toString();
     }
+
+
+
 
     public static Mat cropGCode (Mat image, int targetWidth, int targetHeight) {
         Bitmap bitmap = ImageProcessor.matToBitmap(image);

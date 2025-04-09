@@ -734,7 +734,7 @@ public class  ImageEditActivity extends AppCompatActivity {
                 Mat finalCreatedMat = createdMat;
                 executor.execute(() -> {
                     try {
-                        String gcode = GCode.generateGCode0(finalCreatedMat, 48, Constant.PlatformWidth, Constant.PlatformHeight);
+                        String gcode = GCode.generateGCode0(finalCreatedMat, 6, Constant.PlatformWidth, Constant.PlatformHeight);
 
                         handler.post(() -> {
                             progressDialog.dismiss();
