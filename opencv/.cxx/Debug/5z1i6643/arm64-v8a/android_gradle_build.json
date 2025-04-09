@@ -1,19 +1,19 @@
 {
   "buildFiles": [
-    "D:\\AndroidProject\\NexCut\\opencv\\libcxx_helper\\CMakeLists.txt"
+    "E:\\Android\\NexCut04\\opencv\\libcxx_helper\\CMakeLists.txt"
   ],
   "cleanCommandsComponents": [
     [
-      "D:\\Android\\SDK\\cmake\\3.22.1\\bin\\ninja.exe",
+      "E:\\Android\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
       "-C",
-      "D:\\AndroidProject\\NexCut\\opencv\\.cxx\\Debug\\5z1i6643\\arm64-v8a",
+      "E:\\Android\\NexCut04\\opencv\\.cxx\\Debug\\5z1i6643\\arm64-v8a",
       "clean"
     ]
   ],
   "buildTargetsCommandComponents": [
-    "D:\\Android\\SDK\\cmake\\3.22.1\\bin\\ninja.exe",
+    "E:\\Android\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
     "-C",
-    "D:\\AndroidProject\\NexCut\\opencv\\.cxx\\Debug\\5z1i6643\\arm64-v8a",
+    "E:\\Android\\NexCut04\\opencv\\.cxx\\Debug\\5z1i6643\\arm64-v8a",
     "{LIST_OF_TARGETS_TO_BUILD}"
   ],
   "libraries": {
@@ -21,13 +21,13 @@
       "toolchain": "toolchain",
       "abi": "arm64-v8a",
       "artifactName": "opencv_jni_shared",
-      "output": "D:\\AndroidProject\\NexCut\\opencv\\.cxx\\Debug\\5z1i6643\\arm64-v8a\\libopencv_jni_shared.a"
+      "output": "E:\\Android\\NexCut04\\opencv\\.cxx\\Debug\\5z1i6643\\arm64-v8a\\libopencv_jni_shared.a"
     }
   },
   "toolchains": {
     "toolchain": {
-      "cCompilerExecutable": "D:\\Android\\SDK\\ndk\\27.0.12077973\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang.exe",
-      "cppCompilerExecutable": "D:\\Android\\SDK\\ndk\\27.0.12077973\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe"
+      "cCompilerExecutable": "E:\\Android\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang.exe",
+      "cppCompilerExecutable": "E:\\Android\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe"
     }
   },
   "cFileExtensions": [],
