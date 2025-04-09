@@ -9,4 +9,6 @@
     android:minWidth="120dp"
     android:background="@color/gray"
     android:selectAllOnFocus="true"
-    android:textSize="22dp" />
+    android:textSize="22dp"
+    android:maxLines="1"
+    android:maxLength="9"/>

@@ -81,6 +81,9 @@
             android:name=".whiteboard.WhiteboardActivity"
             android:exported="true" />
         <activity
+            android:name=".whiteboard.SettingActivity"
+            android:exported="true" />
+        <activity
             android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar">

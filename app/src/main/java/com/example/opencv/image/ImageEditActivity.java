@@ -20,7 +20,7 @@ import android.os.Looper;
 import android.provider.MediaStore;
 import android.app.ProgressDialog;
 import android.os.Handler;
-import android.os.Looper;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -38,10 +38,8 @@ import android.widget.SeekBar;
 import android.widget.Toast;
 
 import com.example.opencv.Constant;
-import com.example.opencv.device.DeviceActivity;
-import com.example.opencv.device.DeviceInfoActivity;
+import com.example.opencv.whiteboard.SettingActivity;
 import com.yalantis.ucrop.UCrop;
-import com.yalantis.ucrop.util.FileUtils;
 import com.squareup.picasso.Picasso;
 
 import static android.content.ContentValues.TAG;
@@ -65,12 +63,10 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.opencv.MainActivity;
 import com.example.opencv.R;
 import com.example.opencv.modbus.ModbusTCPClient;
-import com.example.opencv.modbus.NettyModbusTCPClient;
 import com.example.opencv.whiteboard.WhiteboardActivity;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
-import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
@@ -699,14 +695,15 @@ public class  ImageEditActivity extends AppCompatActivity {
     private void graffitiToGCode() {
         if (getIntent().getStringExtra("GCodeimageUri") == null) return;
         else {
-            float corpAspectRatio = getIntent().getFloatExtra("printerAspectRatio",1.2f);
+            float whiteboardAspectRatio = getIntent().getFloatExtra("whiteboardAspectRatio",1f);
             try {
                 imageUri = Uri.parse(getIntent().getStringExtra("GCodeimageUri"));
                 selectedBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
                 originalBitmap = selectedBitmap.copy(selectedBitmap.getConfig(), true);
-
+                GCode.saveBitmapToFile(originalBitmap, this, "original.png");
                 Mat m = ImageProcessor.bitmapToMat(selectedBitmap);
-                Mat createdMat = GCode.cropGCode(m, Constant.PlatformWidth,Constant.PlatformHeight);
+                Mat createdMat = GCode.cropGCode(m, Constant.PrintWidth,Constant.PrintHeight,whiteboardAspectRatio);
+                GCode.saveBitmapToFile(ImageProcessor.matToBitmap(createdMat), this, "created.png");
                 selectedBitmap = ImageProcessor.matToBitmap(createdMat);
 //               Mat m = ImageProcessor.bitmapToMat(selectedBitmap);
 //                Mat createdMat = GCode.cropGCode(ImageProcessor.bitmapToMat(selectedBitmap), Constant.PlatformWidth,Constant.PlatformHeight);
@@ -732,9 +729,10 @@ public class  ImageEditActivity extends AppCompatActivity {
                 Handler handler = new Handler(Looper.getMainLooper());
 
                 Mat finalCreatedMat = createdMat;
+                GCode.saveBitmapToFile(ImageProcessor.matToBitmap(finalCreatedMat), this, "final.png");
                 executor.execute(() -> {
                     try {
-                        String gcode = GCode.generateGCode0(finalCreatedMat, 6, Constant.PlatformWidth, Constant.PlatformHeight);
+                        String gcode = GCode.generateGCode0(finalCreatedMat, 6, Constant.PrintWidth, Constant.PrintHeight,Constant.PrintStartX,Constant.PrintStartY);
 
                         handler.post(() -> {
                             progressDialog.dismiss();
@@ -793,8 +791,12 @@ public class  ImageEditActivity extends AppCompatActivity {
         graffiti();
     }
 
-    public void goNext(View view) {
-        graffiti();
+    public void onClickSetting(View view) {
+        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
+        view.startAnimation(scaleIn);
+
+        Intent intent = new Intent(this, SettingActivity.class);
+        startActivity(intent);
     }
 
 

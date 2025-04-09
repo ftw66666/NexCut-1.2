@@ -14,6 +14,7 @@ import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -973,7 +974,7 @@ public class WhiteBoardFragment extends Fragment implements SketchView.OnDrawCha
 
     private void askForErase() {
         new AlertDialog.Builder(getActivity())
-                .setMessage("擦除手绘?")
+                .setMessage("清空白板内容?")
                 .setPositiveButton("确定", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -1123,123 +1124,318 @@ public class WhiteBoardFragment extends Fragment implements SketchView.OnDrawCha
 //            }
 //        });
 //    }
+    private Drawable currentCornerBorder;
+    private void updateCornerBorder(View rootView) {
+        // 移除旧边框
+        if (currentCornerBorder != null) {
+            rootView.getOverlay().remove(currentCornerBorder);
+        }
+
+        FrameLayout toolbar = rootView.findViewById(R.id.controlLayout);
+        int viewWidth = rootView.getWidth();
+        int viewHeight = rootView.getHeight();
+        int toolbarHeight = toolbar.getHeight();
+
+        // 核心布局策略
+        int rectWidth, rectHeight, left, top;
+        float availableHeight = viewHeight - toolbarHeight;
+        float viewAspectRatio = (float) viewWidth / availableHeight;
+
+        if (printerAspectRatio < viewAspectRatio) {
+            // 高度主导模式：填满垂直空间
+            rectHeight = (int) availableHeight;
+            rectWidth = (int) (rectHeight * printerAspectRatio);
+            left = (viewWidth - rectWidth) / 2; // 水平居中
+            top = 0;               // 从工具栏底部开始
+        } else {
+            // 宽度主导模式：填满水平空间
+            rectWidth = viewWidth;
+            rectHeight = (int) (viewWidth / printerAspectRatio);
+            left = 0;
+            top = (int)(availableHeight - rectHeight) / 2; // 垂直居中
+        }
+
+        // 边界保护
+        rectWidth = Math.min(rectWidth, viewWidth);
+        rectHeight = Math.min(rectHeight, (int)availableHeight);
+
+        // 创建动态边框
+        currentCornerBorder = createCornerBorderDrawable(rootView, rectWidth, rectHeight, left, top);
+        currentCornerBorder.setBounds(left, top, left + rectWidth, top + rectHeight);
+        rootView.getOverlay().add(currentCornerBorder);
+    }
+
+    private Drawable createCornerBorderDrawable(View rootView,int rectWidth, int rectHeight, int left, int top) {
+        return new Drawable() {
+            private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            private final Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            private final int cornerLength = 100; // 角线长度（像素）
+            private final int borderWidth = 5;    // 边框粗细（像素）
+
+            {
+                // 初始化边框画笔
+                paint.setColor(Color.RED);
+                paint.setStyle(Paint.Style.STROKE);
+                paint.setStrokeWidth(borderWidth);
+
+                // 初始化文字画笔
+                textPaint.setColor(Color.WHITE);        // 文字颜色
+                textPaint.setTextSize(40);             // 文字大小（像素）
+                textPaint.setTextAlign(Paint.Align.CENTER); // 水平居中
+            }
+
+            @Override
+            public void draw(@NonNull Canvas canvas) {
+
+                // 绘制四角边框（适配新坐标）
+                // 左上角
+                canvas.drawLine(left, top, left + cornerLength, top, paint);
+                canvas.drawLine(left, top, left, top + cornerLength, paint);
+
+                // 右上角
+                canvas.drawLine(left + rectWidth - cornerLength, top, left + rectWidth, top, paint);
+                canvas.drawLine(left + rectWidth, top, left + rectWidth, top + cornerLength, paint);
+
+                // 左下角
+                canvas.drawLine(left, top + rectHeight - cornerLength, left, top + rectHeight, paint);
+                canvas.drawLine(left, top + rectHeight, left + cornerLength, top + rectHeight, paint);
+
+                // 右下角
+                canvas.drawLine(left + rectWidth - cornerLength, top + rectHeight, left + rectWidth, top + rectHeight, paint);
+                canvas.drawLine(left + rectWidth, top + rectHeight - cornerLength, left + rectWidth, top + rectHeight, paint);
+
+                // 智能文字定位（根据新坐标调整）
+                float centerX = left + rectWidth / 2f;
+                float textY = calculateTextPosition(canvas.getHeight(), top, rectHeight);
+
+
+                // 智能文字布局
+                String widthText = "宽度: " + platformWidth + "mm";
+                String heightText = "高度: " + platformHeight + "mm";
+
+                // 计算可用空间
+                int viewHeight = rootView.getHeight();
+                int textAreaHeight = (int) (textPaint.getTextSize() * 2 + 30); // 文字区域预估高度
+                boolean canDrawBelow = (top + rectHeight + textAreaHeight) < viewHeight;
+                boolean canDrawAbove = (top - textAreaHeight) > 0;
+
+                // 动态选择绘制位置（优先下方，次选上方，最后覆盖在内部）
+                float textBaseY;
+                if (canDrawBelow) {
+                    textBaseY = top + rectHeight + 40; // 下方留出间距
+                } else if (canDrawAbove) {
+                    textBaseY = top - 20; // 上方留出间距
+                } else {
+                    textBaseY = top + rectHeight/2f; // 绘制在矩形内部中央
+                }
+
+                // 计算文字背景
+                float maxTextWidth = Math.max(
+                        textPaint.measureText(widthText),
+                        textPaint.measureText(heightText)
+                );
+                float bgPadding = 20;
+                RectF bgRect = new RectF(
+                        left + rectWidth/2f - maxTextWidth/2f - bgPadding,
+                        textBaseY - textPaint.getTextSize() * 2 - 10,
+                        left + rectWidth/2f + maxTextWidth/2f + bgPadding,
+                        textBaseY + 10
+                );
+
+                // 绘制半透明背景
+                paint.setStyle(Paint.Style.FILL);
+                paint.setColor(Color.parseColor("#80000000"));
+                canvas.drawRoundRect(bgRect, 16, 16, paint);
+
+                // 绘制文字（自动调整位置）
+                paint.setColor(Color.RED);
+                paint.setStyle(Paint.Style.STROKE);
+
+                float firstLineY = textBaseY - textPaint.getTextSize() - 5;
+                float secondLineY = textBaseY;
+
+                // 如果绘制在内部，调整颜色以提高可读性
+                if (!canDrawBelow && !canDrawAbove) {
+                    textPaint.setColor(Color.YELLOW); // 使用更醒目的颜色
+                    canvas.drawText(widthText, left + rectWidth/2f, firstLineY, textPaint);
+                    canvas.drawText(heightText, left + rectWidth/2f, secondLineY, textPaint);
+                    textPaint.setColor(Color.WHITE); // 恢复默认颜色
+                } else {
+                    canvas.drawText(widthText, left + rectWidth/2f, firstLineY, textPaint);
+                    canvas.drawText(heightText, left + rectWidth/2f, secondLineY, textPaint);
+                }
+            }
+
+            private float calculateTextPosition(int viewHeight, int rectTop, int rectHeight) {
+                // 动态计算文字Y坐标
+                float textAreaHeight = textPaint.getTextSize() * 2 + 40;
+
+                // 优先在下方
+                if (rectTop + rectHeight + textAreaHeight < viewHeight) {
+                    return rectTop + rectHeight + 40;
+                }
+                // 次选在上方
+                if (rectTop - textAreaHeight > 0) {
+                    return rectTop - 20;
+                }
+                // 最后在内部
+                return rectTop + rectHeight/2f;
+            }
+
+            @Override
+            public void setAlpha(int alpha) {
+                paint.setAlpha(alpha);
+            }
+
+            @Override
+            public void setColorFilter(@Nullable ColorFilter colorFilter) {
+                paint.setColorFilter(colorFilter);
+            }
+
+            @Override
+            public int getOpacity() {
+                return PixelFormat.TRANSLUCENT;
+            }
+
+            // ... 其他原有方法（setAlpha, setColorFilter, getOpacity）保持不变 ...
+        };
+        };
+
+    // 供外部调用的刷新方法
+    public void refreshCornerBorder() {
+        if (getView() != null) {
+            getView().post(() -> updateCornerBorder(getView()));
+        }
+    }
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         if (listener != null) {
             listener.onFragmentReady();
         }
-        final View rootView = view;
 
-        FrameLayout toolbar = view.findViewById(R.id.controlLayout);
-
-        rootView.post(new Runnable() {
-            @Override
-            public void run() {
-                // 获取根视图的宽度
-                int viewWidth = rootView.getWidth();
-                int viewHeight = rootView.getHeight();
-
-                // 计算矩形尺寸
-                int rectWidth = viewWidth;
-                int rectHeight = (int) (viewWidth / printerAspectRatio);
-                int top = (viewHeight - toolbar.getHeight() - rectHeight) / 2;
-
-                // 创建四角边框的 Drawable
-                Drawable cornerBorder = new Drawable() {
-                    private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-                    private final Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-                    private final int cornerLength = 100; // 角线长度（像素）
-                    private final int borderWidth = 5;    // 边框粗细（像素）
-
-                    {
-                        // 初始化边框画笔
-                        paint.setColor(Color.RED);
-                        paint.setStyle(Paint.Style.STROKE);
-                        paint.setStrokeWidth(borderWidth);
-
-                        // 初始化文字画笔
-                        textPaint.setColor(Color.WHITE);        // 文字颜色
-                        textPaint.setTextSize(40);             // 文字大小（像素）
-                        textPaint.setTextAlign(Paint.Align.CENTER); // 水平居中
-                    }
-
-                    @Override
-                    public void draw(@NonNull Canvas canvas) {
-                        // 绘制四角边框
-                        // 左上角
-                        canvas.drawLine(0, top, cornerLength, top, paint);
-                        canvas.drawLine(0, top, 0, top + cornerLength, paint);
-
-                        // 右上角
-                        canvas.drawLine(rectWidth - cornerLength, top, rectWidth, top, paint);
-                        canvas.drawLine(rectWidth, top, rectWidth, top + cornerLength, paint);
-
-                        // 左下角
-                        canvas.drawLine(0, top + rectHeight - cornerLength, 0, top + rectHeight, paint);
-                        canvas.drawLine(0, top + rectHeight, cornerLength, top + rectHeight, paint);
-
-                        // 右下角
-                        canvas.drawLine(rectWidth - cornerLength, top + rectHeight, rectWidth, top + rectHeight, paint);
-                        canvas.drawLine(rectWidth, top + rectHeight - cornerLength, rectWidth, top + rectHeight, paint);
-
-                        // 添加宽度和高度的文字标注
-                        String widthText = "宽度: " + platformWidth + "mm";
-                        String heightText = "高度: " + platformHeight + "mm";
-
-                        // 计算文字位置（居中在边框下方）
-                        int textPadding = 20; // 文字与边框的间距
-                        float centerX = rectWidth / 2f;
-                        float widthTextY = top + rectHeight + textPadding + textPaint.getTextSize();
-                        float heightTextY = widthTextY + textPaint.getTextSize() + 10; // 行间距
-
-                        // 绘制文字背景（可选）
-                        paint.setStyle(Paint.Style.FILL);
-                        paint.setColor(Color.parseColor("#80000000")); // 半透明黑色背景
-                        float textWidth = Math.max(
-                                textPaint.measureText(widthText),
-                                textPaint.measureText(heightText)
-                        );
-                        canvas.drawRect(
-                                centerX - textWidth / 2 - 20,
-                                widthTextY - textPaint.getTextSize() - 10,
-                                centerX + textWidth / 2 + 20,
-                                heightTextY + 10,
-                                paint
-                        );
-
-                        // 恢复边框颜色
-                        paint.setColor(Color.RED);
-                        paint.setStyle(Paint.Style.STROKE);
-
-                        // 绘制文字
-                        canvas.drawText(widthText, centerX, widthTextY, textPaint);
-                        canvas.drawText(heightText, centerX, heightTextY, textPaint);
-                    }
-
-                    @Override
-                    public void setAlpha(int alpha) {
-                        paint.setAlpha(alpha);
-                    }
-
-                    @Override
-                    public void setColorFilter(@Nullable ColorFilter colorFilter) {
-                        paint.setColorFilter(colorFilter);
-                    }
-
-                    @Override
-                    public int getOpacity() {
-                        return PixelFormat.TRANSLUCENT;
-                    }
-
-                    // ... 其他原有方法（setAlpha, setColorFilter, getOpacity）保持不变 ...
-                };
-
-                // 设置绘制区域并添加到 Overlay
-                cornerBorder.setBounds(0, top, viewWidth, top + rectHeight);
-                rootView.getOverlay().add(cornerBorder);
-            }
-        });
+        // 初始自动调用（可选）
+        view.post(() -> updateCornerBorder(view));
     }
+
+//    @Override
+//    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+//        super.onViewCreated(view, savedInstanceState);
+//        if (listener != null) {
+//            listener.onFragmentReady();
+//        }
+//        final View rootView = view;
+//
+//        FrameLayout toolbar = view.findViewById(R.id.controlLayout);
+//
+//        rootView.post(new Runnable() {
+//            @Override
+//            public void run() {
+//                // 获取根视图的宽度
+//                int viewWidth = rootView.getWidth();
+//                int viewHeight = rootView.getHeight();
+//
+//                // 计算矩形尺寸
+//                int rectWidth = viewWidth;
+//                int rectHeight = (int) (viewWidth / printerAspectRatio);
+//                int top = (viewHeight - toolbar.getHeight() - rectHeight) / 2;
+//
+//                // 创建四角边框的 Drawable
+//                Drawable cornerBorder = new Drawable() {
+//                    private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+//                    private final Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+//                    private final int cornerLength = 100; // 角线长度（像素）
+//                    private final int borderWidth = 5;    // 边框粗细（像素）
+//
+//                    {
+//                        // 初始化边框画笔
+//                        paint.setColor(Color.RED);
+//                        paint.setStyle(Paint.Style.STROKE);
+//                        paint.setStrokeWidth(borderWidth);
+//
+//                        // 初始化文字画笔
+//                        textPaint.setColor(Color.WHITE);        // 文字颜色
+//                        textPaint.setTextSize(40);             // 文字大小（像素）
+//                        textPaint.setTextAlign(Paint.Align.CENTER); // 水平居中
+//                    }
+//
+//                    @Override
+//                    public void draw(@NonNull Canvas canvas) {
+//                        // 绘制四角边框
+//                        // 左上角
+//                        canvas.drawLine(0, top, cornerLength, top, paint);
+//                        canvas.drawLine(0, top, 0, top + cornerLength, paint);
+//
+//                        // 右上角
+//                        canvas.drawLine(rectWidth - cornerLength, top, rectWidth, top, paint);
+//                        canvas.drawLine(rectWidth, top, rectWidth, top + cornerLength, paint);
+//
+//                        // 左下角
+//                        canvas.drawLine(0, top + rectHeight - cornerLength, 0, top + rectHeight, paint);
+//                        canvas.drawLine(0, top + rectHeight, cornerLength, top + rectHeight, paint);
+//
+//                        // 右下角
+//                        canvas.drawLine(rectWidth - cornerLength, top + rectHeight, rectWidth, top + rectHeight, paint);
+//                        canvas.drawLine(rectWidth, top + rectHeight - cornerLength, rectWidth, top + rectHeight, paint);
+//
+//                        // 添加宽度和高度的文字标注
+//                        String widthText = "宽度: " + platformWidth + "mm";
+//                        String heightText = "高度: " + platformHeight + "mm";
+//
+//                        // 计算文字位置（居中在边框下方）
+//                        int textPadding = 20; // 文字与边框的间距
+//                        float centerX = rectWidth / 2f;
+//                        float widthTextY = top + rectHeight + textPadding + textPaint.getTextSize();
+//                        float heightTextY = widthTextY + textPaint.getTextSize() + 10; // 行间距
+//
+//                        // 绘制文字背景（可选）
+//                        paint.setStyle(Paint.Style.FILL);
+//                        paint.setColor(Color.parseColor("#80000000")); // 半透明黑色背景
+//                        float textWidth = Math.max(
+//                                textPaint.measureText(widthText),
+//                                textPaint.measureText(heightText)
+//                        );
+//                        canvas.drawRect(
+//                                centerX - textWidth / 2 - 20,
+//                                widthTextY - textPaint.getTextSize() - 10,
+//                                centerX + textWidth / 2 + 20,
+//                                heightTextY + 10,
+//                                paint
+//                        );
+//
+//                        // 恢复边框颜色
+//                        paint.setColor(Color.RED);
+//                        paint.setStyle(Paint.Style.STROKE);
+//
+//                        // 绘制文字
+//                        canvas.drawText(widthText, centerX, widthTextY, textPaint);
+//                        canvas.drawText(heightText, centerX, heightTextY, textPaint);
+//                    }
+//
+//                    @Override
+//                    public void setAlpha(int alpha) {
+//                        paint.setAlpha(alpha);
+//                    }
+//
+//                    @Override
+//                    public void setColorFilter(@Nullable ColorFilter colorFilter) {
+//                        paint.setColorFilter(colorFilter);
+//                    }
+//
+//                    @Override
+//                    public int getOpacity() {
+//                        return PixelFormat.TRANSLUCENT;
+//                    }
+//
+//                    // ... 其他原有方法（setAlpha, setColorFilter, getOpacity）保持不变 ...
+//                };
+//
+//                // 设置绘制区域并添加到 Overlay
+//                cornerBorder.setBounds(0, top, viewWidth, top + rectHeight);
+//                rootView.getOverlay().add(cornerBorder);
+//            }
+//        });
+//    }
 
 }

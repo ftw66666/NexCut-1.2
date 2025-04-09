@@ -28,6 +28,7 @@ import com.example.opencv.R;
 import com.example.opencv.image.ImageEditActivity;
 import com.example.opencv.modbus.ModbusTCPClient;
 import com.example.opencv.modbus.NettyModbusTCPClient;
+import com.example.opencv.whiteboard.SettingActivity;
 import com.example.opencv.whiteboard.WhiteboardActivity;
 
 import java.util.ArrayList;
@@ -296,6 +297,14 @@ public class DeviceInfoActivity extends AppCompatActivity {
         view.startAnimation(scaleIn);
 
         Intent intent = new Intent(DeviceInfoActivity.this, DeviceActivity.class);
+        startActivity(intent);
+    }
+
+    public void onClickSetting(View view) {
+        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
+        view.startAnimation(scaleIn);
+
+        Intent intent = new Intent(this, SettingActivity.class);
         startActivity(intent);
     }
 }

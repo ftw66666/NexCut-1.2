@@ -51,16 +51,17 @@ public class Constant {
     public static final int OfflineProcess = 12;
 
     public static final int WorkBroder = 13;
+
     public static int PlatformWidth = 400;
-    public static int Printwidth = 50;
-    public static int Printheight = 50;
-    public static double PrintStartX = 0;
-    public static double PrintStartY = 0;
-
-    public static volatile int PlatformWidth = 400;
-
     public static volatile int PlatformHeight = 400;
 
     public static volatile int ProcessState = 0xFF;
+
+    public static int PrintWidth = 50;
+    public static int PrintHeight = 50;
+    public static double PrintStartX = 175;
+    public static double PrintStartY = 175;
+
+
 
 }

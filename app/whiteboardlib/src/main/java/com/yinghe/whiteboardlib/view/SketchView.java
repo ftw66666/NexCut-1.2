@@ -622,12 +622,12 @@ public class SketchView extends View implements OnTouchListener {
         float b = (float) Math.sqrt(Math.pow(corners[4] - corners[0], 2) + Math.pow(corners[5] - corners[1], 2)) / 2;
 //        Log.e(TAG, "onRotateAction: a=" + a + ";b=" + b);
         //设置Matrix缩放参数
-        double photoLen = Math.sqrt(Math.pow(record.photoRectSrc.width(), 2) + Math.pow(record.photoRectSrc.height(), 2));
-        if (a >= photoLen / 2 * SCALE_MIN && a >= SCALE_MIN_LEN && a <= photoLen / 2 * SCALE_MAX) {
-            //这种计算方法可以保持旋转图标坐标与触摸点同步缩放
-            float scale = a / b;
-            record.matrix.postScale(scale, scale, corners[8], corners[9]);
-        }
+//        double photoLen = Math.sqrt(Math.pow(record.photoRectSrc.width(), 2) + Math.pow(record.photoRectSrc.height(), 2));
+//        if (a >= photoLen / 2 * SCALE_MIN && a >= SCALE_MIN_LEN && a <= photoLen / 2 * SCALE_MAX) {
+//            //这种计算方法可以保持旋转图标坐标与触摸点同步缩放
+//            float scale = a / b;
+//            record.matrix.postScale(scale, scale, corners[8], corners[9]);
+//        }
 
         //旋转
         //根据移动坐标的变化构建两个向量，以便计算两个向量角度.

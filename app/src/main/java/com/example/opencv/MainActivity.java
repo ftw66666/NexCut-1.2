@@ -40,6 +40,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.viewpager.widget.ViewPager;
 
+import com.example.opencv.Utils.FileUtils;
 import com.example.opencv.device.DeviceActivity;
 import com.example.opencv.device.DeviceInfoActivity;
 import com.example.opencv.device.InfoService;
@@ -48,9 +49,12 @@ import com.example.opencv.image.GCodeRead;
 import com.example.opencv.image.ImageEditActivity;
 import com.example.opencv.modbus.ModbusTCPClient;
 import com.example.opencv.databinding.ActivityMainBinding;
+import com.example.opencv.modbus.NettyModbusTCPClient;
+import com.example.opencv.whiteboard.SettingActivity;
 import com.example.opencv.whiteboard.WhiteboardActivity;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -97,6 +101,9 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0);
             return insets;
         });
+
+        new Thread(() -> FileUtils.clearDir(this)).start();
+
 
         textColor = getResources().getColor(R.color.light_black);
         backgroundColor = getResources().getColor(R.color.white);
@@ -167,6 +174,14 @@ public class MainActivity extends AppCompatActivity {
         view.startAnimation(scaleIn);
 
         Intent intent = new Intent(MainActivity.this, device_Control.class);
+        startActivity(intent);
+    }
+
+    public void onClickSetting(View view) {
+        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
+        view.startAnimation(scaleIn);
+
+        Intent intent = new Intent(MainActivity.this, SettingActivity.class);
         startActivity(intent);
     }
 

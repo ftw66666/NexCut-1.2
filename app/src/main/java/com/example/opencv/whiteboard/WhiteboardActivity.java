@@ -14,7 +14,6 @@ import android.os.Looper;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.CheckBox;
@@ -58,7 +57,7 @@ public class WhiteboardActivity extends AppCompatActivity {
     public Handler handler;
     public ProgressBarUtils progressHelper;
 
-    private static int TARGET_WIDTH=1600;
+    private static int TARGET_WIDTH = 1920;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,9 +73,9 @@ public class WhiteboardActivity extends AppCompatActivity {
             throw new RuntimeException(e);
         }
 
-        whiteBoardFragment.setPrinterAspectRatio(Constant.PlatformWidth / (float) Constant.PlatformHeight);
-        whiteBoardFragment.setPlatformWidth(Constant.PlatformWidth);
-        whiteBoardFragment.setPlatformHeight(Constant.PlatformHeight);
+        whiteBoardFragment.setPrinterAspectRatio(Constant.PrintWidth / (float) Constant.PrintHeight);
+        whiteBoardFragment.setPlatformWidth(Constant.PrintWidth);
+        whiteBoardFragment.setPlatformHeight(Constant.PrintHeight);
         // 隐藏导航栏和状态栏
         View decorView = getWindow().getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
@@ -106,6 +105,14 @@ public class WhiteboardActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        whiteBoardFragment.setPrinterAspectRatio(Constant.PrintWidth / (float) Constant.PrintHeight);
+        whiteBoardFragment.setPlatformWidth(Constant.PrintWidth);
+        whiteBoardFragment.setPlatformHeight(Constant.PrintHeight);
+        whiteBoardFragment.refreshCornerBorder();
+    }
 
     public void setPrinterAspectRatio(float printerAspectRatio) {
         whiteBoardFragment.setPrinterAspectRatio(printerAspectRatio);
@@ -244,9 +251,19 @@ public class WhiteboardActivity extends AppCompatActivity {
 //            e.printStackTrace();
 //        }
     }
+
+    public void onClickSetting(View view) {
+        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
+        view.startAnimation(scaleIn);
+
+        Intent intent = new Intent(this, SettingActivity.class);
+        startActivity(intent);
+    }
+
     public void imageEditActivityGCode(boolean isHalftone)
     {
-        bitmap = resizeBitmapByWidth(whiteBoardFragment.getResultBitmap(), Constant.PlatformWidth);
+        //bitmap = whiteBoardFragment.getResultBitmap();
+        bitmap = resizeBitmapByWidth(whiteBoardFragment.getResultBitmap(), TARGET_WIDTH);
         try {
             File tempFile = createImageFile(); // 创建临时文件
             FileOutputStream out = new FileOutputStream(tempFile);
@@ -260,7 +277,7 @@ public class WhiteboardActivity extends AppCompatActivity {
             Intent intent = new Intent(this, ImageEditActivity.class);
             intent.putExtra("GCodeimageUri", imageUri.toString());
             intent.putExtra("isHalftone",isHalftone);
-            intent.putExtra("printerAspectRatio", getPrinterAspectRatio());
+            intent.putExtra("whiteboardAspectRatio", getPrinterAspectRatio());
             startActivity(intent);
 
             //imageView.setImageBitmap(bitmap);
@@ -335,5 +352,6 @@ public class WhiteboardActivity extends AppCompatActivity {
 
         builder.show();
     }
+
 }
 
