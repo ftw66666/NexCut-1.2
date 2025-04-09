@@ -77,7 +77,7 @@ public class SketchView extends View implements OnTouchListener {
     public static final int ACTION_ROTATE = 3;
     //    public int curSketchData.editMode = EDIT_STROKE;
     public static float SCALE_MAX = 4.0f;
-    public static float SCALE_MIN = 0.2f;
+    public static float SCALE_MIN = 0.8f;
     public static float SCALE_MIN_LEN;
     public final String TAG = getClass().getSimpleName();
     public Paint boardPaint;
