@@ -24,10 +24,12 @@
         android:gravity="top"
         android:orientation="vertical"
         android:weightSum="1">
+
         <ScrollView
             android:layout_height="0dp"
             android:layout_width="match_parent"
             android:layout_weight="0.925">
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -36,69 +38,90 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <LinearLayout
+                <!-- 使用 ConstraintLayout 自适应控制区域 -->
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@color/background_color"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
+                    android:layout_height="180dp"
+                    android:layout_marginVertical="10dp"
                     android:padding="16dp"
-                    android:layout_marginVertical="10sp">
+                    android:background="@color/background_color">
 
-                    <!-- 方向控制按钮 -->
+                    <!-- XY方向控制区域靠左 -->
                     <GridLayout
                         android:id="@+id/move_controls"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
                         android:rowCount="2"
                         android:columnCount="3"
                         android:useDefaultMargins="true"
-                        android:layout_gravity="start|center_vertical">
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintWidth_percent="0.6">
 
-                        <View android:layout_width="@dimen/move_button_size" android:layout_height="@dimen/move_button_size"/>
+                        <View android:layout_width="0dp" android:layout_height="0dp" android:layout_rowWeight="1" android:layout_columnWeight="1" />
                         <androidx.appcompat.widget.AppCompatButton
                             android:id="@+id/btn_up"
-                            android:layout_width="@dimen/move_button_size"
-                            android:layout_height="@dimen/move_button_size"
-                            android:background="@drawable/btn_up"/>
-                        <View android:layout_width="@dimen/move_button_size" android:layout_height="@dimen/move_button_size"/>
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:layout_rowWeight="1"
+                            android:layout_columnWeight="1"
+                            android:background="@drawable/btn_up" />
+                        <View android:layout_width="0dp" android:layout_height="0dp" android:layout_rowWeight="1" android:layout_columnWeight="1" />
 
                         <androidx.appcompat.widget.AppCompatButton
                             android:id="@+id/btn_left"
-                            android:layout_width="@dimen/move_button_size"
-                            android:layout_height="@dimen/move_button_size"
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:layout_rowWeight="1"
+                            android:layout_columnWeight="1"
                             android:background="@drawable/btn_left" />
-                        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btn_down" android:layout_width="@dimen/move_button_size" android:layout_height="@dimen/move_button_size" android:background="@drawable/btn_down"/>
-                        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btn_right" android:layout_width="@dimen/move_button_size" android:layout_height="@dimen/move_button_size" android:background="@drawable/btn_right"/>
+                        <androidx.appcompat.widget.AppCompatButton
+                            android:id="@+id/btn_down"
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:layout_rowWeight="1"
+                            android:layout_columnWeight="1"
+                            android:background="@drawable/btn_down" />
+                        <androidx.appcompat.widget.AppCompatButton
+                            android:id="@+id/btn_right"
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:layout_rowWeight="1"
+                            android:layout_columnWeight="1"
+                            android:background="@drawable/btn_right" />
                     </GridLayout>
 
-                    <View
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"/>
-
-                    <!-- Z轴控制 -->
+                    <!-- Z轴控制区域靠右 -->
                     <GridLayout
                         android:id="@+id/z_controls"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
                         android:rowCount="2"
                         android:columnCount="1"
                         android:useDefaultMargins="true"
-                        android:layout_gravity="end|center_vertical">
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintWidth_percent="0.2"
+                        app:layout_constraintHeight_percent="1">
 
                         <androidx.appcompat.widget.AppCompatButton
                             android:id="@+id/btn_z_plus"
-                            android:layout_width="@dimen/move_button_size"
-                            android:layout_height="@dimen/move_button_size"
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:layout_rowWeight="1"
+                            android:layout_columnWeight="1"
                             android:background="@drawable/btn_zplus" />
                         <androidx.appcompat.widget.AppCompatButton
                             android:id="@+id/btn_z_minus"
-                            android:layout_width="@dimen/move_button_size"
-                            android:layout_height="@dimen/move_button_size"
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:layout_rowWeight="1"
+                            android:layout_columnWeight="1"
                             android:background="@drawable/btn_zminus" />
                     </GridLayout>
-                </LinearLayout>
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
 
                 <!-- command控制按钮 -->
@@ -110,7 +133,7 @@
                     android:columnCount="3"
                     android:layout_gravity="center"
                     android:layout_weight="1"
-                    android:layout_marginVertical="10sp">
+                    android:layout_marginVertical="10dp">
 
                     <!-- Top Row -->
                     <androidx.appcompat.widget.AppCompatButton
@@ -175,12 +198,12 @@
                     android:gravity="top"
                     android:orientation="vertical"
                     android:padding="16dp"
-                    android:layout_marginVertical="10sp">
+                    android:layout_marginVertical="10dp">
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:paddingBottom="8dp"
-                        android:text="DI口状态（1-12）"
+                        android:text="DI口状态(1-12)"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
@@ -205,13 +228,17 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="@dimen/DPort_button_height"
                                 android:layout_margin="@dimen/command_button_margin"
-                                android:text="DI1" />
+                                android:text="DI1"
+                                android:textSize="12sp"
+                                android:gravity="center"/>
                             <ImageView
                                 android:id="@+id/DI_1_Image"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
+                                android:layout_width="12dp"
+                                android:layout_height="12dp"
                                 android:background="@drawable/greenspot"
-                                android:backgroundTint="@color/DI_False">
+                                android:backgroundTint="@color/DI_False"
+                                android:scaleType="fitCenter"
+                                android:adjustViewBounds="true">
                             </ImageView>
                         </LinearLayout>
                         <LinearLayout
@@ -227,13 +254,17 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="@dimen/DPort_button_height"
                                 android:layout_margin="@dimen/command_button_margin"
-                                android:text="DI2" />
+                                android:text="DI2"
+                                android:textSize="12sp"
+                                android:gravity="center"/>
                             <ImageView
                                 android:id="@+id/DI_2_Image"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
+                                android:layout_width="12dp"
+                                android:layout_height="12dp"
                                 android:background="@drawable/greenspot"
-                                android:backgroundTint="@color/DI_False">
+                                android:backgroundTint="@color/DI_False"
+                                android:scaleType="fitCenter"
+                                android:adjustViewBounds="true">
                             </ImageView>
                         </LinearLayout>
                         <LinearLayout
@@ -249,13 +280,17 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="@dimen/DPort_button_height"
                                 android:layout_margin="@dimen/command_button_margin"
-                                android:text="DI3" />
+                                android:text="DI3"
+                                android:textSize="12sp"
+                                android:gravity="center"/>
                             <ImageView
                                 android:id="@+id/DI_3_Image"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
+                                android:layout_width="12dp"
+                                android:layout_height="12dp"
                                 android:background="@drawable/greenspot"
-                                android:backgroundTint="@color/DI_False">
+                                android:backgroundTint="@color/DI_False"
+                                android:scaleType="fitCenter"
+                                android:adjustViewBounds="true">
                             </ImageView>
                         </LinearLayout>
                         <LinearLayout
@@ -271,13 +306,17 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="@dimen/DPort_button_height"
                                 android:layout_margin="@dimen/command_button_margin"
-                                android:text="DI4" />
+                                android:text="DI4"
+                                android:textSize="12sp"
+                                android:gravity="center"/>
                             <ImageView
                                 android:id="@+id/DI_4_Image"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
+                                android:layout_width="12dp"
+                                android:layout_height="12dp"
                                 android:background="@drawable/greenspot"
-                                android:backgroundTint="@color/DI_False">
+                                android:backgroundTint="@color/DI_False"
+                                android:scaleType="fitCenter"
+                                android:adjustViewBounds="true">
                             </ImageView>
                         </LinearLayout>
                         <LinearLayout
@@ -293,13 +332,17 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="@dimen/DPort_button_height"
                                 android:layout_margin="@dimen/command_button_margin"
-                                android:text="DI5" />
+                                android:text="DI5"
+                                android:textSize="12sp"
+                                android:gravity="center"/>
                             <ImageView
                                 android:id="@+id/DI_5_Image"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
+                                android:layout_width="12dp"
+                                android:layout_height="12dp"
                                 android:background="@drawable/greenspot"
-                                android:backgroundTint="@color/DI_False">
+                                android:backgroundTint="@color/DI_False"
+                                android:scaleType="fitCenter"
+                                android:adjustViewBounds="true">
                             </ImageView>
                         </LinearLayout>
                         <LinearLayout
@@ -315,13 +358,17 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="@dimen/DPort_button_height"
                                 android:layout_margin="@dimen/command_button_margin"
-                                android:text="DI6" />
+                                android:text="DI6"
+                                android:textSize="12sp"
+                                android:gravity="center"/>
                             <ImageView
                                 android:id="@+id/DI_6_Image"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
+                                android:layout_width="12dp"
+                                android:layout_height="12dp"
                                 android:background="@drawable/greenspot"
-                                android:backgroundTint="@color/DI_False">
+                                android:backgroundTint="@color/DI_False"
+                                android:scaleType="fitCenter"
+                                android:adjustViewBounds="true">
                             </ImageView>
                         </LinearLayout>
                         <LinearLayout
@@ -337,13 +384,17 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="@dimen/DPort_button_height"
                                 android:layout_margin="@dimen/command_button_margin"
-                                android:text="DI7" />
+                                android:text="DI7"
+                                android:textSize="12sp"
+                                android:gravity="center"/>
                             <ImageView
                                 android:id="@+id/DI_7_Image"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
+                                android:layout_width="12dp"
+                                android:layout_height="12dp"
                                 android:background="@drawable/greenspot"
-                                android:backgroundTint="@color/DI_False">
+                                android:backgroundTint="@color/DI_False"
+                                android:scaleType="fitCenter"
+                                android:adjustViewBounds="true">
                             </ImageView>
                         </LinearLayout>
                         <LinearLayout
@@ -359,13 +410,17 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="@dimen/DPort_button_height"
                                 android:layout_margin="@dimen/command_button_margin"
-                                android:text="DI8" />
+                                android:text="DI8"
+                                android:textSize="12sp"
+                                android:gravity="center"/>
                             <ImageView
                                 android:id="@+id/DI_8_Image"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
+                                android:layout_width="12dp"
+                                android:layout_height="12dp"
                                 android:background="@drawable/greenspot"
-                                android:backgroundTint="@color/DI_False">
+                                android:backgroundTint="@color/DI_False"
+                                android:scaleType="fitCenter"
+                                android:adjustViewBounds="true">
                             </ImageView>
                         </LinearLayout>
                         <LinearLayout
@@ -381,13 +436,17 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="@dimen/DPort_button_height"
                                 android:layout_margin="@dimen/command_button_margin"
-                                android:text="DI9" />
+                                android:text="DI9"
+                                android:textSize="12sp"
+                                android:gravity="center"/>
                             <ImageView
                                 android:id="@+id/DI_9_Image"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
+                                android:layout_width="12dp"
+                                android:layout_height="12dp"
                                 android:background="@drawable/greenspot"
-                                android:backgroundTint="@color/DI_False">
+                                android:backgroundTint="@color/DI_False"
+                                android:scaleType="fitCenter"
+                                android:adjustViewBounds="true">
                             </ImageView>
                         </LinearLayout>
                         <LinearLayout
@@ -403,13 +462,18 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="@dimen/DPort_button_height"
                                 android:layout_margin="@dimen/command_button_margin"
-                                android:text="DI10" />
+                                android:text="DI10"
+                                android:textSize="12sp"
+                                android:gravity="center"
+                                />
                             <ImageView
                                 android:id="@+id/DI_10_Image"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
+                                android:layout_width="12dp"
+                                android:layout_height="12dp"
                                 android:background="@drawable/greenspot"
-                                android:backgroundTint="@color/DI_False">
+                                android:backgroundTint="@color/DI_False"
+                                android:scaleType="fitCenter"
+                                android:adjustViewBounds="true">
                             </ImageView>
                         </LinearLayout>
                         <LinearLayout
@@ -425,13 +489,17 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="@dimen/DPort_button_height"
                                 android:layout_margin="@dimen/command_button_margin"
-                                android:text="DI11" />
+                                android:text="DI11"
+                                android:textSize="12sp"
+                                android:gravity="center"/>
                             <ImageView
                                 android:id="@+id/DI_11_Image"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
+                                android:layout_width="12dp"
+                                android:layout_height="12dp"
                                 android:background="@drawable/greenspot"
-                                android:backgroundTint="@color/DI_False">
+                                android:backgroundTint="@color/DI_False"
+                                android:scaleType="fitCenter"
+                                android:adjustViewBounds="true">
                             </ImageView>
                         </LinearLayout>
                         <LinearLayout
@@ -447,13 +515,17 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="@dimen/DPort_button_height"
                                 android:layout_margin="@dimen/command_button_margin"
-                                android:text="DI12" />
+                                android:text="DI12"
+                                android:textSize="12sp"
+                                android:gravity="center"/>
                             <ImageView
                                 android:id="@+id/DI_12_Image"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
+                                android:layout_width="12dp"
+                                android:layout_height="12dp"
                                 android:background="@drawable/greenspot"
-                                android:backgroundTint="@color/DI_False">
+                                android:backgroundTint="@color/DI_False"
+                                android:scaleType="fitCenter"
+                                android:adjustViewBounds="true">
                             </ImageView>
                         </LinearLayout>
 

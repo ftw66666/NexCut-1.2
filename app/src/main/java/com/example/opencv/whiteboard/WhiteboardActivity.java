@@ -74,9 +74,9 @@ public class WhiteboardActivity extends AppCompatActivity {
             throw new RuntimeException(e);
         }
 
-        whiteBoardFragment.setPrinterAspectRatio(Constant.PlatformWidth / (float) Constant.PlatformHeight);
-        whiteBoardFragment.setPlatformWidth(Constant.PlatformWidth);
-        whiteBoardFragment.setPlatformHeight(Constant.PlatformHeight);
+        whiteBoardFragment.setPrinterAspectRatio(Constant.Printwidth / (float) Constant.Printheight);
+        whiteBoardFragment.setPlatformWidth(Constant.Printwidth);
+        whiteBoardFragment.setPlatformHeight(Constant.Printheight);
         // 隐藏导航栏和状态栏
         View decorView = getWindow().getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
@@ -246,7 +246,8 @@ public class WhiteboardActivity extends AppCompatActivity {
     }
     public void imageEditActivityGCode(boolean isHalftone)
     {
-        bitmap = resizeBitmapByWidth(whiteBoardFragment.getResultBitmap(), Constant.PlatformWidth);
+        //bitmap = whiteBoardFragment.getResultBitmap();
+        bitmap = resizeBitmapByWidth(whiteBoardFragment.getResultBitmap(), Constant.Printwidth);
         try {
             File tempFile = createImageFile(); // 创建临时文件
             FileOutputStream out = new FileOutputStream(tempFile);
