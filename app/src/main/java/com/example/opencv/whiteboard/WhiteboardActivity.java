@@ -262,8 +262,8 @@ public class WhiteboardActivity extends AppCompatActivity {
 
     public void imageEditActivityGCode(boolean isHalftone)
     {
-        //bitmap = whiteBoardFragment.getResultBitmap();
-        bitmap = resizeBitmapByWidth(whiteBoardFragment.getResultBitmap(), TARGET_WIDTH);
+        bitmap = whiteBoardFragment.getResultBitmap();
+        //bitmap = resizeBitmapByWidth(whiteBoardFragment.getResultBitmap(), TARGET_WIDTH);
         try {
             File tempFile = createImageFile(); // 创建临时文件
             FileOutputStream out = new FileOutputStream(tempFile);

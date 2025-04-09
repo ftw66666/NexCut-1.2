@@ -53,6 +53,7 @@ public class Constant {
     public static final int WorkBroder = 13;
 
     public static int PlatformWidth = 400;
+
     public static volatile int PlatformHeight = 400;
 
     public static volatile int ProcessState = 0xFF;

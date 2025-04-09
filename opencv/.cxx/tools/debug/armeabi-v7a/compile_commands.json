@@ -1,7 +1,7 @@
 [
 {
-  "directory": "D:/AndroidProject/OpenCV/opencv/opencv/.cxx/Debug/5o396w4h/armeabi-v7a",
-  "command": "D:\\Android\\SDK\\ndk\\27.0.12077973\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=armv7-none-linux-androideabi21 --sysroot=D:/Android/SDK/ndk/27.0.12077973/toolchains/llvm/prebuilt/windows-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -march=armv7-a -mthumb -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC -o CMakeFiles\\opencv_jni_shared.dir\\dummy.cpp.o -c D:\\AndroidProject\\OpenCV\\opencv\\opencv\\libcxx_helper\\dummy.cpp",
-  "file": "D:\\AndroidProject\\OpenCV\\opencv\\opencv\\libcxx_helper\\dummy.cpp"
+  "directory": "D:/AndroidProject/NexCut-1.2/opencv/.cxx/Debug/5z1i6643/armeabi-v7a",
+  "command": "D:\\Android\\SDK\\ndk\\27.0.12077973\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=armv7-none-linux-androideabi21 --sysroot=D:/Android/SDK/ndk/27.0.12077973/toolchains/llvm/prebuilt/windows-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -march=armv7-a -mthumb -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC -o CMakeFiles\\opencv_jni_shared.dir\\dummy.cpp.o -c D:\\AndroidProject\\NexCut-1.2\\opencv\\libcxx_helper\\dummy.cpp",
+  "file": "D:\\AndroidProject\\NexCut-1.2\\opencv\\libcxx_helper\\dummy.cpp"
 }
 ]

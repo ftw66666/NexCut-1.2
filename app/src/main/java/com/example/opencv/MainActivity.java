@@ -343,7 +343,7 @@ public class MainActivity extends AppCompatActivity {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        } else if (requestCode == CAPTURE_IMAGE && resultCode == RESULT_OK ) {
+        } else if (requestCode == CAPTURE_IMAGE && resultCode == RESULT_OK) {
 //            bitmap = (Bitmap) data.getExtras().get("data");
 //            // 将 Bitmap 保存到临时文件并获取其 URI
 //            try {

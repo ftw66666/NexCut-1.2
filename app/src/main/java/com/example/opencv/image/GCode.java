@@ -40,6 +40,11 @@ public class GCode {
         Bitmap bitmap = ImageProcessor.matToBitmap(image);
         Bitmap grayBitmap = ImageProcessor.toGrayscale(bitmap);
         Mat grayImage = ImageProcessor.bitmapToMat(grayBitmap);
+        int originrows = grayImage.rows();
+        int origincols = grayImage.cols();
+        if (originrows > targetHeight*rho || origincols > targetWidth*rho) {
+            rho =Math.max(origincols/targetWidth+1,originrows / targetHeight+1);
+        }
 
         // 2. 放大图像到目标尺寸对应的像素（单位为像素）
         int targetCols = (int) (targetWidth * rho);
