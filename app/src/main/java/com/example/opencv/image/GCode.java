@@ -50,6 +50,7 @@ public class GCode {
         // 3. 用放大图像生成 GCode
         int rows = resized.rows();
         int cols = resized.cols();
+
         double pixelWidth = (double) targetWidth / cols;
         double pixelHeight = (double) targetHeight / rows;
 
@@ -68,20 +69,20 @@ public class GCode {
                     if (shouldEngrave) {
                         if (!isEngraving) {
                             xStart = x * pixelWidth;
-                            gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart-padding, flippedY));
-                            gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart, flippedY));
+                            gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart-padding+startX, flippedY+startY));
+                            gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart+startX, flippedY+startY));
                             isEngraving = true;
                         }
                     } else if (isEngraving) {
                         double xEnd = (x - 1) * pixelWidth;
-                        gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd, flippedY, laserPower));
+                        gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd+startX, flippedY+startY, laserPower));
                         isEngraving = false;
                     }
                 }
                 if (isEngraving) {
                     double xEnd = (cols - 1) * pixelWidth;
-                    gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd, flippedY, laserPower));
-                    gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xEnd+padding, flippedY));
+                    gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd+startX, flippedY+startY, laserPower));
+                    gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xEnd+padding+startX, flippedY+startY));
                 }
 
             } else {
@@ -93,20 +94,20 @@ public class GCode {
                     if (shouldEngrave) {
                         if (!isEngraving) {
                             xStart = x * pixelWidth;
-                            gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart+padding, flippedY));
-                            gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart, flippedY));
+                            gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart+padding+startX, flippedY+startY));
+                            gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart+startX, flippedY+startY));
                             isEngraving = true;
                         }
                     } else if (isEngraving) {
                         double xEnd = (x + 1) * pixelWidth;
-                        gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd, flippedY, laserPower));
+                        gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd+startX, flippedY+startY, laserPower));
                         isEngraving = false;
                     }
                 }
                 if (isEngraving) {
                     double xEnd = 0;
-                    gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd, flippedY, laserPower));
-                    gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xEnd-padding, flippedY));
+                    gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd+startX, flippedY+startY, laserPower));
+                    gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xEnd-padding+startX, flippedY+startY));
                 }
             }
 
@@ -116,23 +117,23 @@ public class GCode {
                 if(i%2==1)
                 {
                     double newFlippedY = flippedY - i * pixelHeight;
-                    gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart - padding, newFlippedY));
-                    gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart, newFlippedY));
+                    gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart - padding+startX, newFlippedY+startY));
+                    gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart+startX, newFlippedY+startY));
                     if (isEngraving) {
                         double xEnd = (cols - 1) * pixelWidth;
-                        gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd, newFlippedY, laserPower));
-                        gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xEnd + padding, newFlippedY));
+                        gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd+startX, newFlippedY+startY, laserPower));
+                        gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xEnd + padding+startX, newFlippedY+startY));
                     }
                 }
                 if(i%2==0)
                 {
                     double newFlippedY = flippedY - i * pixelHeight;
-                    gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart + padding, newFlippedY));
-                    gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart, newFlippedY));
+                    gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart + padding+startX, newFlippedY+startY));
+                    gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart+startX, newFlippedY+startY));
                     if (isEngraving) {
                         double xEnd = (cols - 1) * pixelWidth;
-                        gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd, newFlippedY, laserPower));
-                        gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xEnd - padding, newFlippedY));
+                        gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd+startX, newFlippedY+startY, laserPower));
+                        gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xEnd - padding+startX, newFlippedY+startY));
                     }
                 }
 
