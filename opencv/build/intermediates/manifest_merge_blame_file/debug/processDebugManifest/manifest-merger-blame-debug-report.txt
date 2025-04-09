@@ -5,23 +5,23 @@
 5    <uses-sdk android:minSdkVersion="21" />
 6
 7    <uses-permission android:name="android.permission.CAMERA" />
-7-->D:\androidproject\NexCut-1.2\opencv\java\AndroidManifest.xml:4:5-65
-7-->D:\androidproject\NexCut-1.2\opencv\java\AndroidManifest.xml:4:22-62
+7-->E:\Android\NexCut04\opencv\java\AndroidManifest.xml:4:5-65
+7-->E:\Android\NexCut04\opencv\java\AndroidManifest.xml:4:22-62
 8
 9    <uses-feature
-9-->D:\androidproject\NexCut-1.2\opencv\java\AndroidManifest.xml:5:5-83
+9-->E:\Android\NexCut04\opencv\java\AndroidManifest.xml:5:5-83
 10        android:name="android.hardware.camera"
-10-->D:\androidproject\NexCut-1.2\opencv\java\AndroidManifest.xml:5:19-57
+10-->E:\Android\NexCut04\opencv\java\AndroidManifest.xml:5:19-57
 11        android:required="true" />
-11-->D:\androidproject\NexCut-1.2\opencv\java\AndroidManifest.xml:5:58-81
+11-->E:\Android\NexCut04\opencv\java\AndroidManifest.xml:5:58-81
 12
 13    <queries>
-13-->D:\androidproject\NexCut-1.2\opencv\java\AndroidManifest.xml:6:5-10:15
+13-->E:\Android\NexCut04\opencv\java\AndroidManifest.xml:6:5-10:15
 14        <intent>
-14-->D:\androidproject\NexCut-1.2\opencv\java\AndroidManifest.xml:7:13-9:22
+14-->E:\Android\NexCut04\opencv\java\AndroidManifest.xml:7:13-9:22
 15            <action android:name="android.media.action.IMAGE_CAPTURE" />
-15-->D:\androidproject\NexCut-1.2\opencv\java\AndroidManifest.xml:8:17-77
-15-->D:\androidproject\NexCut-1.2\opencv\java\AndroidManifest.xml:8:25-74
+15-->E:\Android\NexCut04\opencv\java\AndroidManifest.xml:8:17-77
+15-->E:\Android\NexCut04\opencv\java\AndroidManifest.xml:8:25-74
 16        </intent>
 17    </queries>
 18

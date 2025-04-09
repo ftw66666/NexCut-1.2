@@ -10,6 +10,8 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.example.opencv.Constant;
+
 public class DragBoxView extends View {
     // 原始尺寸（用户输入的数值）
     private int originalBigBoxWidth = 400;
@@ -37,6 +39,7 @@ public class DragBoxView extends View {
         super(context, attrs);
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(5f);
+
     }
 
     @Override
@@ -144,6 +147,8 @@ public class DragBoxView extends View {
     public void setBigBoxSize(int width, int height) {
         originalBigBoxWidth = width;
         originalBigBoxHeight = height;
+        Constant.PlatformWidth= width;
+        Constant.PlatformHeight = height;
         updateTransformation();
         invalidate();
     }
@@ -152,6 +157,8 @@ public class DragBoxView extends View {
     public void setSmallBoxSize(int width, int height) {
         originalSmallBoxRect.right = originalSmallBoxRect.left + width;
         originalSmallBoxRect.bottom = originalSmallBoxRect.top + height;
+        Constant.PrintWidth = width;
+        Constant.PrintHeight = height;
         updateSmallBoxPosition();
         invalidate();
     }

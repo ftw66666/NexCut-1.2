@@ -31,6 +31,7 @@ public class GCode {
 
     public static String generateGCode0(Mat image, double rho, int targetWidth, int targetHeight,double startX,double startY) {
         int laserPower = 20;
+        int padding = 5;
         StringBuilder gcode = new StringBuilder();
         gcode.append("G0 X0 Y0 F1000\n");
         gcode.append("M4 S0\n");
@@ -49,7 +50,6 @@ public class GCode {
         // 3. 用放大图像生成 GCode
         int rows = resized.rows();
         int cols = resized.cols();
-
         double pixelWidth = (double) targetWidth / cols;
         double pixelHeight = (double) targetHeight / rows;
 
@@ -68,6 +68,7 @@ public class GCode {
                     if (shouldEngrave) {
                         if (!isEngraving) {
                             xStart = x * pixelWidth;
+                            gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart-padding, flippedY));
                             gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart, flippedY));
                             isEngraving = true;
                         }
@@ -80,6 +81,7 @@ public class GCode {
                 if (isEngraving) {
                     double xEnd = (cols - 1) * pixelWidth;
                     gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd, flippedY, laserPower));
+                    gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xEnd+padding, flippedY));
                 }
 
             } else {
@@ -91,6 +93,7 @@ public class GCode {
                     if (shouldEngrave) {
                         if (!isEngraving) {
                             xStart = x * pixelWidth;
+                            gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart+padding, flippedY));
                             gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart, flippedY));
                             isEngraving = true;
                         }
@@ -103,18 +106,36 @@ public class GCode {
                 if (isEngraving) {
                     double xEnd = 0;
                     gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd, flippedY, laserPower));
+                    gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xEnd-padding, flippedY));
                 }
             }
 
             // Y 方向放大：重复输出这一行
             int repeatCount = (int) Math.round(pixelHeight);  // 重复次数由 Y 方向的放大比例决定
             for (int i = 1; i < repeatCount; i++) {
-                double newFlippedY = flippedY - i * pixelHeight;
-                gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart, newFlippedY));
-                if (isEngraving) {
-                    double xEnd = (cols - 1) * pixelWidth;
-                    gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd, newFlippedY, laserPower));
+                if(i%2==1)
+                {
+                    double newFlippedY = flippedY - i * pixelHeight;
+                    gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart - padding, newFlippedY));
+                    gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart, newFlippedY));
+                    if (isEngraving) {
+                        double xEnd = (cols - 1) * pixelWidth;
+                        gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd, newFlippedY, laserPower));
+                        gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xEnd + padding, newFlippedY));
+                    }
                 }
+                if(i%2==0)
+                {
+                    double newFlippedY = flippedY - i * pixelHeight;
+                    gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart + padding, newFlippedY));
+                    gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart, newFlippedY));
+                    if (isEngraving) {
+                        double xEnd = (cols - 1) * pixelWidth;
+                        gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd, newFlippedY, laserPower));
+                        gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xEnd - padding, newFlippedY));
+                    }
+                }
+
             }
         }
 
@@ -124,30 +145,45 @@ public class GCode {
         return gcode.toString();
     }
 
-
-
-
-    public static Mat cropGCode (Mat image, int targetWidth, int targetHeight) {
+    public static Mat cropGCode(Mat image, int targetWidth, int targetHeight, float whiteboardAspectRatio) {
         Bitmap bitmap = ImageProcessor.matToBitmap(image);
-
-        // 仅裁剪不缩放
         int originalWidth = bitmap.getWidth();
         int originalHeight = bitmap.getHeight();
 
-        // 计算裁剪区域（保持目标宽高比）
-        int cropWidth = originalWidth;
-        int cropHeight = (int)(cropWidth * targetHeight / (double)targetWidth);
-        if (cropHeight > originalHeight) {
+        // 计算目标宽高比
+        float targetAspect = targetWidth / (float) targetHeight;
+
+        // 根据宽高比比较决定裁剪方向
+        int cropWidth, cropHeight;
+        if (whiteboardAspectRatio > targetAspect) {
+            // 水平裁剪：保持高度，调整宽度
             cropHeight = originalHeight;
-            cropWidth = (int)(cropHeight * targetWidth / (double)targetHeight);
+            cropWidth = (int) (cropHeight * targetAspect);
+
+            // 如果计算宽度超过原图，改为保持宽度
+            if (cropWidth > originalWidth) {
+                cropWidth = originalWidth;
+                cropHeight = (int) (cropWidth / targetAspect);
+            }
+        } else {
+            // 竖直裁剪：保持宽度，调整高度（原始逻辑）
+            cropWidth = originalWidth;
+            cropHeight = (int) (cropWidth / targetAspect);
+
+            // 如果计算高度超过原图，改为保持高度
+            if (cropHeight > originalHeight) {
+                cropHeight = originalHeight;
+                cropWidth = (int) (cropHeight * targetAspect);
+            }
         }
 
+        // 计算居中裁剪位置
         int x1 = (originalWidth - cropWidth) / 2;
         int y1 = (originalHeight - cropHeight) / 2;
-        Bitmap croppedBitmap = Bitmap.createBitmap(bitmap, x1, y1, cropWidth, cropHeight);
 
-        Mat croppedMat = ImageProcessor.bitmapToMat(croppedBitmap);
-        return croppedMat;
+        // 执行裁剪
+        Bitmap croppedBitmap = Bitmap.createBitmap(bitmap, x1, y1, cropWidth, cropHeight);
+        return ImageProcessor.bitmapToMat(croppedBitmap);
     }
 
     // 保存方法保持不变

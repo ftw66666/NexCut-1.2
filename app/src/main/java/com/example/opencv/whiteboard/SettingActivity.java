@@ -1,26 +1,16 @@
 package com.example.opencv.whiteboard;
 
 
-import android.app.AlertDialog;
-import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.Matrix;
-import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,25 +20,19 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.fragment.app.FragmentTransaction;
 
 import com.example.opencv.Constant;
 import com.example.opencv.MainActivity;
 import com.example.opencv.R;
-import com.example.opencv.Utils.ProgressBarUtils;
-import com.example.opencv.image.ImageEditActivity;
-import com.yinghe.whiteboardlib.fragment.WhiteBoardFragment;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
 
 
 public class SettingActivity extends AppCompatActivity implements DragBoxView.PositionListener{
     private DragBoxView dragBoxView;
     private EditText etBigWidth, etBigHeight, etSmallWidth, etSmallHeight, etPosX, etPosY;
     private TextView tvSizeInfo, tvPosition;
+
+    public Toolbar toolbar;
+
     //private static int TARGET_WIDTH=1600;
 
     @Override
@@ -80,6 +64,8 @@ public class SettingActivity extends AppCompatActivity implements DragBoxView.Po
         etPosY = findViewById(R.id.etPosY);
         tvPosition = findViewById(R.id.tvPosition);
         tvSizeInfo = findViewById(R.id.tvSizeInfo);
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         initialSize();
         initialInputHint();
@@ -163,10 +149,27 @@ public class SettingActivity extends AppCompatActivity implements DragBoxView.Po
         });
     }
 
+    // 加载 Toolbar 菜单
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.toolbar_menu, menu);
+        return true;
+    }
+
+    // 监听 Toolbar 按钮点击事件
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.User_image) {
+            Toast.makeText(this, "社区功能开发中", Toast.LENGTH_SHORT).show();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     private void initialSize() {
         dragBoxView.setBigBoxSize(Constant.PlatformWidth, Constant.PlatformHeight);
-        dragBoxView.setSmallBoxSize(Constant.Printwidth, Constant.Printheight);
-        dragBoxView.setSmallBoxPosition((Constant.PlatformWidth - Constant.Printwidth) / 2f, (Constant.PlatformHeight - Constant.Printheight) / 2f);
+        dragBoxView.setSmallBoxSize(Constant.PrintWidth, Constant.PrintHeight);
+        dragBoxView.setSmallBoxPosition((float) Constant.PrintStartX, (float) Constant.PrintStartY);
     }
 
     private void initialInputHint() {
@@ -193,8 +196,12 @@ public class SettingActivity extends AppCompatActivity implements DragBoxView.Po
     // 正确实现接口方法
     @Override
     public void onPositionChanged(float x, float y) {
-        runOnUiThread(() -> tvPosition.setText(
+        Constant.PrintStartX = x;
+        Constant.PrintStartY = y;
+        runOnUiThread(() ->
+                tvPosition.setText(
                 String.format("实时坐标：X=%.1f, Y=%.1f", x, y)
+
         ));
     }
 
@@ -223,6 +230,32 @@ public class SettingActivity extends AppCompatActivity implements DragBoxView.Po
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         startActivity(intent);
         finish();
+    }
+
+    public void goBack(View view) {
+        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
+        view.startAnimation(scaleIn);
+
+        // 方式1：直接调用返回键逻辑（API 29+）
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            getOnBackPressedDispatcher().onBackPressed();
+        }
+        // 方式2：兼容旧版本
+        else {
+            if (!isFinishing()) {
+                finish();
+                // 如果需要带动画
+                //overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+            }
+        }
+    }
+
+    public void editImage(View view) {
+        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
+        view.startAnimation(scaleIn);
+
+        Intent intent = new Intent(this, WhiteboardActivity.class);
+        startActivity(intent);
     }
 
     private void showToast(String message) {

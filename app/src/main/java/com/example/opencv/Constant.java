@@ -45,11 +45,12 @@ public class Constant {
     public static final int Ftc = 9;
 
     public static int PlatformWidth = 400;
-    public static int Printwidth = 50;
-    public static int Printheight = 50;
-    public static double PrintStartX = 0;
-    public static double PrintStartY = 0;
-
     public static int PlatformHeight = 400;
+    public static int PrintWidth = 50;
+    public static int PrintHeight = 50;
+    public static double PrintStartX = 175;
+    public static double PrintStartY = 175;
+
+
 
 }

@@ -47,4 +47,6 @@ public class device_InfoItemAdapter extends RecyclerView.Adapter<device_InfoItem
     public int getItemCount() {
         return dataList.size();
     }
+
+
 }

@@ -135,6 +135,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:orientation="horizontal">
+
                 <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/buttonPlatform"
                     android:layout_width="wrap_content"
@@ -144,6 +145,7 @@
                     android:clickable="true"
                     android:onClick="OnClickSetPlanform"
                     android:text="设备尺寸"
+                    android:visibility="gone"
                     android:textSize="30dp"></androidx.appcompat.widget.AppCompatButton>
 
             </LinearLayout>
@@ -225,6 +227,7 @@
                 android:layout_weight="0.4"
                 android:adjustViewBounds="true"
                 android:background="@null"
+                android:onClick="onClickSetting"
                 android:scaleType="fitCenter"
                 android:src="@drawable/setting_icon" />
         </LinearLayout>

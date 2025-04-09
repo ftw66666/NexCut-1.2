@@ -614,7 +614,7 @@
                         android:adjustViewBounds="true"
                         android:src="@drawable/setting_icon"
                         android:background="@null"
-                        android:onClick="OnClickDeviceControl"
+                        android:onClick="onClickSetting"
                         android:scaleType="fitCenter" />
                 </LinearLayout>
         </LinearLayout>

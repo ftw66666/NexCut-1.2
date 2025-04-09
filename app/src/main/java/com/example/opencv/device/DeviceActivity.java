@@ -12,6 +12,7 @@ import com.example.opencv.Constant;
 import com.example.opencv.MainActivity;
 import com.example.opencv.R;
 import com.example.opencv.modbus.ModbusTCPClient;
+import com.example.opencv.whiteboard.SettingActivity;
 import com.example.opencv.whiteboard.WhiteboardActivity;
 
 import android.os.Handler;
@@ -306,6 +307,14 @@ public class DeviceActivity extends AppCompatActivity implements UdpReceiver.OnD
         view.startAnimation(scaleIn);
 
         Intent intent = new Intent(this, WhiteboardActivity.class);
+        startActivity(intent);
+    }
+
+    public void onClickSetting(View view) {
+        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
+        view.startAnimation(scaleIn);
+
+        Intent intent = new Intent(this, SettingActivity.class);
         startActivity(intent);
     }
 }
