@@ -109,8 +109,11 @@ public class DeviceInfoActivity extends AppCompatActivity {
                         // 获取设备信息
                         //List<Integer> deviceInfo = mtcp.ReadDeviceInfo();
 
-                        final List<DeviceDataItem> deviceData = praseDeviceData(mtcp.deviceInfo);
-
+                        List<DeviceDataItem> deviceData = praseDeviceData(mtcp.deviceInfo);
+                        deviceData.addAll(praseAxisData(mtcp.AxisInfo));
+                        deviceData.add(new DeviceDataItem("打印平台宽度", Constant.PlatformWidth + "mm"));
+                        deviceData.add(new DeviceDataItem("打印平台高度", Constant.PlatformHeight + "mm"));
+                        deviceData.add(new DeviceDataItem("加工文件状态", Integer.toUnsignedString(Constant.ProcessState)));
                         // 在主线程更新UI
                         handler.post(new Runnable() {
                             @Override
@@ -137,13 +140,15 @@ public class DeviceInfoActivity extends AppCompatActivity {
         List<DeviceDataItem> axisData = new ArrayList<>();
         for (int i = 0; i < axisInfo.size(); i++) {
             switch (Constant.AxisRegnName[i]) {
-                case "脉冲位置":
-                case "加工停止时位置":
-                case "累计行程":
-                    axisData.add(new DeviceDataItem(Constant.DeviceRegnName[i], axisInfo.get(i) + "um"));
+                case "X轴脉冲位置":
+                case "Y轴脉冲位置":
+                case "Z轴脉冲位置":
+                    axisData.add(new DeviceDataItem(Constant.AxisRegnName[i], axisInfo.get(i) + "um"));
                     break;
-                case "速度":
-                    axisData.add(new DeviceDataItem(Constant.DeviceRegnName[i], axisInfo.get(i) + "um/s"));
+                case "X轴速度":
+                case "Y轴速度":
+                case "Z轴速度":
+                    axisData.add(new DeviceDataItem(Constant.AxisRegnName[i], axisInfo.get(i) + "um/s"));
                     break;
             }
         }

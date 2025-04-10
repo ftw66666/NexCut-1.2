@@ -58,6 +58,7 @@ public class InfoService extends Service {
                         }
                         try {
                             mtcp.deviceInfo = mtcp.ReadDeviceInfo();
+                            mtcp.AxisInfo = mtcp.ReadAxisInfo();
                             List<Integer> machineData = mtcp.ReadMachineInfo();
                             Constant.PlatformWidth = machineData.get(0);
                             Constant.PlatformHeight = machineData.get(1);

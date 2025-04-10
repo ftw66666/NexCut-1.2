@@ -17,18 +17,30 @@ public class Constant {
 
     public static final int MachineAddr = 800;
 
-    public static final int MachineRegCount = 3;
+    public static final int MachineRegCount = 6;
 
     public static final String[] AxisRegnName = {
-            "NULL", "速度",
-            "脉冲位置", "NULL",
-            "加工停止时位置",
-            "NULL", "累计行程",
+            "NULL", "X轴速度",
+            "X轴脉冲位置", "NULL",
+            "X轴加工停止时位置",
+            "NULL", "X轴累计行程",
+            "NULL", "Y轴速度",
+            "Y轴脉冲位置", "NULL",
+            "Y轴加工停止时位置",
+            "NULL", "Y轴累计行程",
+            "NULL", "扩展轴速度",
+            "扩展轴脉冲位置", "NULL",
+            "扩展轴加工停止时位置",
+            "NULL", "扩展轴累计行程",
+            "NULL", "Z轴速度",
+            "Z轴脉冲位置", "NULL",
+            "Z轴加工停止时位置",
+            "NULL", "Z轴累计行程",
     };
 
     public static final int AxisStartAddr = 2000;
 
-    public static final int AxisRegCount = 28;
+    public static final int AxisRegCount = 56;
 
     public static final int CommandAddr = 101;
 
@@ -47,6 +59,7 @@ public class Constant {
     public static final int FileStop = 8;
 
     public static final int Ftc = 9;
+    public static final int BackZero = 11;
 
     public static final int OfflineProcess = 12;
 
@@ -62,7 +75,5 @@ public class Constant {
     public static int PrintHeight = 50;
     public static double PrintStartX = 175;
     public static double PrintStartY = 175;
-
-
 
 }

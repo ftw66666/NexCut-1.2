@@ -363,6 +363,27 @@ public class device_Control extends AppCompatActivity {
         }).start();
     }
 
+    public void BackZero(View view) {
+        new Thread(new Runnable() {
+            Handler handler = new Handler(Looper.getMainLooper());
+
+            @Override
+            public void run() {
+                try {
+                    mtcp.ControlBackZero();
+                } catch (ModbusTCPClient.ModbusException e) {
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            mtcp.onWriteFailed(device_Control.this);
+                        }
+                    });
+                    Log.d("TCPTest", e.getMessage());
+                }
+            }
+        }).start();
+    }
+
     public void FTC(View view) {
         new Thread(new Runnable() {
             Handler handler = new Handler(Looper.getMainLooper());
@@ -392,6 +413,27 @@ public class device_Control extends AppCompatActivity {
             public void run() {
                 try {
                     mtcp.ControlWorkBroder();
+                } catch (ModbusTCPClient.ModbusException e) {
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            mtcp.onWriteFailed(device_Control.this);
+                        }
+                    });
+                    Log.d("TCPTest", e.getMessage());
+                }
+            }
+        }).start();
+    }
+
+    public void Process(View view) {
+        new Thread(new Runnable() {
+            Handler handler = new Handler(Looper.getMainLooper());
+
+            @Override
+            public void run() {
+                try {
+                    mtcp.ControlOfflineProcess(0);
                 } catch (ModbusTCPClient.ModbusException e) {
                     handler.post(new Runnable() {
                         @Override

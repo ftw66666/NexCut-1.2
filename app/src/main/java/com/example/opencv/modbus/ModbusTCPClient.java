@@ -18,6 +18,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +46,7 @@ public class ModbusTCPClient {
     private final Object responserlock = new Object();
     private final Object fileTransportLock = new Object();
     public List<Integer> deviceInfo = new CopyOnWriteArrayList<>();
+    public List<Integer> AxisInfo = new CopyOnWriteArrayList<>();
     private int unitId = 0;
     public String ConnectDeviceId = "";
     private Socket socket;
@@ -309,10 +311,9 @@ public class ModbusTCPClient {
             try {
                 outputStream.write(request);
                 outputStream.flush();
-                Log.d(TAG, "FileTransportstart");
                 List<Integer> response = Response(ModBuscode.FileFunCode);
                 validateFileTransportResponse(response, fileAddr, byteData.length);
-                Log.d(TAG, "FileTransportstop");
+                Log.d("fileaddr", Integer.toUnsignedString(fileAddr));
             } catch (IOException e) {
                 disconnect();
                 throw new ModbusException("Communication error: " + e.getMessage());
@@ -377,6 +378,7 @@ public class ModbusTCPClient {
             throw new ModbusException("Communication error: " + e.getMessage());
         }
     }
+
     public List<Integer> ReadMachineInfo() throws ModbusException {
         try {
             // 读取Modbus机床信息寄存器
@@ -388,6 +390,7 @@ public class ModbusTCPClient {
             throw new ModbusException("Communication error: " + e.getMessage());
         }
     }
+
     public List<Integer> ReadAxisInfo() throws ModbusException {
         try {
             // 读取Modbus轴信息寄存器
@@ -415,6 +418,17 @@ public class ModbusTCPClient {
         try {
             List<Integer> value = new ArrayList<>();
             value.add(Constant.Back);
+            value = byteToint(value);
+            writeReg(Constant.CommandAddr, value);
+        } catch (ModbusException e) {
+            throw new ModbusException("Communication error: " + e.getMessage());
+        }
+    }
+
+    public void ControlBackZero() throws ModbusException {
+        try {
+            List<Integer> value = new ArrayList<>();
+            value.add(Constant.BackZero);
             value = byteToint(value);
             writeReg(Constant.CommandAddr, value);
         } catch (ModbusException e) {
@@ -466,9 +480,13 @@ public class ModbusTCPClient {
         try {
             List<Integer> value = new ArrayList<>();
             value.add(Constant.FileStart);
-            for (int i = 0; i < Filename.length(); i++) {
-                value.add((int) Filename.charAt(i));
+            byte[] bytes = Filename.getBytes("GBK");
+            for(int i = 0; i < bytes.length; i++) {
+                value.add((int) bytes[i]);
             }
+//            for (int i = 0; i < Filename.length(); i++) {
+//                value.add((int) Filename.charAt(i));
+//            }
             value.add((int) '&');
             for (int i = 0; i < MD5.length(); i++) {
                 value.add((int) MD5.charAt(i));
@@ -477,6 +495,8 @@ public class ModbusTCPClient {
             writeReg(Constant.CommandAddr, value);
         } catch (ModbusException e) {
             throw new ModbusException("Communication error: " + e.getMessage());
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
         }
     }
 
