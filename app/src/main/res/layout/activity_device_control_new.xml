@@ -41,25 +41,31 @@
                 <!-- 使用 ConstraintLayout 自适应控制区域 -->
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
-                    android:layout_height="180dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginVertical="10dp"
-                    android:padding="16dp"
-                    android:background="@color/background_color">
+                    android:background="@color/background_color"
+                    android:padding="16dp">
 
                     <!-- XY方向控制区域靠左 -->
                     <GridLayout
                         android:id="@+id/move_controls"
                         android:layout_width="0dp"
                         android:layout_height="0dp"
-                        android:rowCount="2"
                         android:columnCount="3"
+                        android:rowCount="2"
                         android:useDefaultMargins="true"
+                        app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintWidth_percent="0.6">
+                        app:layout_constraintWidth_percent="0.6"
+                        app:layout_constraintDimensionRatio="3:2">
 
-                        <View android:layout_width="0dp" android:layout_height="0dp" android:layout_rowWeight="1" android:layout_columnWeight="1" />
+                        <View
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:layout_rowWeight="1"
+                            android:layout_columnWeight="1" />
+
                         <androidx.appcompat.widget.AppCompatButton
                             android:id="@+id/btn_up"
                             android:layout_width="0dp"
@@ -67,7 +73,12 @@
                             android:layout_rowWeight="1"
                             android:layout_columnWeight="1"
                             android:background="@drawable/btn_up" />
-                        <View android:layout_width="0dp" android:layout_height="0dp" android:layout_rowWeight="1" android:layout_columnWeight="1" />
+
+                        <View
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:layout_rowWeight="1"
+                            android:layout_columnWeight="1" />
 
                         <androidx.appcompat.widget.AppCompatButton
                             android:id="@+id/btn_left"
@@ -76,6 +87,7 @@
                             android:layout_rowWeight="1"
                             android:layout_columnWeight="1"
                             android:background="@drawable/btn_left" />
+
                         <androidx.appcompat.widget.AppCompatButton
                             android:id="@+id/btn_down"
                             android:layout_width="0dp"
@@ -83,6 +95,7 @@
                             android:layout_rowWeight="1"
                             android:layout_columnWeight="1"
                             android:background="@drawable/btn_down" />
+
                         <androidx.appcompat.widget.AppCompatButton
                             android:id="@+id/btn_right"
                             android:layout_width="0dp"
@@ -97,14 +110,14 @@
                         android:id="@+id/z_controls"
                         android:layout_width="0dp"
                         android:layout_height="0dp"
-                        android:rowCount="2"
                         android:columnCount="1"
+                        android:rowCount="2"
                         android:useDefaultMargins="true"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintWidth_percent="0.2"
-                        app:layout_constraintHeight_percent="1">
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintHeight_percent="1"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintWidth_percent="0.2">
 
                         <androidx.appcompat.widget.AppCompatButton
                             android:id="@+id/btn_z_plus"
@@ -113,6 +126,7 @@
                             android:layout_rowWeight="1"
                             android:layout_columnWeight="1"
                             android:background="@drawable/btn_zplus" />
+
                         <androidx.appcompat.widget.AppCompatButton
                             android:id="@+id/btn_z_minus"
                             android:layout_width="0dp"

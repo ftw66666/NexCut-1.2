@@ -11,14 +11,17 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.InputType;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -260,7 +263,7 @@ public class WhiteboardActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    public void imageEditActivityGCode(boolean isHalftone)
+    public void imageEditActivityGCode(boolean isHalftone,int rho)
     {
         bitmap = whiteBoardFragment.getResultBitmap();
         //bitmap = resizeBitmapByWidth(whiteBoardFragment.getResultBitmap(), TARGET_WIDTH);
@@ -278,6 +281,7 @@ public class WhiteboardActivity extends AppCompatActivity {
             intent.putExtra("GCodeimageUri", imageUri.toString());
             intent.putExtra("isHalftone",isHalftone);
             intent.putExtra("whiteboardAspectRatio", getPrinterAspectRatio());
+            intent.putExtra("rho",rho);
             startActivity(intent);
 
             //imageView.setImageBitmap(bitmap);
@@ -329,29 +333,36 @@ public class WhiteboardActivity extends AppCompatActivity {
         // 创建 CheckBox
         CheckBox halftoneCheckbox = new CheckBox(context);
         halftoneCheckbox.setText("启用半调网屏");
-
-        // 添加到布局中
         layout.addView(halftoneCheckbox);
+
+        // 添加 "线密度大小：" 标签
+        TextView lineDensityLabel = new TextView(context);
+        lineDensityLabel.setText("线密度大小：");
+        layout.addView(lineDensityLabel);
+
+        // 创建 EditText 用于输入线密度
+        EditText lineDensityInput = new EditText(context);
+        lineDensityInput.setHint("请输入线密度(rho)");
+        lineDensityInput.setInputType(InputType.TYPE_CLASS_NUMBER);
+        layout.addView(lineDensityInput);
 
         builder.setView(layout);
 
         builder.setPositiveButton("确认", (dialog, which) -> {
-            //boolean isHalftone = halftoneCheckbox.isChecked();
-            imageEditActivityGCode(halftoneCheckbox.isChecked());
-//            handler.post(new Runnable() {
-//                @Override
-//                public void run() {
-//                    runOnUiThread(() -> progressHelper.showProgressDialog(WhiteboardActivity.this,"GCode生成中")) ;// 显示对话框
-//                }
-//            });
-            //Toast.makeText(context, "你选择了：" + (useHalftone ? "使用" : "不使用") + "半调网屏", Toast.LENGTH_SHORT).show();
+            boolean useHalftone = halftoneCheckbox.isChecked();
+            String inputText = lineDensityInput.getText().toString().trim();
+            int lineDensity = inputText.isEmpty() ? 0 : Integer.parseInt(inputText); // 默认0，如果未输入
+
+            // 调用你的处理函数
+            imageEditActivityGCode(useHalftone, lineDensity);
         });
 
         builder.setNegativeButton("取消", (dialog, which) -> dialog.dismiss());
 
-
         builder.show();
     }
+
+
 
 }
 

@@ -29,7 +29,7 @@ import android.widget.Toast;
 public class GCode {
     private static final int MAX_POWER = 255;
 
-    public static String generateGCode0(Mat image, double rho, int targetWidth, int targetHeight, double startX, double startY) {
+    public static String generateGCode0(Mat image, int rho, int targetWidth, int targetHeight, double startX, double startY) {
         int laserPower = 20;
         int padding = 5;
 
@@ -41,6 +41,11 @@ public class GCode {
         Bitmap bitmap = ImageProcessor.matToBitmap(image);
         Bitmap grayBitmap = ImageProcessor.toGrayscale(bitmap);
         Mat grayImage = ImageProcessor.bitmapToMat(grayBitmap);
+        int originrows = grayImage.rows();
+        int origincols = grayImage.cols();
+        if (originrows > targetHeight*rho || origincols > targetWidth*rho) {
+            rho =Math.max(origincols/targetWidth+1,originrows / targetHeight+1);
+        }
 
         // 2. 根据目标尺寸和 rho 缩放图像
         int cols = (int) (targetWidth * rho);   // 横向像素数

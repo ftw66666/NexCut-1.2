@@ -18,6 +18,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
@@ -35,6 +37,7 @@ import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -71,12 +74,20 @@ public class device_Control extends AppCompatActivity {
     private Button button_Zdown;
     private Toolbar toolbar;
 
+    private ConstraintLayout allAxisLayout;
+
+    private GridLayout zControls,moveControls;
+
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_device_control_new);
+
+        View decorView = getWindow().getDecorView();
+        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+        decorView.setSystemUiVisibility(uiOptions);
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -88,6 +99,9 @@ public class device_Control extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         // 初始化轴控制
+        //allAxisLayout = findViewById(R.id.all_move_controls);
+        zControls = findViewById(R.id.z_controls);
+        moveControls = findViewById(R.id.move_controls);
         button_up = findViewById(R.id.btn_up);
         button_down = findViewById(R.id.btn_down);
         button_left = findViewById(R.id.btn_left);
@@ -101,6 +115,14 @@ public class device_Control extends AppCompatActivity {
         btnMoveControl(button_Zup, AXIS_Z, DEFAULT_SPEED, DEFAULT_DISTANCE);
         btnMoveControl(button_Zdown, AXIS_Z, DEFAULT_SPEED, DEFAULT_DISTANCE * (-1));
         button_stop = findViewById(R.id.command_2);
+
+
+//        allAxisLayout.setMinHeight((int)((moveControls.getWidth()-zControls.getWidth()-button_up.getWidth()*2 ) / 2f
+//        + button_up.getWidth() + zControls.getWidth() + allAxisLayout.getPaddingTop() + allAxisLayout.getPaddingBottom()));
+//        ;
+//        allAxisLayout.setMaxHeight((int)((moveControls.getWidth()-zControls.getWidth()-button_up.getWidth()*2 ) / 2f
+//                + button_up.getWidth() + zControls.getWidth() + allAxisLayout.getPaddingTop() + allAxisLayout.getPaddingBottom()));
+
         // 初始化DO控制
         GridLayout doGrid = findViewById(R.id.doGrid);
         for (int i = 1; i <= 8; i++) {
@@ -117,7 +139,7 @@ public class device_Control extends AppCompatActivity {
             });
 
             // 设置 LayoutParams
-            GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+            //GridLayout.LayoutParams params = new GridLayout.LayoutParams();
 
             // 关键设置：宽度填满，高度自适应
             //params.width = 0;  // 相当于 XML 的 android:layout_width="0dp"
