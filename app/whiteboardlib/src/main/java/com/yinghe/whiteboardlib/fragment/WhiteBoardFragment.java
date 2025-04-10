@@ -276,7 +276,7 @@ public class WhiteBoardFragment extends Fragment implements SketchView.OnDrawCha
      * create at 16/6/21 下午3:46
      */
     public File saveInOI(String filePath, String imgName) {
-        return saveInOI(filePath, imgName, 80);
+        return saveInOI(filePath, imgName, 100);
     }
 
     @Override

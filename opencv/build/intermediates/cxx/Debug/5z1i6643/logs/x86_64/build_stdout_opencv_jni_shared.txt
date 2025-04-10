@@ -1,3 +1,2 @@
 ninja: Entering directory `D:\androidproject\NexCut-1.2\opencv\.cxx\Debug\5z1i6643\x86_64'
-[1/2] Building CXX object CMakeFiles/opencv_jni_shared.dir/dummy.cpp.o
-[2/2] Linking CXX static library libopencv_jni_shared.a
+ninja: no work to do.

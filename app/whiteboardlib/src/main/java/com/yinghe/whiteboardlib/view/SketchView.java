@@ -76,8 +76,8 @@ public class SketchView extends View implements OnTouchListener {
     public static final int ACTION_SCALE = 2;
     public static final int ACTION_ROTATE = 3;
     //    public int curSketchData.editMode = EDIT_STROKE;
-    public static float SCALE_MAX = 4.0f;
-    public static float SCALE_MIN = 0.8f;
+    public static float SCALE_MAX = 10.0f;
+    public static float SCALE_MIN = 0.1f;
     public static float SCALE_MIN_LEN;
     public final String TAG = getClass().getSimpleName();
     public Paint boardPaint;
@@ -449,7 +449,9 @@ public class SketchView extends View implements OnTouchListener {
     }
 
     public float getMaxScale(RectF photoSrc) {
-        return Math.max(getWidth(), getHeight()) / Math.max(photoSrc.width(), photoSrc.height());
+        //return Math.max(getWidth(), getHeight()) / Math.max(photoSrc.width(), photoSrc.height());
+        return Math.max(getWidth(), getHeight()) / Math.max(photoSrc.width(), photoSrc.height()) * 10;
+
 //        SCALE_MIN = SCALE_MAX / 5;
     }
 
@@ -705,7 +707,7 @@ public class SketchView extends View implements OnTouchListener {
         canvas.save();
         canvas.restore();
 //        return newBM;
-        Bitmap bitmap = BitmapUtils.createBitmapThumbnail(newBM, true, 800, 1280);
+        Bitmap bitmap = BitmapUtils.createBitmapThumbnail(newBM, true, mHeight, mWidth);
         return bitmap;
     }
 

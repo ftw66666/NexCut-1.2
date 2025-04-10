@@ -13,6 +13,6 @@ public class PhotoRecord {
     public Bitmap bitmap;//图形
     public Matrix matrix;//图形
     public RectF photoRectSrc = new RectF();
-    public float scaleMax = 4.0F;
+    public float scaleMax = 10.0F;
 
 }
