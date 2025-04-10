@@ -256,41 +256,50 @@ public class  ImageEditActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * 应用亮度、对比度
+     */
     private void applyFilters() {
-        Bitmap filteredBitmap = Bitmap.createBitmap(selectedBitmap.getWidth(), selectedBitmap.getHeight(), selectedBitmap.getConfig());
+        if (originalBitmap == null) return; // 始终从原图开始
 
-        ColorMatrix colorMatrix = new ColorMatrix();
+        Bitmap filteredBitmap = Bitmap.createBitmap(
+                originalBitmap.getWidth(),
+                originalBitmap.getHeight(),
+                Bitmap.Config.ARGB_8888
+        );
 
-        // 调整对比度
-        float scale = contrastValue;
-        float translate = (-0.5f * scale + 0.5f) * 255f;
-        colorMatrix.set(new float[]{
-                scale, 0, 0, 0, translate,
-                0, scale, 0, 0, translate,
-                0, 0, scale, 0, translate,
+        // 对比度处理
+        float contrastScale = contrastValue;
+        float contrastTranslate = (1 - contrastScale) * 128;
+
+        ColorMatrix contrastMatrix = new ColorMatrix(new float[]{
+                contrastScale, 0, 0, 0, contrastTranslate,
+                0, contrastScale, 0, 0, contrastTranslate,
+                0, 0, contrastScale, 0, contrastTranslate,
                 0, 0, 0, 1, 0
         });
 
-        // 调整亮度
-        ColorMatrix brightnessMatrix = new ColorMatrix(new float[] {
+        // 亮度处理
+        ColorMatrix brightnessMatrix = new ColorMatrix(new float[]{
                 1, 0, 0, 0, brightnessValue,
                 0, 1, 0, 0, brightnessValue,
                 0, 0, 1, 0, brightnessValue,
                 0, 0, 0, 1, 0
         });
 
-        colorMatrix.preConcat(brightnessMatrix);
+        // 合并矩阵：先亮度，再对比度
+        brightnessMatrix.postConcat(contrastMatrix);
 
         Paint paint = new Paint();
-        paint.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
+        paint.setColorFilter(new ColorMatrixColorFilter(brightnessMatrix));
 
         Canvas canvas = new Canvas(filteredBitmap);
-        canvas.drawBitmap(selectedBitmap, 0, 0, paint);
+        canvas.drawBitmap(originalBitmap, 0, 0, paint); // 始终基于 originalBitmap
 
         imageView.setImageBitmap(filteredBitmap);
-        //Toast.makeText(this, "hihihihi", Toast.LENGTH_SHORT).show();
         selectedBitmap = filteredBitmap;
     }
+
 
 
     /**
