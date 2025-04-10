@@ -79,13 +79,32 @@ public class ModBuscode {
     /**
      * 检查Modbus返回值是否包含异常信息
      *
-     * @param functionCode byte Modbus返回的函数码
+     * @param pdu byte Modbus返回的函数码
      * @throws ModbusFrameException 如果包含异常信息
      */
-    private static void checkException(byte functionCode) throws ModbusFrameException {
-        if ((functionCode & ErrorFunCode) != 0) {
-            throw new ModbusFrameException("Modbus exception: 0x" +
-                    Integer.toHexString(functionCode & 0xFF));
+    private static void checkException(byte[] pdu) throws ModbusFrameException {
+        if ((pdu[0] & ErrorFunCode) != 0) {
+            String temp = "";
+            switch (pdu[1]) {
+                case 0x01:
+                    temp = "非法功能码";
+                    break;
+                case 0x02:
+                    temp = "非法数据地址";
+                    break;
+                case 0x03:
+                    temp = "非法数据值";
+                    break;
+                case 0x04:
+                    temp = "文件信息错误";
+                    break;
+                case 0x05:
+                    temp = "文件存储错误";
+                    break;
+                default:
+                    break;
+            }
+            throw new ModbusFrameException(temp);
         }
     }
 
@@ -130,7 +149,7 @@ public class ModBuscode {
     public static List<Integer> decodeReadReg(byte[] pdu) throws ModbusFrameException {
         if (pdu.length < 1) throw new ModbusFrameException("Empty PDU");
         // 检查Modbus返回值是否包含异常信息
-        checkException(pdu[0]);
+        checkException(pdu);
         if ((pdu[0] & 0xFF) != ReadFunCode) {
             throw new ModbusFrameException("Unexpected function code");
         }
@@ -173,7 +192,6 @@ public class ModBuscode {
         // 分配PDU缓存
         ByteBuffer pdu = ByteBuffer.allocate(
                 FunCodeLen + RegAddrLen + RegCountLen + WriteRequestCountLen + values.size() * RegDataLen);
-
         // 依次写入PDU
         pdu.put((byte) WriteFunCode) // 函数码
                 .putShort((short) regAddr) // 寄存器地址
@@ -200,7 +218,7 @@ public class ModBuscode {
      */
     public static List<Integer> decodeWriteReg(byte[] pdu) throws ModbusFrameException {
         if (pdu.length < 1) throw new ModbusFrameException("Empty PDU");
-        checkException(pdu[0]);
+        checkException(pdu);
         if ((pdu[0] & 0xFF) != WriteFunCode) {
             throw new ModbusFrameException("Unexpected function code");
         }
@@ -265,7 +283,7 @@ public class ModBuscode {
      */
     public static List<Integer> decodeFileTransport(byte[] pdu) throws ModbusFrameException {
         if (pdu.length < 1) throw new ModbusFrameException("Empty PDU");
-        checkException(pdu[0]);
+        checkException(pdu);
         if ((pdu[0] & 0xFF) != FileFunCode) {
             throw new ModbusFrameException("Unexpected function code");
         }

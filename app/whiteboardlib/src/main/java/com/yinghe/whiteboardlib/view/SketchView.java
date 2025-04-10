@@ -347,6 +347,7 @@ public class SketchView extends View implements OnTouchListener {
                 } else if (type == STROKE_TYPE_TEXT) {
                     if (record.text != null) {
                         StaticLayout layout = new StaticLayout(record.text, record.textPaint, record.textWidth, Layout.Alignment.ALIGN_NORMAL, 1.0F, 0.0F, true);
+
                         tempHoldCanvas.translate(record.textOffX, record.textOffY);
                         layout.draw(tempHoldCanvas);
                         tempHoldCanvas.translate(-record.textOffX, -record.textOffY);
@@ -497,6 +498,7 @@ public class SketchView extends View implements OnTouchListener {
                 curStrokeRecord.textOffY = (int) downY;
                 TextPaint tp = new TextPaint();
                 tp.setColor(strokeRealColor);
+
                 curStrokeRecord.textPaint = tp; // Clones the mPaint object
                 textWindowCallback.onText(this, curStrokeRecord);
                 return;

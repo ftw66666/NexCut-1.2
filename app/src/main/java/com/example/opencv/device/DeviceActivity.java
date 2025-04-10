@@ -100,7 +100,7 @@ public class DeviceActivity extends AppCompatActivity implements UdpReceiver.OnD
                             @Override
                             public void run() {
                                 try {
-                                    mtcp.connect(device.getIp(), device.getPort(), 1, DeviceActivity.this);
+                                    mtcp.connect(device.getIp(), device.getPort(), 1);
                                     mtcp.ConnectDeviceId = device.getDeviceId();
                                     handler.post(new Runnable() {
                                         @Override

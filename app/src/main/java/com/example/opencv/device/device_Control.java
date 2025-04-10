@@ -286,7 +286,7 @@ public class device_Control extends AppCompatActivity {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            mtcp.onWriteFailed(device_Control.this);
+                            mtcp.onWriteFailed(device_Control.this, e.getMessage());
                         }
                     });
                     Log.d("TCPTest", e.getMessage());
@@ -310,7 +310,7 @@ public class device_Control extends AppCompatActivity {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            mtcp.onWriteFailed(device_Control.this);
+                            mtcp.onWriteFailed(device_Control.this, e.getMessage());
                         }
                     });
                     Log.d("TCPTest", e.getMessage());
@@ -334,7 +334,7 @@ public class device_Control extends AppCompatActivity {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            mtcp.onWriteFailed(device_Control.this);
+                            mtcp.onWriteFailed(device_Control.this, e.getMessage());
                         }
                     });
                     Log.d("TCPTest", e.getMessage());
@@ -355,7 +355,7 @@ public class device_Control extends AppCompatActivity {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            mtcp.onWriteFailed(device_Control.this);
+                            mtcp.onWriteFailed(device_Control.this, e.getMessage());
                         }
                     });
                     Log.d("TCPTest", e.getMessage());
@@ -376,7 +376,7 @@ public class device_Control extends AppCompatActivity {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            mtcp.onWriteFailed(device_Control.this);
+                            mtcp.onWriteFailed(device_Control.this, e.getMessage());
                         }
                     });
                     Log.d("TCPTest", e.getMessage());
@@ -397,7 +397,7 @@ public class device_Control extends AppCompatActivity {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            mtcp.onWriteFailed(device_Control.this);
+                            mtcp.onWriteFailed(device_Control.this, e.getMessage());
                         }
                     });
                     Log.d("TCPTest", e.getMessage());
@@ -418,7 +418,7 @@ public class device_Control extends AppCompatActivity {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            mtcp.onWriteFailed(device_Control.this);
+                            mtcp.onWriteFailed(device_Control.this, e.getMessage());
                         }
                     });
                     Log.d("TCPTest", e.getMessage());
@@ -439,7 +439,7 @@ public class device_Control extends AppCompatActivity {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            mtcp.onWriteFailed(device_Control.this);
+                            mtcp.onWriteFailed(device_Control.this, e.getMessage());
                         }
                     });
                     Log.d("TCPTest", e.getMessage());
@@ -460,7 +460,7 @@ public class device_Control extends AppCompatActivity {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            mtcp.onWriteFailed(device_Control.this);
+                            mtcp.onWriteFailed(device_Control.this, e.getMessage());
                         }
                     });
                     Log.d("TCPTest", e.getMessage());

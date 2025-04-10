@@ -60,7 +60,7 @@
                     android:backgroundTint="@android:color/transparent"
                     android:backgroundTintMode="screen"
                     android:minHeight="180dp"
-                    android:textSize="24sp"
+                    android:textSize="20sp"
                     android:text="NextCut-X1\n未连接"
                     android:textColorLink="@color/light_black"
                     android:drawableRight="@drawable/right_arrow_icon_s"

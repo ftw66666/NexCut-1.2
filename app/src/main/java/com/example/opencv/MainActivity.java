@@ -40,6 +40,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.viewpager.widget.ViewPager;
 
+import com.example.opencv.Utils.CenteredImageSpan;
 import com.example.opencv.Utils.FileUtils;
 import com.example.opencv.device.DeviceActivity;
 import com.example.opencv.device.DeviceInfoActivity;
@@ -289,7 +290,7 @@ public class MainActivity extends AppCompatActivity {
                                 handler.post(new Runnable() {
                                     @Override
                                     public void run() {
-                                        mtcp.onFileFailed(MainActivity.this);
+                                        mtcp.onFileFailed(MainActivity.this, e.getMessage());
                                     }
                                 });
                                 Log.d("TCPTest", e.getMessage());
@@ -439,24 +440,24 @@ public class MainActivity extends AppCompatActivity {
         //拍摄
         button = findViewById(R.id.button1);
         drawable = getResources().getDrawable(R.drawable.camera_icon);
-        drawable.setBounds(0, 0, 80, 80); // 设置大小
-        imageSpan = new ImageSpan(drawable, ImageSpan.ALIGN_CENTER);
-        spannable = new SpannableString(" " + "拍照");
+        drawable.setBounds(0, 0, 180, 180); // 自定义大小
+        imageSpan = new CenteredImageSpan(drawable);
+        spannable = new SpannableString(" 拍照");
         spannable.setSpan(imageSpan, 0, 1, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
         button.setText(spannable);
         //相册
         button = findViewById(R.id.button2);
         drawable = getResources().getDrawable(R.drawable.gallery_icon);
-        drawable.setBounds(0, 0, 80, 80); // 设置大小
-        imageSpan = new ImageSpan(drawable, ImageSpan.ALIGN_CENTER);
+        drawable.setBounds(0, 0, 180, 180); // 设置大小
+        imageSpan = new CenteredImageSpan(drawable);
         spannable = new SpannableString(" " + "相册");
         spannable.setSpan(imageSpan, 0, 1, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
         button.setText(spannable);
         //预设
         button = findViewById(R.id.button3);
         drawable = getResources().getDrawable(R.drawable.pics_icon);
-        drawable.setBounds(0, 0, 80, 80); // 设置大小
-        imageSpan = new ImageSpan(drawable, ImageSpan.ALIGN_CENTER);
+        drawable.setBounds(0, 0, 180, 180); // 设置大小
+        imageSpan = new CenteredImageSpan(drawable);
         spannable = new SpannableString(" " + "素材");
         spannable.setSpan(imageSpan, 0, 1, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
         button.setText(spannable);
@@ -465,8 +466,8 @@ public class MainActivity extends AppCompatActivity {
         //文件
         button = findViewById(R.id.button4);
         drawable = getResources().getDrawable(R.drawable.file_icon);
-        drawable.setBounds(0, 0, 80, 80); // 设置大小
-        imageSpan = new ImageSpan(drawable, ImageSpan.ALIGN_CENTER);
+        drawable.setBounds(0, 0, 180, 180); // 设置大小
+        imageSpan = new CenteredImageSpan(drawable);
         spannable = new SpannableString(" " + "文件");
         spannable.setSpan(imageSpan, 0, 1, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
         button.setText(spannable);
@@ -511,8 +512,11 @@ public class MainActivity extends AppCompatActivity {
         button.setText(spannable);
     }
 
+
+    // 通过XML绑定的点击方法
     public void onClickOpenBrowser(View view) {
-        String url = "https://www.example.com"; // 替换成你想跳转的网址
+        String url = "https://www.au3tech.com/page168"; // 替换成你想跳转的网址
+
 
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
         intent.addCategory(Intent.CATEGORY_BROWSABLE); // 可选，明确用于浏览器
@@ -524,8 +528,5 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(view.getContext(), "无法打开浏览器", Toast.LENGTH_SHORT).show();
         }
     }
-
-
-
 }
 // add 多线程其他函数的

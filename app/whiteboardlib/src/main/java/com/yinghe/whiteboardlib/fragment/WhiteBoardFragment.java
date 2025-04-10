@@ -362,8 +362,7 @@ public class WhiteBoardFragment extends Fragment implements SketchView.OnDrawCha
         saveET = new EditText(activity);
         saveET.setHint("新文件名");
         saveET.setGravity(Gravity.CENTER);
-        saveET.setTextSize(24f + (mSketchView.strokeSize - 3f) * (114f - 24f) / (100f - 3f));
-        saveET.setSingleLine();
+
         saveET.setInputType(EditorInfo.TYPE_CLASS_TEXT);
         saveET.setImeOptions(EditorInfo.IME_ACTION_DONE);
         saveET.setSelectAllOnFocus(true);
@@ -537,7 +536,7 @@ public class WhiteBoardFragment extends Fragment implements SketchView.OnDrawCha
                                           boolean fromUser) {
                 setSeekBarProgress(progress, STROKE_TYPE_DRAW);
 
-                Toast.makeText(activity, "画笔宽度：" + progress, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(activity, "画笔宽度：" + progress, Toast.LENGTH_SHORT).show();
             }
         });
         strokeSeekBar.setProgress(SketchView.DEFAULT_STROKE_SIZE);
@@ -856,6 +855,8 @@ public class WhiteBoardFragment extends Fragment implements SketchView.OnDrawCha
 
     private void showTextPopupWindow(View anchor, final StrokeRecord record) {
         strokeET.requestFocus();
+        strokeET.setTextSize(24f + (mSketchView.strokeSize - 3f) * (64f - 24f) / (100f - 3f));
+        strokeET.setSingleLine();
         textPopupWindow.showAsDropDown(anchor, record.textOffX, record.textOffY - mSketchView.getHeight());
         textPopupWindow.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_UNCHANGED);
         InputMethodManager imm = (InputMethodManager) activity
@@ -884,7 +885,7 @@ public class WhiteBoardFragment extends Fragment implements SketchView.OnDrawCha
         //textPaint.setTextSize(mSketchView.strokeSize * 114); // 调整文字大小
         //textPaint.setTextSize(mSketchView.strokeSize + 14); // 调整文字大小
         float magicfactor = 2f;
-        textPaint.setTextSize(sp2px(requireContext(),(24f + (mSketchView.strokeSize - 3f) * (114f - 24f) / (100f - 3f)) * magicfactor));
+        textPaint.setTextSize(sp2px(requireContext(),(24f + (mSketchView.strokeSize - 3f) * (64f - 24f) / (100f - 3f)) * magicfactor));
         Paint.FontMetrics fontMetrics = textPaint.getFontMetrics();
 
         // 计算文本尺寸（包含上升和下降部分）

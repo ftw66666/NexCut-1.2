@@ -8,7 +8,7 @@
     <!-- 按钮的边框，可设置圆角或者其他样式 -->
     <item android:right="200dp" android:left="10dp" android:top="10dp" android:bottom="10dp">
         <bitmap
-            android:src="@drawable/printer_icon"
+            android:src="@drawable/printer_icon_small"
             android:gravity="left" /> <!-- 图片居中 -->
     </item>
 </layer-list>

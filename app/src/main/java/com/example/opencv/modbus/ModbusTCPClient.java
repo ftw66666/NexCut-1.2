@@ -53,6 +53,9 @@ public class ModbusTCPClient {
     private BufferedInputStream inputStream;
     private BufferedOutputStream outputStream;
 
+    private String LastHost = "";
+    private int LastPort = 0;
+
     /**
      * 创建一个ModbusTCPClient实例
      */
@@ -72,14 +75,13 @@ public class ModbusTCPClient {
     /**
      * 连接Modbus TCP设备
      *
-     * @param host    Modbus TCP设备的IP地址
-     * @param port    Modbus TCP设备的端口号
-     * @param unitId  Modbus TCP设备的单元ID
-     * @param context Context对象
+     * @param host   Modbus TCP设备的IP地址
+     * @param port   Modbus TCP设备的端口号
+     * @param unitId Modbus TCP设备的单元ID
      * @throws ModbusException 连接失败时抛出
      */
-    public void connect(String host, int port, int unitId, Context context) throws ModbusException {
-        connect(5000, host, port, unitId, context);
+    public void connect(String host, int port, int unitId) throws ModbusException {
+        connect(5000, host, port, unitId);
     }
 
     /**
@@ -89,10 +91,9 @@ public class ModbusTCPClient {
      * @param host    Modbus TCP设备的IP地址
      * @param port    Modbus TCP设备的端口号
      * @param unitId  Modbus TCP设备的单元ID
-     * @param context Context对象
      * @throws ModbusException 连接失败时抛出
      */
-    public void connect(int timeout, String host, int port, int unitId, Context context) throws ModbusException {
+    public void connect(int timeout, String host, int port, int unitId) throws ModbusException {
         this.unitId = unitId;
         synchronized (requesrlock) {
             try {
@@ -112,6 +113,8 @@ public class ModbusTCPClient {
                 socket.setReuseAddress(true);
                 inputStream = new BufferedInputStream(socket.getInputStream());
                 outputStream = new BufferedOutputStream(socket.getOutputStream());
+                LastHost = host;
+                LastPort = port;
                 isConnected.set(true);
             } catch (IOException e) {
                 disconnect();
@@ -207,8 +210,10 @@ public class ModbusTCPClient {
                 }
                 return data;
             } catch (IOException e) {
-                disconnect();
-                throw new ModbusException("Communication error: " + e.getMessage());
+                if (!Reconnect()) {
+                    disconnect();
+                }
+                throw new ModbusException(e.getMessage());
             }
         }
     }
@@ -236,11 +241,31 @@ public class ModbusTCPClient {
                 outputStream.flush();
                 return Response(ModBuscode.ReadFunCode);
             } catch (IOException e) {
-                disconnect();
+                if (!Reconnect()) {
+                    disconnect();
+                }
                 throw new ModbusException("Communication error: " + e.getMessage());
             }
         }
     }
+
+    public boolean Reconnect() {
+        int MaxRetry = 3;
+        int retryCount = 0;
+        while (retryCount < MaxRetry) {
+            try {
+                connect(LastHost, LastPort, unitId);
+                if (isConnected.get() == true) {
+                    return true;
+                }
+            } catch (ModbusException e) {
+
+            }
+            retryCount++;
+        }
+        return false;
+    }
+
 
     /**
      * 验证写寄存器的响应
@@ -368,112 +393,76 @@ public class ModbusTCPClient {
      * @throws ModbusException 如果通信错误或读取的响应格式错误
      */
     public List<Integer> ReadDeviceInfo() throws ModbusException {
-        try {
-            // 读取Modbus设备信息寄存器
-            List<Integer> readData = readReg(Constant.DeviceStartAddr, Constant.DeviceRegCount);
-            // 合并高低字节
-            readData = mergeList(readData);
-            return readData;
-        } catch (ModbusException e) {
-            throw new ModbusException("Communication error: " + e.getMessage());
-        }
+        // 读取Modbus设备信息寄存器
+        List<Integer> readData = readReg(Constant.DeviceStartAddr, Constant.DeviceRegCount);
+        // 合并高低字节
+        readData = mergeList(readData);
+        return readData;
     }
 
     public List<Integer> ReadMachineInfo() throws ModbusException {
-        try {
-            // 读取Modbus机床信息寄存器
-            List<Integer> readData = readReg(Constant.MachineAddr, Constant.MachineRegCount);
-            // 合并高低字节
-            readData = mergeList(readData);
-            return readData;
-        } catch (ModbusException e) {
-            throw new ModbusException("Communication error: " + e.getMessage());
-        }
+        // 读取Modbus机床信息寄存器
+        List<Integer> readData = readReg(Constant.MachineAddr, Constant.MachineRegCount);
+        // 合并高低字节
+        readData = mergeList(readData);
+        return readData;
     }
 
     public List<Integer> ReadAxisInfo() throws ModbusException {
-        try {
-            // 读取Modbus轴信息寄存器
-            List<Integer> readData = readReg(Constant.AxisStartAddr, Constant.AxisRegCount);
-            // 合并高低字节
-            readData = mergeList(readData);
-            return readData;
-        } catch (ModbusException e) {
-            throw new ModbusException("Communication error: " + e.getMessage());
-        }
+        // 读取Modbus轴信息寄存器
+        List<Integer> readData = readReg(Constant.AxisStartAddr, Constant.AxisRegCount);
+        // 合并高低字节
+        readData = mergeList(readData);
+        return readData;
     }
 
     public void ControlStop() throws ModbusException {
-        try {
-            List<Integer> value = new ArrayList<>();
-            value.add(Constant.Stop);
-            value = byteToint(value);
-            writeReg(Constant.CommandAddr, value);
-        } catch (ModbusException e) {
-            throw new ModbusException("Communication error: " + e.getMessage());
-        }
+        List<Integer> value = new ArrayList<>();
+        value.add(Constant.Stop);
+        value = byteToint(value);
+        writeReg(Constant.CommandAddr, value);
     }
 
     public void ControlBack() throws ModbusException {
-        try {
-            List<Integer> value = new ArrayList<>();
-            value.add(Constant.Back);
-            value = byteToint(value);
-            writeReg(Constant.CommandAddr, value);
-        } catch (ModbusException e) {
-            throw new ModbusException("Communication error: " + e.getMessage());
-        }
+        List<Integer> value = new ArrayList<>();
+        value.add(Constant.Back);
+        value = byteToint(value);
+        writeReg(Constant.CommandAddr, value);
     }
 
     public void ControlBackZero() throws ModbusException {
-        try {
-            List<Integer> value = new ArrayList<>();
-            value.add(Constant.BackZero);
-            value = byteToint(value);
-            writeReg(Constant.CommandAddr, value);
-        } catch (ModbusException e) {
-            throw new ModbusException("Communication error: " + e.getMessage());
-        }
+        List<Integer> value = new ArrayList<>();
+        value.add(Constant.BackZero);
+        value = byteToint(value);
+        writeReg(Constant.CommandAddr, value);
     }
 
     public void ControlAxisRun(int AxisId, int Speed, int Dir) throws ModbusException {
-        try {
-            List<Integer> value = new ArrayList<>();
-            value.add(Constant.AxisRun);
-            value.add(AxisId);
-            value.add(Speed);
-            value.add(Dir);
-            value = byteToint(value);
-            writeReg(Constant.CommandAddr, value);
-        } catch (ModbusException e) {
-            throw new ModbusException("Communication error: " + e.getMessage());
-        }
+        List<Integer> value = new ArrayList<>();
+        value.add(Constant.AxisRun);
+        value.add(AxisId);
+        value.add(Speed);
+        value.add(Dir);
+        value = byteToint(value);
+        writeReg(Constant.CommandAddr, value);
     }
 
     public void ControlDO(int DOId, int DOValue) throws ModbusException {
-        try {
-            List<Integer> value = new ArrayList<>();
-            value.add(Constant.DO);
-            value.add(DOId);
-            value.add(DOValue);
-            value = byteToint(value);
-            writeReg(Constant.CommandAddr, value);
-        } catch (ModbusException e) {
-            throw new ModbusException("Communication error: " + e.getMessage());
-        }
+        List<Integer> value = new ArrayList<>();
+        value.add(Constant.DO);
+        value.add(DOId);
+        value.add(DOValue);
+        value = byteToint(value);
+        writeReg(Constant.CommandAddr, value);
     }
 
     public void ControlDA(int DAId, int DAValue) throws ModbusException {
-        try {
-            List<Integer> value = new ArrayList<>();
-            value.add(Constant.DA);
-            value.add(DAId);
-            value.add(DAValue);
-            value = byteToint(value);
-            writeReg(Constant.CommandAddr, value);
-        } catch (ModbusException e) {
-            throw new ModbusException("Communication error: " + e.getMessage());
-        }
+        List<Integer> value = new ArrayList<>();
+        value.add(Constant.DA);
+        value.add(DAId);
+        value.add(DAValue);
+        value = byteToint(value);
+        writeReg(Constant.CommandAddr, value);
     }
 
     public void ControlFileStart(String Filename, String MD5) throws ModbusException {
@@ -481,7 +470,7 @@ public class ModbusTCPClient {
             List<Integer> value = new ArrayList<>();
             value.add(Constant.FileStart);
             byte[] bytes = Filename.getBytes("GBK");
-            for(int i = 0; i < bytes.length; i++) {
+            for (int i = 0; i < bytes.length; i++) {
                 value.add((int) bytes[i]);
             }
 //            for (int i = 0; i < Filename.length(); i++) {
@@ -493,56 +482,39 @@ public class ModbusTCPClient {
             }
             value = byteToint(value);
             writeReg(Constant.CommandAddr, value);
-        } catch (ModbusException e) {
-            throw new ModbusException("Communication error: " + e.getMessage());
-        } catch (UnsupportedEncodingException e) {
+        } catch (
+                UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
     }
 
     public void ControlFileStop() throws ModbusException {
-        try {
-            List<Integer> value = new ArrayList<>();
-            value.add(Constant.FileStop);
-            value = byteToint(value);
-            writeReg(Constant.CommandAddr, value);
-        } catch (ModbusException e) {
-            throw new ModbusException("Communication error: " + e.getMessage());
-        }
+        List<Integer> value = new ArrayList<>();
+        value.add(Constant.FileStop);
+        value = byteToint(value);
+        writeReg(Constant.CommandAddr, value);
     }
 
     public void ControlFTC() throws ModbusException {
-        try {
-            List<Integer> value = new ArrayList<>();
-            value.add(Constant.Ftc);
-            value = byteToint(value);
-            writeReg(Constant.CommandAddr, value);
-        } catch (ModbusException e) {
-            throw new ModbusException("Communication error: " + e.getMessage());
-        }
+        List<Integer> value = new ArrayList<>();
+        value.add(Constant.Ftc);
+        value = byteToint(value);
+        writeReg(Constant.CommandAddr, value);
     }
 
     public void ControlWorkBroder() throws ModbusException {
-        try {
-            List<Integer> value = new ArrayList<>();
-            value.add(Constant.WorkBroder);
-            value = byteToint(value);
-            writeReg(Constant.CommandAddr, value);
-        } catch (ModbusException e) {
-            throw new ModbusException("Communication error: " + e.getMessage());
-        }
+        List<Integer> value = new ArrayList<>();
+        value.add(Constant.WorkBroder);
+        value = byteToint(value);
+        writeReg(Constant.CommandAddr, value);
     }
 
     public void ControlOfflineProcess(int val) throws ModbusException {
-        try {
-            List<Integer> value = new ArrayList<>();
-            value.add(Constant.OfflineProcess);
-            value.add(val);
-            value = byteToint(value);
-            writeReg(Constant.CommandAddr, value);
-        } catch (ModbusException e) {
-            throw new ModbusException("Communication error: " + e.getMessage());
-        }
+        List<Integer> value = new ArrayList<>();
+        value.add(Constant.OfflineProcess);
+        value.add(val);
+        value = byteToint(value);
+        writeReg(Constant.CommandAddr, value);
     }
 
     public void FileTransport(final int fileAddr, File file, Context context) throws
@@ -556,7 +528,6 @@ public class ModbusTCPClient {
             String filename = file.getName();
             String md5String = md5Hex(fis);
             ControlFileStart(filename, md5String);
-            //isFiletransport.set(true);
             byte[] buffer = new byte[bufferSize];
             int bytesRead;
             BufferedInputStream fis1 = new BufferedInputStream(new FileInputStream(file));
@@ -566,18 +537,13 @@ public class ModbusTCPClient {
                     progressHelper.showProgressDialog(context); // 显示对话框
                 }
             });
-            Log.d("TCPtest", "文件传输开始");
             while ((bytesRead = fis1.read(buffer)) != -1) {
                 // 判断是否为最后一次读取（可能不足缓冲区大小）
                 byte[] aligendBytes = new byte[bytesRead];
                 System.arraycopy(buffer, 0, aligendBytes, 0, bytesRead);
 
                 int finalBytesRead = bytesRead;
-                try {
-                    FileTransportByte(fileAddr + totalBytesSent.get(), aligendBytes);
-                } catch (ModbusException e) {
-
-                }
+                FileTransportByte(fileAddr + totalBytesSent.get(), aligendBytes);
                 totalBytesSent.addAndGet(finalBytesRead);
                 // 计算进度
                 int progress = (int) ((totalBytesSent.get() * 100) / file.length());
@@ -589,10 +555,7 @@ public class ModbusTCPClient {
                     }
                 });
             }
-
-            Log.d("TCPtest", "文件传输结束");
             ControlFileStop();
-            //isFiletransport.set(false);
             handler.post(new Runnable() {
                 @Override
                 public void run() {
@@ -606,9 +569,9 @@ public class ModbusTCPClient {
                     progressHelper.dismissDialog();
                 }
             });
-            throw new ModbusException("Communication error: " + e.getMessage());
+            throw new ModbusException(e.getMessage());
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new ModbusException(e.getMessage());
         }
     }
 
@@ -628,13 +591,13 @@ public class ModbusTCPClient {
         toast.show();
     }
 
-    public void onWriteFailed(Context context) {
-        Toast toast = Toast.makeText(context, "写入错误，请检查连接是否正常", Toast.LENGTH_SHORT);
+    public void onWriteFailed(Context context, String error) {
+        Toast toast = Toast.makeText(context, error + ".请检查连接是否正常", Toast.LENGTH_SHORT);
         toast.show();
     }
 
-    public void onFileFailed(Context context) {
-        Toast toast = Toast.makeText(context, "文件传输错误，请检查连接是否正常", Toast.LENGTH_SHORT);
+    public void onFileFailed(Context context, String error) {
+        Toast toast = Toast.makeText(context, "文件传输错误." + error + ".请检查连接是否正常", Toast.LENGTH_SHORT);
         toast.show();
     }
 
