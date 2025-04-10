@@ -288,6 +288,8 @@ public class  ImageEditActivity extends AppCompatActivity {
         canvas.drawBitmap(selectedBitmap, 0, 0, paint);
 
         imageView.setImageBitmap(filteredBitmap);
+        //Toast.makeText(this, "hihihihi", Toast.LENGTH_SHORT).show();
+        selectedBitmap = filteredBitmap;
     }
 
 
@@ -412,6 +414,10 @@ public class  ImageEditActivity extends AppCompatActivity {
 //                        .withAspectRatio(0,0)
                         .withMaxResultSize(800, 800)  // 设置最大裁剪结果大小
                         .start(this);
+
+                InputStream inputStream = getContentResolver().openInputStream(tempUri);
+                selectedBitmap = BitmapFactory.decodeStream(inputStream);
+                if (inputStream != null) inputStream.close();
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -556,6 +562,12 @@ public class  ImageEditActivity extends AppCompatActivity {
             Uri resultUri = UCrop.getOutput(data);
             if (resultUri != null) {
                 Picasso.get().load(resultUri).into(imageView);
+                try {
+                    selectedBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), resultUri);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
             }
         } else if (resultCode == UCrop.RESULT_ERROR) {
             // 错误处理
