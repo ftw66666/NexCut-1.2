@@ -2,6 +2,7 @@ package com.example.opencv;
 
 public class Constant {
     public static final int DeviceStartAddr = 1000;
+
     public static final int DeviceRegCount = 64;
 
     public static final String[] DeviceRegnName = new String[]{
@@ -51,10 +52,17 @@ public class Constant {
 
     public static final int WorkBroder = 13;
 
-    public static volatile int PlatformWidth = 400;
+    public static int PlatformWidth = 400;
 
     public static volatile int PlatformHeight = 400;
 
     public static volatile int ProcessState = 0xFF;
+
+    public static int PrintWidth = 50;
+    public static int PrintHeight = 50;
+    public static double PrintStartX = 175;
+    public static double PrintStartY = 175;
+
+
 
 }
