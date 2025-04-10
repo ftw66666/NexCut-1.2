@@ -29,65 +29,67 @@ import android.widget.Toast;
 public class GCode {
     private static final int MAX_POWER = 255;
 
-    public static String generateGCode0(Mat image, int rho, int targetWidth, int targetHeight, double startX, double startY,int laserPower ) {
+    public static String generateGCode0(Mat image, int rho, int targetWidth, int targetHeight, double startX, double startY, int laserPower) {
 
         int padding = 5;
 
         StringBuilder gcode = new StringBuilder();
-//        gcode.append("G0 X0 Y0 F1000\n");
         gcode.append("M4 S0\n");
 
         // 1. 原图转灰度图
         Bitmap bitmap = ImageProcessor.matToBitmap(image);
         Bitmap grayBitmap = ImageProcessor.toGrayscale(bitmap);
         Mat grayImage = ImageProcessor.bitmapToMat(grayBitmap);
-        int originrows = grayImage.rows();
-        int origincols = grayImage.cols();
-        if (originrows > targetHeight*rho ) {
-            rho =originrows / targetHeight+1;
-        }
+        int originRows = grayImage.rows();
+        int originCols = grayImage.cols();
+//        if (originRows > targetHeight * rho) {
+//            rho = originRows / targetHeight + 1;
+//        }
 
-        // 2. 根据目标尺寸和 rho 缩放图像
-        int cols = (int) (targetWidth * rho);   // 横向像素数
-        int rows = (int) (targetHeight * rho);  // 纵向像素数
+        // 2. 缩放图像到目标尺寸
+        int cols = targetWidth * rho;
+        int rows = targetHeight * rho;
         Mat resized = new Mat();
         Imgproc.resize(grayImage, resized, new Size(cols, rows), 0, 0, Imgproc.INTER_LINEAR);
 
-        // 3. 生成 GCode（逐像素扫描）
+        // 3. 生成 GCode
         double pixelWidth = 1.0 / rho;
         double pixelHeight = 1.0 / rho;
 
-
         for (int y = 0; y < rows; y++) {
             double realY = startY + targetHeight - y * pixelHeight;
-            boolean flag = true;
             boolean isEngraving = false;
+            boolean firstEngraveFound = false;
             double xStart = -1;
+            double xEnd = -1;
 
             if (y % 2 == 0) {
                 // 偶数行：左 → 右
                 for (int x = 0; x < cols; x++) {
                     double gray = resized.get(y, x)[0];
-                    boolean shouldEngrave = gray < 128;
-                    if(flag) {
-                        gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart - padding + startX, realY));
-                        flag = !flag;
-                    }
+                    boolean shouldEngrave = gray < 192;
+
                     if (shouldEngrave && !isEngraving) {
                         xStart = x * pixelWidth;
-
+                        if (!firstEngraveFound) {
+                            // 在第一个雕刻段之前加 padding 空移
+                            gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart - padding + startX, realY));
+                            firstEngraveFound = true;
+                        }
                         gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart + startX, realY));
                         isEngraving = true;
                     } else if (!shouldEngrave && isEngraving) {
-                        double xEnd = (x - 1) * pixelWidth;
+                        xEnd = (x - 1) * pixelWidth;
                         gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd + startX, realY, laserPower));
-                        gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xEnd + padding + startX, realY));
                         isEngraving = false;
                     }
                 }
                 if (isEngraving) {
-                    double xEnd = (cols - 1) * pixelWidth;
+                    xEnd = (cols - 1) * pixelWidth;
                     gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd + startX, realY, laserPower));
+                    isEngraving = false;
+                }
+                if (firstEngraveFound && xEnd >= 0) {
                     gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xEnd + padding + startX, realY));
                 }
 
@@ -96,25 +98,28 @@ public class GCode {
                 for (int x = cols - 1; x >= 0; x--) {
                     double gray = resized.get(y, x)[0];
                     boolean shouldEngrave = gray < 128;
-                    if(flag) {
-                        gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart + padding + startX, realY));
-                        flag = !flag;
-                    }
+
                     if (shouldEngrave && !isEngraving) {
                         xStart = x * pixelWidth;
-
+                        if (!firstEngraveFound) {
+                            // 在第一个雕刻段之前加 padding 空移
+                            gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart + padding + startX, realY));
+                            firstEngraveFound = true;
+                        }
                         gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart + startX, realY));
                         isEngraving = true;
                     } else if (!shouldEngrave && isEngraving) {
-                        double xEnd = (x + 1) * pixelWidth;
+                        xEnd = (x + 1) * pixelWidth;
                         gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd + startX, realY, laserPower));
-                        gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xEnd - padding + startX, realY));
                         isEngraving = false;
                     }
                 }
                 if (isEngraving) {
-                    double xEnd = 0;
+                    xEnd = 0;
                     gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd + startX, realY, laserPower));
+                    isEngraving = false;
+                }
+                if (firstEngraveFound && xEnd >= 0) {
                     gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xEnd - padding + startX, realY));
                 }
             }

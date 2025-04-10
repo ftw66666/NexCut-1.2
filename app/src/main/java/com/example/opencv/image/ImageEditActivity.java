@@ -732,6 +732,7 @@ public class  ImageEditActivity extends AppCompatActivity {
 
                 int rho = getIntent().getIntExtra("rho", 0);
                 int laserPower = getIntent().getIntExtra("laserPower", 20);
+//                Toast.makeText(ImageEditActivity.this, rho+ " "+laserPower, Toast.LENGTH_SHORT).show();;
                 if(getIntent().getBooleanExtra("isHalftone",false))
                 {
                     applyHalftone();
@@ -753,6 +754,7 @@ public class  ImageEditActivity extends AppCompatActivity {
 
                 Mat finalCreatedMat = createdMat;
                 GCode.saveBitmapToFile(ImageProcessor.matToBitmap(finalCreatedMat), this, "final.png");
+
                 executor.execute(() -> {
                     try {
                         String gcode = GCode.generateGCode0(finalCreatedMat, rho, Constant.PrintWidth, Constant.PrintHeight,Constant.PrintStartX,Constant.PrintStartY,laserPower);
