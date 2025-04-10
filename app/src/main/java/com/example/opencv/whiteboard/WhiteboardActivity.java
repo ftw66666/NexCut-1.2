@@ -263,7 +263,7 @@ public class WhiteboardActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    public void imageEditActivityGCode(boolean isHalftone,int rho)
+    public void imageEditActivityGCode(boolean isHalftone,int rho,int laserPower)
     {
         bitmap = whiteBoardFragment.getResultBitmap();
         //bitmap = resizeBitmapByWidth(whiteBoardFragment.getResultBitmap(), TARGET_WIDTH);
@@ -282,6 +282,7 @@ public class WhiteboardActivity extends AppCompatActivity {
             intent.putExtra("isHalftone",isHalftone);
             intent.putExtra("whiteboardAspectRatio", getPrinterAspectRatio());
             intent.putExtra("rho",rho);
+            intent.putExtra("laserPower",laserPower);
             startActivity(intent);
 
             //imageView.setImageBitmap(bitmap);
@@ -342,19 +343,35 @@ public class WhiteboardActivity extends AppCompatActivity {
 
         // 创建 EditText 用于输入线密度
         EditText lineDensityInput = new EditText(context);
-        lineDensityInput.setHint("请输入线密度(rho)");
+        lineDensityInput.setHint("0(自动生成)");
         lineDensityInput.setInputType(InputType.TYPE_CLASS_NUMBER);
         layout.addView(lineDensityInput);
+
+        // 添加 "激光功率大小：" 标签
+        TextView laserPowerLabel = new TextView(context);
+        laserPowerLabel.setText("激光功率大小：");
+        layout.addView(laserPowerLabel);
+
+        // 创建 EditText 用于输入线密度
+        EditText laserPowerInput = new EditText(context);
+        laserPowerInput.setHint("20");
+        laserPowerInput.setInputType(InputType.TYPE_CLASS_NUMBER);
+        layout.addView(laserPowerInput);
+
 
         builder.setView(layout);
 
         builder.setPositiveButton("确认", (dialog, which) -> {
             boolean useHalftone = halftoneCheckbox.isChecked();
-            String inputText = lineDensityInput.getText().toString().trim();
-            int lineDensity = inputText.isEmpty() ? 0 : Integer.parseInt(inputText); // 默认0，如果未输入
+            String lineDensityInputText = lineDensityInput.getText().toString().trim();
+            String laserPowerInputText = laserPowerInput.getText().toString().trim();
+
+            int lineDensity = lineDensityInputText.isEmpty() ? 0 : Integer.parseInt(lineDensityInputText); // 默认0，如果未输入
+            int laserPower = laserPowerInputText.isEmpty() ? 20 : Integer.parseInt(laserPowerInputText);
+            //Toast.makeText(this, "rho , laserPower = " + lineDensity + " " + laserPower, Toast.LENGTH_SHORT).show();
 
             // 调用你的处理函数
-            imageEditActivityGCode(useHalftone, lineDensity);
+            imageEditActivityGCode(useHalftone, lineDensity, laserPower);
         });
 
         builder.setNegativeButton("取消", (dialog, which) -> dialog.dismiss());

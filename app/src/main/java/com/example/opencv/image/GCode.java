@@ -29,8 +29,8 @@ import android.widget.Toast;
 public class GCode {
     private static final int MAX_POWER = 255;
 
-    public static String generateGCode0(Mat image, int rho, int targetWidth, int targetHeight, double startX, double startY) {
-        int laserPower = 20;
+    public static String generateGCode0(Mat image, int rho, int targetWidth, int targetHeight, double startX, double startY,int laserPower ) {
+
         int padding = 5;
 
         StringBuilder gcode = new StringBuilder();
@@ -43,8 +43,8 @@ public class GCode {
         Mat grayImage = ImageProcessor.bitmapToMat(grayBitmap);
         int originrows = grayImage.rows();
         int origincols = grayImage.cols();
-        if (originrows > targetHeight*rho || origincols > targetWidth*rho) {
-            rho =Math.max(origincols/targetWidth+1,originrows / targetHeight+1);
+        if (originrows > targetHeight*rho ) {
+            rho =originrows / targetHeight+1;
         }
 
         // 2. 根据目标尺寸和 rho 缩放图像
@@ -69,13 +69,13 @@ public class GCode {
                 for (int x = 0; x < cols; x++) {
                     double gray = resized.get(y, x)[0];
                     boolean shouldEngrave = gray < 128;
-
-                    if (shouldEngrave && !isEngraving) {
-                        xStart = x * pixelWidth;
-                        if(flag) {
+                    if(flag) {
                         gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart - padding + startX, realY));
                         flag = !flag;
-                        }
+                    }
+                    if (shouldEngrave && !isEngraving) {
+                        xStart = x * pixelWidth;
+
                         gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart + startX, realY));
                         isEngraving = true;
                     } else if (!shouldEngrave && isEngraving) {
@@ -96,13 +96,13 @@ public class GCode {
                 for (int x = cols - 1; x >= 0; x--) {
                     double gray = resized.get(y, x)[0];
                     boolean shouldEngrave = gray < 128;
-
+                    if(flag) {
+                        gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart + padding + startX, realY));
+                        flag = !flag;
+                    }
                     if (shouldEngrave && !isEngraving) {
                         xStart = x * pixelWidth;
-                        if(flag) {
-                            gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart + padding + startX, realY));
-                            flag = !flag;
-                        }
+
                         gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart + startX, realY));
                         isEngraving = true;
                     } else if (!shouldEngrave && isEngraving) {

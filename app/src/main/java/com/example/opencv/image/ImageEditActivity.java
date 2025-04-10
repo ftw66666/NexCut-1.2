@@ -731,6 +731,7 @@ public class  ImageEditActivity extends AppCompatActivity {
 //                selectedBitmap = ImageProcessor.matToBitmap(GCode.cropGCode(ImageProcessor.bitmapToMat(selectedBitmap), Constant.PlatformWidth,Constant.PlatformHeight));
 
                 int rho = getIntent().getIntExtra("rho", 0);
+                int laserPower = getIntent().getIntExtra("laserPower", 20);
                 if(getIntent().getBooleanExtra("isHalftone",false))
                 {
                     applyHalftone();
@@ -754,7 +755,7 @@ public class  ImageEditActivity extends AppCompatActivity {
                 GCode.saveBitmapToFile(ImageProcessor.matToBitmap(finalCreatedMat), this, "final.png");
                 executor.execute(() -> {
                     try {
-                        String gcode = GCode.generateGCode0(finalCreatedMat, rho, Constant.PrintWidth, Constant.PrintHeight,Constant.PrintStartX,Constant.PrintStartY);
+                        String gcode = GCode.generateGCode0(finalCreatedMat, rho, Constant.PrintWidth, Constant.PrintHeight,Constant.PrintStartX,Constant.PrintStartY,laserPower);
 
                         handler.post(() -> {
                             progressDialog.dismiss();
