@@ -511,6 +511,21 @@ public class MainActivity extends AppCompatActivity {
         button.setText(spannable);
     }
 
+    public void onClickOpenBrowser(View view) {
+        String url = "https://www.example.com"; // 替换成你想跳转的网址
+
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        intent.addCategory(Intent.CATEGORY_BROWSABLE); // 可选，明确用于浏览器
+
+        // 启动浏览器
+        try {
+            view.getContext().startActivity(intent);
+        } catch (Exception e) {
+            Toast.makeText(view.getContext(), "无法打开浏览器", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
 
 }
 // add 多线程其他函数的

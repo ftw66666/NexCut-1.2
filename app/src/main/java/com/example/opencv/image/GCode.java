@@ -29,39 +29,33 @@ import android.widget.Toast;
 public class GCode {
     private static final int MAX_POWER = 255;
 
-    public static String generateGCode0(Mat image, double rho, int targetWidth, int targetHeight,double startX,double startY) {
+    public static String generateGCode0(Mat image, double rho, int targetWidth, int targetHeight, double startX, double startY) {
         int laserPower = 20;
         int padding = 5;
+
         StringBuilder gcode = new StringBuilder();
-        gcode.append("G0 X0 Y0 F1000\n");
+//        gcode.append("G0 X0 Y0 F1000\n");
         gcode.append("M4 S0\n");
 
         // 1. 原图转灰度图
         Bitmap bitmap = ImageProcessor.matToBitmap(image);
         Bitmap grayBitmap = ImageProcessor.toGrayscale(bitmap);
         Mat grayImage = ImageProcessor.bitmapToMat(grayBitmap);
-        int originrows = grayImage.rows();
-        int origincols = grayImage.cols();
-        if (originrows > targetHeight*rho || origincols > targetWidth*rho) {
-            rho =Math.max(origincols/targetWidth+1,originrows / targetHeight+1);
-        }
 
-        // 2. 放大图像到目标尺寸对应的像素（单位为像素）
-        int targetCols = (int) (targetWidth * rho);
-        int targetRows = (int) (targetHeight * rho);
+        // 2. 根据目标尺寸和 rho 缩放图像
+        int cols = (int) (targetWidth * rho);   // 横向像素数
+        int rows = (int) (targetHeight * rho);  // 纵向像素数
         Mat resized = new Mat();
-        Imgproc.resize(grayImage, resized, new Size(targetCols, targetRows), 0, 0, Imgproc.INTER_LINEAR);
+        Imgproc.resize(grayImage, resized, new Size(cols, rows), 0, 0, Imgproc.INTER_LINEAR);
 
-        // 3. 用放大图像生成 GCode
-        int rows = resized.rows();
-        int cols = resized.cols();
+        // 3. 生成 GCode（逐像素扫描）
+        double pixelWidth = 1.0 / rho;
+        double pixelHeight = 1.0 / rho;
 
-        double pixelWidth = (double) targetWidth / cols;
-        double pixelHeight = (double) targetHeight / rows;
 
         for (int y = 0; y < rows; y++) {
-            double flippedY = targetHeight - y * pixelHeight;
-
+            double realY = startY + targetHeight - y * pixelHeight;
+            boolean flag = true;
             boolean isEngraving = false;
             double xStart = -1;
 
@@ -71,23 +65,25 @@ public class GCode {
                     double gray = resized.get(y, x)[0];
                     boolean shouldEngrave = gray < 128;
 
-                    if (shouldEngrave) {
-                        if (!isEngraving) {
-                            xStart = x * pixelWidth;
-                            gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart-padding+startX, flippedY+startY));
-                            gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart+startX, flippedY+startY));
-                            isEngraving = true;
+                    if (shouldEngrave && !isEngraving) {
+                        xStart = x * pixelWidth;
+                        if(flag) {
+                        gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart - padding + startX, realY));
+                        flag = !flag;
                         }
-                    } else if (isEngraving) {
+                        gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart + startX, realY));
+                        isEngraving = true;
+                    } else if (!shouldEngrave && isEngraving) {
                         double xEnd = (x - 1) * pixelWidth;
-                        gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd+startX, flippedY+startY, laserPower));
+                        gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd + startX, realY, laserPower));
+                        gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xEnd + padding + startX, realY));
                         isEngraving = false;
                     }
                 }
                 if (isEngraving) {
                     double xEnd = (cols - 1) * pixelWidth;
-                    gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd+startX, flippedY+startY, laserPower));
-                    gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xEnd+padding+startX, flippedY+startY));
+                    gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd + startX, realY, laserPower));
+                    gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xEnd + padding + startX, realY));
                 }
 
             } else {
@@ -96,52 +92,26 @@ public class GCode {
                     double gray = resized.get(y, x)[0];
                     boolean shouldEngrave = gray < 128;
 
-                    if (shouldEngrave) {
-                        if (!isEngraving) {
-                            xStart = x * pixelWidth;
-                            gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart+padding+startX, flippedY+startY));
-                            gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart+startX, flippedY+startY));
-                            isEngraving = true;
+                    if (shouldEngrave && !isEngraving) {
+                        xStart = x * pixelWidth;
+                        if(flag) {
+                            gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart + padding + startX, realY));
+                            flag = !flag;
                         }
-                    } else if (isEngraving) {
+                        gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart + startX, realY));
+                        isEngraving = true;
+                    } else if (!shouldEngrave && isEngraving) {
                         double xEnd = (x + 1) * pixelWidth;
-                        gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd+startX, flippedY+startY, laserPower));
+                        gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd + startX, realY, laserPower));
+                        gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xEnd - padding + startX, realY));
                         isEngraving = false;
                     }
                 }
                 if (isEngraving) {
                     double xEnd = 0;
-                    gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd+startX, flippedY+startY, laserPower));
-                    gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xEnd-padding+startX, flippedY+startY));
+                    gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd + startX, realY, laserPower));
+                    gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xEnd - padding + startX, realY));
                 }
-            }
-
-            // Y 方向放大：重复输出这一行
-            int repeatCount = (int) Math.round(pixelHeight);  // 重复次数由 Y 方向的放大比例决定
-            for (int i = 1; i < repeatCount; i++) {
-                if(i%2==1)
-                {
-                    double newFlippedY = flippedY - i * pixelHeight;
-                    gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart - padding+startX, newFlippedY+startY));
-                    gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart+startX, newFlippedY+startY));
-                    if (isEngraving) {
-                        double xEnd = (cols - 1) * pixelWidth;
-                        gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd+startX, newFlippedY+startY, laserPower));
-                        gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xEnd + padding+startX, newFlippedY+startY));
-                    }
-                }
-                if(i%2==0)
-                {
-                    double newFlippedY = flippedY - i * pixelHeight;
-                    gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart + padding+startX, newFlippedY+startY));
-                    gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart+startX, newFlippedY+startY));
-                    if (isEngraving) {
-                        double xEnd = (cols - 1) * pixelWidth;
-                        gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd+startX, newFlippedY+startY, laserPower));
-                        gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xEnd - padding+startX, newFlippedY+startY));
-                    }
-                }
-
             }
         }
 
@@ -150,6 +120,7 @@ public class GCode {
         resized.release();
         return gcode.toString();
     }
+
 
     public static Mat cropGCode(Mat image, int targetWidth, int targetHeight, float whiteboardAspectRatio) {
         Bitmap bitmap = ImageProcessor.matToBitmap(image);
