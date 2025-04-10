@@ -79,5 +79,10 @@ public class ScreenUtils {
         return (int) (dpValue * scale + 0.5f);
     }
 
+    public static int sp2px(Context context, float spValue) {
+        final float scaledDensity = context.getResources().getDisplayMetrics().scaledDensity;
+        return (int) (spValue * scaledDensity + 0.5f);
+    }
+
 
 }

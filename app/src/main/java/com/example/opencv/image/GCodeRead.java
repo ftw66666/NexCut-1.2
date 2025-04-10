@@ -2,6 +2,8 @@ package com.example.opencv.image;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -12,6 +14,8 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class GCodeRead {
 
@@ -76,6 +80,42 @@ public class GCodeRead {
                 }
             }
         }
+    }
+
+    public static void copyNcFilesToStorageAsync(final Context context) {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.execute(() -> {
+            List<Integer> ncResourceIds = getNcResourceIds(context);
+            File destDir = context.getExternalFilesDir(null);
+
+            if (ncResourceIds.isEmpty()) {
+                // 如果需要在 UI 中提示，可以通过 Handler 或 runOnUiThread 来切换线程回主线程
+                new Handler(Looper.getMainLooper()).post(() ->
+                        Toast.makeText(context, "没有找到 GCode 预置文件", Toast.LENGTH_SHORT).show()
+                );
+                return;
+            }
+
+            for (int resId : ncResourceIds) {
+                String fileName = context.getResources().getResourceEntryName(resId) + ".enc"; // 获取文件名
+                File destFile = new File(destDir, fileName);
+
+                if (!destFile.exists()) { // 避免重复复制
+                    try (InputStream is = context.getResources().openRawResource(resId);
+                         FileOutputStream fos = new FileOutputStream(destFile)) {
+                        byte[] buffer = new byte[1024];
+                        int length;
+                        while ((length = is.read(buffer)) > 0) {
+                            fos.write(buffer, 0, length);
+                        }
+                        Log.d(TAG, "已复制: " + destFile.getAbsolutePath());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Log.e(TAG, "复制失败: " + e.getMessage());
+                    }
+                }
+            }
+        });
     }
 
     /**

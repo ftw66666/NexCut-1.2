@@ -53,6 +53,8 @@ import com.example.opencv.modbus.NettyModbusTCPClient;
 import com.example.opencv.whiteboard.SettingActivity;
 import com.example.opencv.whiteboard.WhiteboardActivity;
 
+import androidx.appcompat.app.AppCompatDelegate;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -91,6 +93,8 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+
         // 隐藏导航栏和状态栏
         View decorView = getWindow().getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
@@ -112,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         // **应用启动时复制 .nc 预制文件到可访问目录**
-        GCodeRead.copyNcFilesToStorage(this);
+        GCodeRead.copyNcFilesToStorageAsync(this);
         InitialButtons();
         requestAppPermissions();
         //开启读取信息服务

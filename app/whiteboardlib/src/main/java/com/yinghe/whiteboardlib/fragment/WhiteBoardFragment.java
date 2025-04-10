@@ -59,6 +59,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.yinghe.whiteboardlib.Utils.ScreenUtils.sp2px;
 import static com.yinghe.whiteboardlib.bean.StrokeRecord.STROKE_TYPE_CIRCLE;
 import static com.yinghe.whiteboardlib.bean.StrokeRecord.STROKE_TYPE_DRAW;
 import static com.yinghe.whiteboardlib.bean.StrokeRecord.STROKE_TYPE_ERASER;
@@ -361,6 +362,7 @@ public class WhiteBoardFragment extends Fragment implements SketchView.OnDrawCha
         saveET = new EditText(activity);
         saveET.setHint("新文件名");
         saveET.setGravity(Gravity.CENTER);
+        saveET.setTextSize(24f + (mSketchView.strokeSize - 3f) * (114f - 24f) / (100f - 3f));
         saveET.setSingleLine();
         saveET.setInputType(EditorInfo.TYPE_CLASS_TEXT);
         saveET.setImeOptions(EditorInfo.IME_ACTION_DONE);
@@ -423,6 +425,7 @@ public class WhiteBoardFragment extends Fragment implements SketchView.OnDrawCha
         textPopupWindow.setFocusable(true);
         textPopupWindow.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         textPopupWindow.setInputMethodMode(PopupWindow.INPUT_METHOD_NEEDED);
+
         textPopupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
             @Override
             public void onDismiss() {
@@ -533,6 +536,8 @@ public class WhiteBoardFragment extends Fragment implements SketchView.OnDrawCha
             public void onProgressChanged(SeekBar seekBar, int progress,
                                           boolean fromUser) {
                 setSeekBarProgress(progress, STROKE_TYPE_DRAW);
+
+                Toast.makeText(activity, "画笔宽度：" + progress, Toast.LENGTH_SHORT).show();
             }
         });
         strokeSeekBar.setProgress(SketchView.DEFAULT_STROKE_SIZE);
@@ -876,8 +881,10 @@ public class WhiteBoardFragment extends Fragment implements SketchView.OnDrawCha
         TextPaint textPaint = new TextPaint(record.textPaint);
         textPaint.setColor(mSketchView.strokeRealColor); // 使用当前画笔颜色
         //120 神秘参数
-        textPaint.setTextSize(mSketchView.strokeSize * 114); // 调整文字大小
-
+        //textPaint.setTextSize(mSketchView.strokeSize * 114); // 调整文字大小
+        //textPaint.setTextSize(mSketchView.strokeSize + 14); // 调整文字大小
+        float magicfactor = 2f;
+        textPaint.setTextSize(sp2px(requireContext(),(24f + (mSketchView.strokeSize - 3f) * (114f - 24f) / (100f - 3f)) * magicfactor));
         Paint.FontMetrics fontMetrics = textPaint.getFontMetrics();
 
         // 计算文本尺寸（包含上升和下降部分）

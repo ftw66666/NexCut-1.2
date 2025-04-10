@@ -1,5 +1,7 @@
 package com.yinghe.whiteboardlib;
 
+import static com.yinghe.whiteboardlib.R.string.error_no_permission;
+
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
@@ -67,7 +69,7 @@ public class MultiImageSelector {
         if(hasPermission()) {
             activity.startActivityForResult(createIntent(), requestCode);
         }else{
-            Toast.makeText(mContext, R.string.error_no_permission, Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, error_no_permission, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -76,7 +78,7 @@ public class MultiImageSelector {
             mRequstType = requestCode;
             fragment.startActivityForResult(createIntent(boundsInts), requestCode);
         }else{
-            Toast.makeText(mContext, R.string.error_no_permission, Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, error_no_permission, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -85,7 +87,7 @@ public class MultiImageSelector {
             mRequstType = requestCode;
             fragment.startActivityForResult(createIntent(boundsInts), requestCode);
         } else {
-            Toast.makeText(mContext, R.string.error_no_permission, Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, error_no_permission, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -96,7 +98,7 @@ public class MultiImageSelector {
 //                    == PackageManager.PERMISSION_GRANTED;
             if(ContextCompat.checkSelfPermission(mContext, Manifest.permission.READ_EXTERNAL_STORAGE)
                     == PackageManager.PERMISSION_GRANTED)
-                Toast.makeText(mContext, R.string.error_no_permission, Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext, "加载中...", Toast.LENGTH_SHORT).show();
 
             return true;
         }
