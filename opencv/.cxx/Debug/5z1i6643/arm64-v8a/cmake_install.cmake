@@ -1,4 +1,4 @@
-# Install script for directory: D:/AndroidProject/NexCut/opencv/libcxx_helper
+# Install script for directory: D:/AndroidProject/NexCut-1.2/opencv/libcxx_helper
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -50,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "D:/AndroidProject/NexCut/opencv/.cxx/Debug/5z1i6643/arm64-v8a/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "D:/AndroidProject/NexCut-1.2/opencv/.cxx/Debug/5z1i6643/arm64-v8a/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

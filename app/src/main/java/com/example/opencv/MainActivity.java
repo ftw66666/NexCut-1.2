@@ -2,8 +2,11 @@ package com.example.opencv;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -31,12 +34,12 @@ import androidx.activity.EdgeToEdge;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.FileProvider;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.viewpager.widget.ViewPager;
 
-import com.example.opencv.Utils.FileUtils;
 import com.example.opencv.device.DeviceActivity;
 import com.example.opencv.device.DeviceInfoActivity;
 import com.example.opencv.device.InfoService;
@@ -45,25 +48,25 @@ import com.example.opencv.image.GCodeRead;
 import com.example.opencv.image.ImageEditActivity;
 import com.example.opencv.modbus.ModbusTCPClient;
 import com.example.opencv.databinding.ActivityMainBinding;
-import com.example.opencv.modbus.NettyModbusTCPClient;
-import com.example.opencv.whiteboard.SettingActivity;
 import com.example.opencv.whiteboard.WhiteboardActivity;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
+    private String PIC_PATH = Environment.getDataDirectory() + File.separator + Environment.DIRECTORY_DCIM + File.separator;
     private static final int PICK_IMAGE = 1;
     public static final int CAPTURE_IMAGE = 2;
     private static final int EDIT_IMAGE = 3;
     //private ImageView imageView;
-
+    private String currentPhotoPath;
     public static Uri imageUri;
-
+    public Uri photoUri;
     public static Bitmap bitmap;
     public Toolbar toolbar;
 
@@ -95,9 +98,6 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        new Thread(() -> FileUtils.clearDir(this)).start();
-
-
         textColor = getResources().getColor(R.color.light_black);
         backgroundColor = getResources().getColor(R.color.white);
 
@@ -127,12 +127,19 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 while (true) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
                     if (!mtcp.isConnected.get()) {
-                        if (Objects.equals(mtcp.ConnectDeviceId, "")) SetDeviceButton("NexCut-X1");
-                        else SetDeviceButton(mtcp.ConnectDeviceId);
+                        if (Objects.equals(mtcp.ConnectDeviceId, ""))
+                            runOnUiThread(() -> SetDeviceButton("NexCut-X1"));
+                        else runOnUiThread(() -> SetDeviceButton(mtcp.ConnectDeviceId));
                     } else if (!mtcp.deviceInfo.isEmpty()) {
                         int deviceState = mtcp.deviceInfo.get(8) & 0xFFFF;
-                        SetDeviceButton(mtcp.ConnectDeviceId, deviceState);
+                        runOnUiThread(() -> SetDeviceButton(mtcp.ConnectDeviceId, deviceState));
                     }
                 }
             }
@@ -163,14 +170,6 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    public void onClickSetting(View view) {
-        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
-        view.startAnimation(scaleIn);
-
-        Intent intent = new Intent(MainActivity.this, SettingActivity.class);
-        startActivity(intent);
-    }
-
     public void editImage(View view) {
         Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
         view.startAnimation(scaleIn);
@@ -187,12 +186,48 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(intent1, PICK_IMAGE);
     }
 
+    private Uri createPublicImageUri() throws IOException {
+        ContentValues values = new ContentValues();
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        values.put(MediaStore.Images.Media.DISPLAY_NAME, "IMG_" + timeStamp + ".jpg");
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+        values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES);
+
+        return getContentResolver().insert(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                values
+        );
+    }
+
     public void captureImage(View view) {
         Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
         view.startAnimation(scaleIn);
 
-        Intent intent1 = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        startActivityForResult(intent1, CAPTURE_IMAGE);
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        //takePictureIntent.addFlags(0);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            try {
+                photoUri = createPublicImageUri();
+                // 授予 URI 权限
+                List<ResolveInfo> resolvedIntentActivities = getPackageManager()
+                        .queryIntentActivities(takePictureIntent, PackageManager.MATCH_DEFAULT_ONLY);
+                for (ResolveInfo resolvedIntentInfo : resolvedIntentActivities) {
+                    String packageName = resolvedIntentInfo.activityInfo.packageName;
+                    grantUriPermission(packageName, photoUri,
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                }
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+                takePictureIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                startActivityForResult(takePictureIntent, CAPTURE_IMAGE);
+            } catch (IOException ex) {
+                Toast.makeText(this, "File creation failed", Toast.LENGTH_SHORT).show();
+                ex.printStackTrace();
+            }
+        } else {
+            Toast.makeText(this, "No camera app found", Toast.LENGTH_SHORT).show();
+        }
+//        Intent intent1 = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//        startActivityForResult(intent1, CAPTURE_IMAGE);
     }
 
     public void readGCode(View view) {
@@ -293,28 +328,34 @@ public class MainActivity extends AppCompatActivity {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        } else if (requestCode == CAPTURE_IMAGE && resultCode == RESULT_OK && data != null) {
-            bitmap = (Bitmap) data.getExtras().get("data");
-            // 将 Bitmap 保存到临时文件并获取其 URI
-            try {
-                File tempFile = createImageFile(); // 创建临时文件
-                FileOutputStream out = new FileOutputStream(tempFile);
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
-                out.flush();
-                out.close();
+        } else if (requestCode == CAPTURE_IMAGE && resultCode == RESULT_OK ) {
+//            bitmap = (Bitmap) data.getExtras().get("data");
+//            // 将 Bitmap 保存到临时文件并获取其 URI
+//            try {
+//                File tempFile = createImageFile(); // 创建临时文件
+//                FileOutputStream out = new FileOutputStream(tempFile);
+//                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+//                out.flush();
+//                out.close();
+//
+//                imageUri = Uri.fromFile(tempFile);
+//
+//                // 传递 URI 给下一个 Activity
+//                Intent intent = new Intent(MainActivity.this, ImageEditActivity.class);
+//                intent.putExtra("imageUri", imageUri.toString());
+//                startActivity(intent);
+//
+//                //imageView.setImageBitmap(bitmap);
+//
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
 
-                imageUri = Uri.fromFile(tempFile);
-
-                // 传递 URI 给下一个 Activity
-                Intent intent = new Intent(MainActivity.this, ImageEditActivity.class);
-                intent.putExtra("imageUri", imageUri.toString());
-                startActivity(intent);
-
-                //imageView.setImageBitmap(bitmap);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            // 传递 URI 给下一个 Activity
+            Intent intent = new Intent(MainActivity.this, ImageEditActivity.class);
+            intent.putExtra("imageUri", photoUri.toString());
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivity(intent);
         }
     }
 

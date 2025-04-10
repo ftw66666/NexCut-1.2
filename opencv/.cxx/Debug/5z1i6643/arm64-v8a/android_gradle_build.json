@@ -1,19 +1,19 @@
 {
   "buildFiles": [
-    "D:\\AndroidProject\\NexCut\\opencv\\libcxx_helper\\CMakeLists.txt"
+    "D:\\AndroidProject\\NexCut-1.2\\opencv\\libcxx_helper\\CMakeLists.txt"
   ],
   "cleanCommandsComponents": [
     [
       "D:\\Android\\SDK\\cmake\\3.22.1\\bin\\ninja.exe",
       "-C",
-      "D:\\AndroidProject\\NexCut\\opencv\\.cxx\\Debug\\5z1i6643\\arm64-v8a",
+      "D:\\AndroidProject\\NexCut-1.2\\opencv\\.cxx\\Debug\\5z1i6643\\arm64-v8a",
       "clean"
     ]
   ],
   "buildTargetsCommandComponents": [
     "D:\\Android\\SDK\\cmake\\3.22.1\\bin\\ninja.exe",
     "-C",
-    "D:\\AndroidProject\\NexCut\\opencv\\.cxx\\Debug\\5z1i6643\\arm64-v8a",
+    "D:\\AndroidProject\\NexCut-1.2\\opencv\\.cxx\\Debug\\5z1i6643\\arm64-v8a",
     "{LIST_OF_TARGETS_TO_BUILD}"
   ],
   "libraries": {
@@ -21,7 +21,7 @@
       "toolchain": "toolchain",
       "abi": "arm64-v8a",
       "artifactName": "opencv_jni_shared",
-      "output": "D:\\AndroidProject\\NexCut\\opencv\\.cxx\\Debug\\5z1i6643\\arm64-v8a\\libopencv_jni_shared.a"
+      "output": "D:\\AndroidProject\\NexCut-1.2\\opencv\\.cxx\\Debug\\5z1i6643\\arm64-v8a\\libopencv_jni_shared.a"
     }
   },
   "toolchains": {

@@ -15,9 +15,12 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
+import com.example.opencv.Constant;
 import com.example.opencv.R;
 import com.example.opencv.modbus.ModbusTCPClient;
 import com.example.opencv.modbus.NettyModbusTCPClient;
+
+import java.util.List;
 
 public class InfoService extends Service {
     ModbusTCPClient mtcp = ModbusTCPClient.getInstance();
@@ -55,6 +58,10 @@ public class InfoService extends Service {
                         }
                         try {
                             mtcp.deviceInfo = mtcp.ReadDeviceInfo();
+                            List<Integer> machineData = mtcp.ReadMachineInfo();
+                            Constant.PlatformWidth = machineData.get(0);
+                            Constant.PlatformHeight = machineData.get(1);
+                            Constant.ProcessState = machineData.get(2);
                         } catch (ModbusTCPClient.ModbusException e) {
                             Log.d("InfoService", e.getMessage());
                         }

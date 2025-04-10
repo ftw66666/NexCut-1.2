@@ -2,7 +2,6 @@ package com.example.opencv;
 
 public class Constant {
     public static final int DeviceStartAddr = 1000;
-
     public static final int DeviceRegCount = 64;
 
     public static final String[] DeviceRegnName = new String[]{
@@ -14,6 +13,10 @@ public class Constant {
             "扩展输出状态", "NULL", "NULL", "通电时间", "通讯时间", "开光时间",
             "双驱反馈派偏差", "NULL", "NULL", "参数状态"
     };
+
+    public static final int MachineAddr = 800;
+
+    public static final int MachineRegCount = 3;
 
     public static final String[] AxisRegnName = {
             "NULL", "速度",
@@ -44,13 +47,14 @@ public class Constant {
 
     public static final int Ftc = 9;
 
-    public static int PlatformWidth = 400;
-    public static int PlatformHeight = 400;
-    public static int PrintWidth = 50;
-    public static int PrintHeight = 50;
-    public static double PrintStartX = 175;
-    public static double PrintStartY = 175;
+    public static final int OfflineProcess = 12;
 
+    public static final int WorkBroder = 13;
 
+    public static volatile int PlatformWidth = 400;
+
+    public static volatile int PlatformHeight = 400;
+
+    public static volatile int ProcessState = 0xFF;
 
 }

@@ -1,6 +1,6 @@
 /*
  * This file is auto-generated.  DO NOT MODIFY.
- * Using: E:\Android\AppData\Local\Android\Sdk\build-tools\35.0.0\aidl.exe -pE:\Android\AppData\Local\Android\Sdk\platforms\android-26\framework.aidl -oE:\Android\NexCut04\opencv\build\generated\aidl_source_output_dir\debug\out -IE:\Android\NexCut04\opencv\java\src -IE:\Android\NexCut04\opencv\src\debug\aidl -dC:\Users\ADMINI~1\AppData\Local\Temp\aidl9445132619472416958.d E:\Android\NexCut04\opencv\java\src\org\opencv\engine\OpenCVEngineInterface.aidl
+ * Using: D:\Android\SDK\build-tools\35.0.0\aidl.exe -pD:\Android\SDK\platforms\android-26\framework.aidl -oD:\AndroidProject\NexCut-1.2\opencv\build\generated\aidl_source_output_dir\debug\out -ID:\AndroidProject\NexCut-1.2\opencv\java\src -ID:\AndroidProject\NexCut-1.2\opencv\src\debug\aidl -dC:\Users\Lenovo\AppData\Local\Temp\aidl14570754650159361666.d D:\AndroidProject\NexCut-1.2\opencv\java\src\org\opencv\engine\OpenCVEngineInterface.aidl
  */
 package org.opencv.engine;
 /** Class provides a Java interface for OpenCV Engine Service. It's synchronous with native OpenCVEngine class. */
