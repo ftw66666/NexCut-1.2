@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<incidents format="6" by="lint 8.9.0" type="incidents">
+<incidents format="6" by="lint 8.9.1" type="incidents">
 
     <incident
         id="ExpiredTargetSdkVersion"
@@ -9,10 +9,10 @@
             file="${:opencv*projectDir}/build.gradle"
             line="117"
             column="9"
-            startOffset="3709"
+            startOffset="3825"
             endLine="117"
             endColumn="28"
-            endOffset="3728"/>
+            endOffset="3844"/>
     </incident>
 
 </incidents>

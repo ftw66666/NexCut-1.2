@@ -44,7 +44,6 @@ public class ModbusTCPClient {
     private final AtomicInteger transactionId = new AtomicInteger(0);
     private final Object requesrlock = new Object();
     private final Object responserlock = new Object();
-    private final Object fileTransportLock = new Object();
     public List<Integer> deviceInfo = new CopyOnWriteArrayList<>();
     public List<Integer> AxisInfo = new CopyOnWriteArrayList<>();
     private int unitId = 0;
@@ -52,7 +51,6 @@ public class ModbusTCPClient {
     private Socket socket;
     private BufferedInputStream inputStream;
     private BufferedOutputStream outputStream;
-
     private String LastHost = "";
     private int LastPort = 0;
 
@@ -98,10 +96,6 @@ public class ModbusTCPClient {
         synchronized (requesrlock) {
             try {
                 if (isConnected.get()) {
-                    // 如果已经连接了，检查是否是同一个设备
-                    if (Objects.equals(socket.getInetAddress().getHostAddress(), host) && socket.getPort() == port) {
-                        return;
-                    }
                     // 如果不是同一个设备，断开当前连接
                     disconnect();
                 }
@@ -186,7 +180,7 @@ public class ModbusTCPClient {
      * @throws IOException     读取时发生IO错误
      * @throws ModbusException 读取的响应格式错误
      */
-    private List<Integer> Response(int expectedFunction) throws ModbusException {
+    private List<Integer> Response(int expectedFunction) throws ModbusException, IOException {
         synchronized (responserlock) {
             try {
                 byte[] header = readBytes(inputStream, ModBuscode.MbapFrameLen);
@@ -210,10 +204,7 @@ public class ModbusTCPClient {
                 }
                 return data;
             } catch (IOException e) {
-                if (!Reconnect()) {
-                    disconnect();
-                }
-                throw new ModbusException(e.getMessage());
+                throw new IOException(e.getMessage());
             }
         }
     }
@@ -227,7 +218,7 @@ public class ModbusTCPClient {
      * @throws IOException     读取时发生IO错误
      * @throws ModbusException 读取的响应格式错误
      */
-    public List<Integer> readReg(int startAddress, int quantity) throws ModbusException {
+    public List<Integer> readReg(int startAddress, int quantity, int retryCount) throws ModbusException {
         validateConnection();
         byte[] request;
         try {
@@ -241,15 +232,30 @@ public class ModbusTCPClient {
                 outputStream.flush();
                 return Response(ModBuscode.ReadFunCode);
             } catch (IOException e) {
-                if (!Reconnect()) {
+                if (retryCount < 3) { // 限制最多重试3次
+                    if (Reconnect()) {
+                        // 重试时递增计数器
+                        return readReg(startAddress, quantity, retryCount + 1);
+                    } else {
+                        disconnect();
+                        throw new ModbusException("重连失败: " + e.getMessage());
+                    }
+                } else {
                     disconnect();
+                    throw new ModbusException("超过最大重试次数(3次): " + e.getMessage());
                 }
-                throw new ModbusException("Communication error: " + e.getMessage());
             }
         }
     }
 
+    public List<Integer> readReg(int startAddress, int quantity) throws ModbusException {
+        // 外部调用入口，初始化重试次数为0
+        return readReg(startAddress, quantity, 0);
+    }
+
     public boolean Reconnect() {
+        disconnect();
+        Log.d("fileaddr", "进入重连");
         int MaxRetry = 3;
         int retryCount = 0;
         while (retryCount < MaxRetry) {
@@ -259,7 +265,12 @@ public class ModbusTCPClient {
                     return true;
                 }
             } catch (ModbusException e) {
-
+                Log.d("fileaddr", "重连失败: " + e.getMessage());
+            }
+            // 增加延迟避免高频重试
+            try {
+                Thread.sleep(500); // 间隔1秒
+            } catch (InterruptedException ignored) {
             }
             retryCount++;
         }
@@ -289,7 +300,7 @@ public class ModbusTCPClient {
      * @param values    写寄存器的值
      * @throws ModbusException 如果通信错误或写寄存器的响应格式错误
      */
-    public void writeReg(final int startAddr, List<Integer> values) throws ModbusException {
+    public void writeReg(int startAddr, List<Integer> values, int retryCount) throws ModbusException {
         validateConnection();
         byte[] request;
         try {
@@ -304,10 +315,25 @@ public class ModbusTCPClient {
                 List<Integer> response = Response(ModBuscode.WriteFunCode);
                 validateWriteResponse(response, startAddr, values.size());
             } catch (IOException e) {
-                disconnect();
-                throw new ModbusException("Communication error: " + e.getMessage());
+                if (retryCount < 3) { // 限制最多重试3次
+                    if (Reconnect()) {
+                        // 重试时递增计数器
+                        writeReg(startAddr, values, retryCount + 1);
+                    } else {
+                        disconnect();
+                        throw new ModbusException("重连失败: " + e.getMessage());
+                    }
+                } else {
+                    disconnect();
+                    throw new ModbusException("超过最大重试次数(3次): " + e.getMessage());
+                }
             }
         }
+    }
+
+    public void writeReg(int startAddr, List<Integer> values) throws ModbusException {
+        // 外部调用入口，初始化重试次数为0
+        writeReg(startAddr, values, 0);
     }
 
     private void validateFileTransportResponse(List<Integer> data, int fileAddress,
@@ -324,7 +350,8 @@ public class ModbusTCPClient {
      * @param byteData 写入的文件数据
      * @throws ModbusException 如果通信错误或写文件传输的响应格式错误
      */
-    public void FileTransportByte(final int fileAddr, byte[] byteData) throws ModbusException {
+    public void FileTransportByte(int fileAddr, byte[] byteData, int retryCount) throws ModbusException {
+        synchronized (requesrlock) {
         validateConnection();
         byte[] request;
         try {
@@ -332,20 +359,33 @@ public class ModbusTCPClient {
         } catch (ModBuscode.ModbusFrameException e) {
             throw new ModbusException(e.getMessage());
         }
-        synchronized (requesrlock) {
             try {
                 outputStream.write(request);
                 outputStream.flush();
                 List<Integer> response = Response(ModBuscode.FileFunCode);
                 validateFileTransportResponse(response, fileAddr, byteData.length);
-                Log.d("fileaddr", Integer.toUnsignedString(fileAddr));
+                //Log.d("fileaddr", "fileaddr"+Integer.toUnsignedString(fileAddr));
             } catch (IOException e) {
-                disconnect();
-                throw new ModbusException("Communication error: " + e.getMessage());
+                if (retryCount < 3) { // 限制最多重试3次
+                    if (Reconnect()) {
+                        // 重试时递增计数器
+                        FileTransportByte(fileAddr, byteData, retryCount + 1);
+                    } else {
+                        disconnect();
+                        throw new ModbusException("重连失败: " + e.getMessage());
+                    }
+                } else {
+                    disconnect();
+                    throw new ModbusException("超过最大重试次数(3次): " + e.getMessage());
+                }
             }
         }
     }
 
+    public void FileTransportByte(int fileAddr, byte[] byteData) throws ModbusException {
+        // 外部调用入口，初始化重试次数为0
+        FileTransportByte(fileAddr, byteData, 0);
+    }
 
     /**
      * 将一个2字节数据拆分为4字节，按照低字节在前，高字节在后
@@ -519,7 +559,7 @@ public class ModbusTCPClient {
 
     public void FileTransport(final int fileAddr, File file, Context context) throws
             ModbusException {
-        int bufferSize = 1024;
+        int bufferSize = 900;
         AtomicInteger totalBytesSent = new AtomicInteger(0);
         android.os.Handler handler = new Handler(Looper.getMainLooper());
         ProgressBarUtils progressHelper = new ProgressBarUtils();
@@ -569,8 +609,10 @@ public class ModbusTCPClient {
                     progressHelper.dismissDialog();
                 }
             });
+            Log.d("fileaddr", "ModbusException" + e.getMessage());
             throw new ModbusException(e.getMessage());
         } catch (IOException e) {
+            Log.d("fileaddr", "IOException" + e.getMessage());
             throw new ModbusException(e.getMessage());
         }
     }

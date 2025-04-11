@@ -70,8 +70,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int PICK_IMAGE = 1;
     public static final int CAPTURE_IMAGE = 2;
     private static final int EDIT_IMAGE = 3;
-    //private ImageView imageView;
-    private String currentPhotoPath;
+
     public static Uri imageUri;
     public Uri photoUri;
     public static Bitmap bitmap;

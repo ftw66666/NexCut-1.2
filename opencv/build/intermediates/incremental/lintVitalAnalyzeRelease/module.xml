@@ -1,10 +1,10 @@
 <lint-module
     format="1"
-    dir="D:\AndroidProject\NexCut\opencv"
+    dir="D:\AndroidProject\NexCut-1.2\opencv"
     name=":opencv"
     type="LIBRARY"
     maven="OpenCV:opencv:unspecified"
-    agpVersion="8.9.0"
+    agpVersion="8.9.1"
     buildFolder="build"
     bootClassPath="D:\Android\SDK\platforms\android-26\android.jar;D:\Android\SDK\build-tools\35.0.0\core-lambda-stubs.jar"
     javaSourceLevel="1.8"
