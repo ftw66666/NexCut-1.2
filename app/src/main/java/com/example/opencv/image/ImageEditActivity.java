@@ -251,6 +251,8 @@ public class  ImageEditActivity extends AppCompatActivity {
         if (originalBitmap != null) {
             selectedBitmap = originalBitmap.copy(originalBitmap.getConfig(), true); // 复制原始位图
             imageView.setImageBitmap(selectedBitmap);
+            contrastSeekBar.setProgress(100);
+            brightnessSeekBar.setProgress(100);
         } else {
             Toast.makeText(this, "没有原始图像可还原", Toast.LENGTH_SHORT).show();
         }
