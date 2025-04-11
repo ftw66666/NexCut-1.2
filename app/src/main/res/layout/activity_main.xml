@@ -241,7 +241,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="0.2"
                         android:gravity="center"
-                        android:onClick="readGCode"
+                        android:onClick="onClickOpenBrowser"
                         android:text="查看更多 >"
                         android:textColor="@color/gray" />
                 </LinearLayout>
@@ -270,7 +270,7 @@
                             android:id="@+id/image1"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:src="@drawable/picture0"
+                            android:src="@drawable/picture2"
                             android:adjustViewBounds="true"
                             android:scaleType="fitCenter"
                             android:textColor="@color/white" />
@@ -279,7 +279,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:gravity="center"
-                            android:text="Prefab1.nc"
+                            android:text="@string/picture2_text"
                             android:textColor="#03A9F4" />
                     </LinearLayout>
                     <LinearLayout
@@ -297,7 +297,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:src="@drawable/picture1"
+                            android:src="@drawable/picture3"
                             android:adjustViewBounds="true"
                             android:scaleType="fitCenter"
                             android:textColor="@color/gray" />
@@ -306,7 +306,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:gravity="center"
-                            android:text="Prefab2.nc"
+                            android:text="@string/picture3_text"
                             android:textColor="#03A9F4" />
                     </LinearLayout>
                 </LinearLayout>
