@@ -67,7 +67,7 @@ public class GCode {
                 // 偶数行：左 → 右
                 for (int x = 0; x < cols; x++) {
                     double gray = resized.get(y, x)[0];
-                    boolean shouldEngrave = gray < 192;
+                    boolean shouldEngrave = gray < 218;
 
                     if (shouldEngrave && !isEngraving) {
                         xStart = x * pixelWidth;

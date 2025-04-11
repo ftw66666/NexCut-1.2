@@ -338,18 +338,18 @@ public class WhiteboardActivity extends AppCompatActivity {
 
         // 添加 "线密度大小：" 标签
         TextView lineDensityLabel = new TextView(context);
-        lineDensityLabel.setText("线密度大小：");
+        lineDensityLabel.setText("线密度大小(>0)：");
         layout.addView(lineDensityLabel);
 
         // 创建 EditText 用于输入线密度
         EditText lineDensityInput = new EditText(context);
-        lineDensityInput.setHint("0(自动生成)");
+        lineDensityInput.setHint("6");
         lineDensityInput.setInputType(InputType.TYPE_CLASS_NUMBER);
         layout.addView(lineDensityInput);
 
         // 添加 "激光功率大小：" 标签
         TextView laserPowerLabel = new TextView(context);
-        laserPowerLabel.setText("激光功率大小：");
+        laserPowerLabel.setText("激光功率大小(>0)：");
         layout.addView(laserPowerLabel);
 
         // 创建 EditText 用于输入线密度
@@ -366,8 +366,8 @@ public class WhiteboardActivity extends AppCompatActivity {
             String lineDensityInputText = lineDensityInput.getText().toString().trim();
             String laserPowerInputText = laserPowerInput.getText().toString().trim();
 
-            int lineDensity = lineDensityInputText.isEmpty() ? 0 : Integer.parseInt(lineDensityInputText); // 默认0，如果未输入
-            int laserPower = laserPowerInputText.isEmpty() ? 20 : Integer.parseInt(laserPowerInputText);
+            int lineDensity = (lineDensityInputText.isEmpty() || Integer.parseInt(lineDensityInputText) <= 0) ? 6 : Integer.parseInt(lineDensityInputText); // 默认0，如果未输入
+            int laserPower = (laserPowerInputText.isEmpty() || Integer.parseInt(laserPowerInputText) <= 0 ) ? 20 : Integer.parseInt(laserPowerInputText);
             //Toast.makeText(this, "rho , laserPower = " + lineDensity + " " + laserPower, Toast.LENGTH_SHORT).show();
 
             // 调用你的处理函数

@@ -730,7 +730,7 @@ public class  ImageEditActivity extends AppCompatActivity {
 //                Mat createdMat = GCode.cropGCode(ImageProcessor.bitmapToMat(selectedBitmap), Constant.PlatformWidth,Constant.PlatformHeight);
 //                selectedBitmap = ImageProcessor.matToBitmap(GCode.cropGCode(ImageProcessor.bitmapToMat(selectedBitmap), Constant.PlatformWidth,Constant.PlatformHeight));
 
-                int rho = getIntent().getIntExtra("rho", 0);
+                int rho = getIntent().getIntExtra("rho", 6);
                 int laserPower = getIntent().getIntExtra("laserPower", 20);
 //                Toast.makeText(ImageEditActivity.this, rho+ " "+laserPower, Toast.LENGTH_SHORT).show();;
                 if(getIntent().getBooleanExtra("isHalftone",false))
