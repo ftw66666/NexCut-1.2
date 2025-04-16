@@ -102,7 +102,7 @@ public class ModbusTCPClient {
                 // 创建一个新的Socket对象
                 socket = new Socket(host, port);
                 socket.setSoTimeout(timeout);
-                socket.setSendBufferSize(1024 * 1024);
+                socket.setSendBufferSize(1024);
                 socket.setTcpNoDelay(true);
                 socket.setReuseAddress(true);
                 inputStream = new BufferedInputStream(socket.getInputStream());
@@ -116,7 +116,7 @@ public class ModbusTCPClient {
             }
         }
     }
-
+    
     /**
      * 断开Modbus TCP连接
      */
@@ -234,6 +234,7 @@ public class ModbusTCPClient {
             } catch (IOException e) {
                 if (retryCount < 3) { // 限制最多重试3次
                     if (Reconnect()) {
+                        Log.d("fileaddr", "read重连成功");
                         // 重试时递增计数器
                         return readReg(startAddress, quantity, retryCount + 1);
                     } else {
@@ -242,7 +243,7 @@ public class ModbusTCPClient {
                     }
                 } else {
                     disconnect();
-                    throw new ModbusException("超过最大重试次数(3次): " + e.getMessage());
+                    throw new ModbusException("read超过最大重试次数(3次): " + e.getMessage());
                 }
             }
         }
@@ -259,18 +260,19 @@ public class ModbusTCPClient {
         int MaxRetry = 3;
         int retryCount = 0;
         while (retryCount < MaxRetry) {
-            try {
-                connect(LastHost, LastPort, unitId);
-                if (isConnected.get() == true) {
-                    return true;
-                }
-            } catch (ModbusException e) {
-                Log.d("fileaddr", "重连失败: " + e.getMessage());
-            }
             // 增加延迟避免高频重试
             try {
                 Thread.sleep(500); // 间隔1秒
             } catch (InterruptedException ignored) {
+            }
+            try {
+                connect(LastHost, LastPort, unitId);
+                if (isConnected.get() == true) {
+                    Log.d("fileaddr", "重连成功");
+                    return true;
+                }
+            } catch (ModbusException e) {
+                Log.d("fileaddr", "重连失败: " + e.getMessage());
             }
             retryCount++;
         }
@@ -318,6 +320,7 @@ public class ModbusTCPClient {
                 if (retryCount < 3) { // 限制最多重试3次
                     if (Reconnect()) {
                         // 重试时递增计数器
+                        Log.d("fileaddr", "write重连成功");
                         writeReg(startAddr, values, retryCount + 1);
                     } else {
                         disconnect();
@@ -325,7 +328,7 @@ public class ModbusTCPClient {
                     }
                 } else {
                     disconnect();
-                    throw new ModbusException("超过最大重试次数(3次): " + e.getMessage());
+                    throw new ModbusException("write超过最大重试次数(3次): " + e.getMessage());
                 }
             }
         }
@@ -352,13 +355,13 @@ public class ModbusTCPClient {
      */
     public void FileTransportByte(int fileAddr, byte[] byteData, int retryCount) throws ModbusException {
         synchronized (requesrlock) {
-        validateConnection();
-        byte[] request;
-        try {
-            request = ModBuscode.encodeFileTransport(transactionId.incrementAndGet(), unitId, fileAddr, byteData);
-        } catch (ModBuscode.ModbusFrameException e) {
-            throw new ModbusException(e.getMessage());
-        }
+            validateConnection();
+            byte[] request;
+            try {
+                request = ModBuscode.encodeFileTransport(transactionId.incrementAndGet(), unitId, fileAddr, byteData);
+            } catch (ModBuscode.ModbusFrameException e) {
+                throw new ModbusException(e.getMessage());
+            }
             try {
                 outputStream.write(request);
                 outputStream.flush();
@@ -369,6 +372,7 @@ public class ModbusTCPClient {
                 if (retryCount < 3) { // 限制最多重试3次
                     if (Reconnect()) {
                         // 重试时递增计数器
+                        Log.d("fileaddr", "file重连成功");
                         FileTransportByte(fileAddr, byteData, retryCount + 1);
                     } else {
                         disconnect();
@@ -376,7 +380,7 @@ public class ModbusTCPClient {
                     }
                 } else {
                     disconnect();
-                    throw new ModbusException("超过最大重试次数(3次): " + e.getMessage());
+                    throw new ModbusException("file超过最大重试次数(3次): " + e.getMessage());
                 }
             }
         }
