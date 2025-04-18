@@ -1,12 +1,18 @@
 package com.example.opencv.device;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.OpenableColumns;
 import android.provider.Settings;
 import android.text.InputType;
 import android.util.Log;
@@ -40,6 +46,11 @@ import com.example.opencv.whiteboard.SettingActivity;
 import com.example.opencv.whiteboard.WhiteboardActivity;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -54,9 +65,8 @@ public class NCActivity extends AppCompatActivity {
 
     @Override
     protected void onNewIntent(@NonNull Intent intent) {
-
         super.onNewIntent(intent);
-
+        setIntent(intent);
         //在Activity的onCreate()或者onNewIntent()中
 
         Uri uri = intent.getData();
@@ -73,7 +83,11 @@ public class NCActivity extends AppCompatActivity {
 
             String query=uri.getQuery();
 
-            Toast.makeText(this, "scheme:"+scheme+",host:"+host+",port:"+port+",path:"+path+",query:"+query, Toast.LENGTH_LONG).show();
+            //Toast.makeText(this, "scheme:"+scheme+",host:"+host+",port:"+port+",path:"+path+",query:"+query, Toast.LENGTH_LONG).show();
+
+            String fileName = getFileNameFromUri(uri);
+            File destFile = new File(this.getExternalFilesDir("/gcodes"), fileName);
+            copyUriToFile(uri, destFile, fileName);
         }
 //你把这些参数打印出来看看，你就知道怎么获取到那个文件或者网址了
     }
@@ -114,13 +128,94 @@ public class NCActivity extends AppCompatActivity {
 
             String query=uri.getQuery();
 
-            Toast.makeText(this, "scheme:"+scheme, Toast.LENGTH_LONG).show();
-            Toast.makeText(this, "host:"+host, Toast.LENGTH_LONG).show();
-            Toast.makeText(this, "port:"+port, Toast.LENGTH_LONG).show();
-            Toast.makeText(this, "path:"+path, Toast.LENGTH_LONG).show();
-            Toast.makeText(this, "query:"+query, Toast.LENGTH_LONG).show();
+//            Toast.makeText(this, "scheme:"+scheme, Toast.LENGTH_LONG).show();
+//            Toast.makeText(this, "host:"+host, Toast.LENGTH_LONG).show();
+//            Toast.makeText(this, "port:"+port, Toast.LENGTH_LONG).show();
+//            Toast.makeText(this, "path:"+path, Toast.LENGTH_LONG).show();
+//            Toast.makeText(this, "query:"+query, Toast.LENGTH_LONG).show();
+            String fileName = getFileNameFromUri(uri);
+            File destFile = new File(this.getExternalFilesDir("/gcodes"), fileName);
+            copyUriToFile(uri, destFile, fileName);
+        }
+
+
+    }
+
+
+    public String getFileNameFromUri(Uri uri) {
+        String result = "unknown_file";
+        if ("content".equals(uri.getScheme())) {
+            try (Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                    if (nameIndex != -1) {
+                        result = cursor.getString(nameIndex);
+                    }
+                }
+            }
+        }
+
+        // 如果还是得不到，尝试从 path 获取
+        if (result.equals("unknown_file")) {
+            String path = uri.getPath();
+            int lastSlash = path.lastIndexOf('/');
+            if (lastSlash != -1) {
+                result = path.substring(lastSlash + 1);
+            }
+        }
+
+        return result;
+    }
+
+
+
+    public void copyUriToFile(Uri uri, File destinationFile, String fileName) {
+        new Thread(() -> {
+            try (InputStream inputStream = getContentResolver().openInputStream(uri);
+                 OutputStream outputStream = new FileOutputStream(destinationFile)) {
+
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
+
+                runOnUiThread(() -> {
+                    Intent intent = new Intent(this, MainActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    intent.putExtra("imported_file_name", fileName);
+                    startActivity(intent);
+                    finish();
+                });
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                runOnUiThread(() ->
+                        Toast.makeText(this, "导入失败: " + e.getMessage(), Toast.LENGTH_LONG).show()
+                );
+            }
+        }).start();
+    }
+
+    public void copyUriToFile(Uri uri, File destinationFile) {
+        try (InputStream inputStream = getContentResolver().openInputStream(uri);
+             OutputStream outputStream = new FileOutputStream(destinationFile)) {
+
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+
+            Toast.makeText(this, "文件已复制到: " + destinationFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "文件复制失败: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
+
+
 
     // 加载 Toolbar 菜单
     @Override
@@ -139,52 +234,6 @@ public class NCActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void handleIncomingFile() {
-        Intent intent = getIntent();
-        Uri uri = intent.getData();
-
-        if (uri != null) {
-            // 1. 检查URI权限
-            checkUriPermission(uri);
-
-            // 2. 获取文件并处理
-            //processFileFromUri(uri);
-        } else {
-            Toast.makeText(this, "未接收到文件", Toast.LENGTH_SHORT).show();
-            finish();
-        }
-    }
-
-    private void checkUriPermission(Uri uri) {
-        try {
-            // 尝试读取URI以检查权限
-            getContentResolver().openInputStream(uri).close();
-        } catch (Exception e) {
-            Toast.makeText(this, "无权限访问该文件", Toast.LENGTH_SHORT).show();
-            finish();
-        }
-    }
-
-//    private void processFileFromUri(Uri uri) {
-//        new AsyncTask<Uri, Void, File>() {
-//            @Override
-//            protected File doInBackground(Uri... uris) {
-//                return getFileFromUri(this, uris[0]);
-//            }
-//
-//            @Override
-//            protected void onPostExecute(File file) {
-//                if (file != null && file.exists()) {
-//                    // 处理文件
-//                    handleFile(file);
-//                } else {
-//                    Toast.makeText(FileReceiverActivity.this,
-//                            "文件获取失败", Toast.LENGTH_SHORT).show();
-//                    finish();
-//                }
-//            }
-//        }.execute(uri);
-//    }
 
     public void OnClickDeviceInfo(View view) {
         Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);

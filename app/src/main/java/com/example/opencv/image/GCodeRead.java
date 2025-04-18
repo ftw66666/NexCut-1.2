@@ -55,7 +55,8 @@ public class GCodeRead {
      */
     public static void copyNcFilesToStorage(Context context) {
         List<Integer> ncResourceIds = getNcResourceIds(context);
-        File destDir = context.getExternalFilesDir(null);
+        File destDir = context.getExternalFilesDir("/gcodes");
+//        File destDir = context.getExternalFilesDir(null);
 
         if (ncResourceIds.isEmpty()) {
             Toast.makeText(context, "没有找到 GCode 预置文件", Toast.LENGTH_SHORT).show();
@@ -87,8 +88,8 @@ public class GCodeRead {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.execute(() -> {
             List<Integer> ncResourceIds = getNcResourceIds(context);
-            File destDir = context.getExternalFilesDir(null);
-
+            File destDir = context.getExternalFilesDir("/gcodes");
+            //File destDir = context.getExternalFilesDir(null);
             if (ncResourceIds.isEmpty()) {
                 // 如果需要在 UI 中提示，可以通过 Handler 或 runOnUiThread 来切换线程回主线程
                 new Handler(Looper.getMainLooper()).post(() ->
@@ -119,6 +120,43 @@ public class GCodeRead {
         });
     }
 
+    public static void copyNcFilesToStorageAsync(final Context context,
+                                                 final Runnable onComplete) {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.execute(() -> {
+            List<Integer> ncResourceIds = getNcResourceIds(context);
+            File destDir = context.getExternalFilesDir("/gcodes");
+            if (ncResourceIds.isEmpty()) {
+                new Handler(Looper.getMainLooper()).post(() ->
+                        Toast.makeText(context, "没有找到 GCode 预置文件", Toast.LENGTH_SHORT).show()
+                );
+                // 即使没有资源，也要回调
+                new Handler(Looper.getMainLooper()).post(onComplete);
+                return;
+            }
+            for (int resId : ncResourceIds) {
+                String fileName = context.getResources().getResourceEntryName(resId) + ".enc";
+                File destFile = new File(destDir, fileName);
+                if (!destFile.exists()) {
+                    try (InputStream is = context.getResources().openRawResource(resId);
+                         FileOutputStream fos = new FileOutputStream(destFile)) {
+                        byte[] buffer = new byte[1024];
+                        int length;
+                        while ((length = is.read(buffer)) > 0) {
+                            fos.write(buffer, 0, length);
+                        }
+                        Log.d(TAG, "已复制: " + destFile.getAbsolutePath());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Log.e(TAG, "复制失败: " + e.getMessage());
+                    }
+                }
+            }
+            // 完成后回调，刷新 UI
+            new Handler(Looper.getMainLooper()).post(onComplete);
+        });
+    }
+
     /**
      * 获取已复制到 `files` 目录的 `.nc` 文件列表
      *
@@ -127,7 +165,8 @@ public class GCodeRead {
      */
     public static List<File> getCopiedNcFiles(Context context) {
         List<File> ncFiles = new ArrayList<>();
-        File dir = context.getExternalFilesDir(null);
+//        File dir = context.getExternalFilesDir(null);
+        File dir = context.getExternalFilesDir("/gcodes");
         if (dir != null && dir.exists()) {
             File[] files = dir.listFiles();
             if (files != null) {
@@ -142,7 +181,8 @@ public class GCodeRead {
 
     public static void copyAFileToStorageAsync(Uri uri, Context context) {
 
-            File destDir = context.getExternalFilesDir(null);
+//            File destDir = context.getExternalFilesDir(null);
+            File destDir = context.getExternalFilesDir("/gcodes");
             File destFile = new File(destDir,"");
 
             if (!destFile.exists()) { // 避免重复复制

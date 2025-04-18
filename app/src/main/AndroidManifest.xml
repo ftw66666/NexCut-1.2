@@ -48,6 +48,18 @@
         android:theme="@style/Theme.OpenCV"
         android:requestLegacyExternalStorage="true"
         tools:targetApi="31">
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.example.opencv.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/filepaths" />
+        </provider>
+
+
         <activity android:name="com.yalantis.ucrop.UCropActivity" />
         <service
             android:name=".device.InfoService"
@@ -59,15 +71,15 @@
             android:name=".device.DeviceInfoActivity"
             android:exported="false" />
         <!-- 配置 FileProvider -->
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="com.example.opencv.fileprovider"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/filepaths" />
-        </provider> <!-- 启动 Activity -->
+<!--        <provider-->
+<!--            android:name="androidx.core.content.FileProvider"-->
+<!--            android:authorities="com.example.opencv.fileprovider"-->
+<!--            android:exported="false"-->
+<!--            android:grantUriPermissions="true">-->
+<!--            <meta-data-->
+<!--                android:name="android.support.FILE_PROVIDER_PATHS"-->
+<!--                android:resource="@xml/filepaths" />-->
+<!--        </provider> &lt;!&ndash; 启动 Activity &ndash;&gt;-->
         <activity
             android:name=".device.DeviceActivity"
             android:exported="false" />
@@ -94,8 +106,10 @@
 
         <activity
             android:name=".device.NCActivity"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="singleTop">
             <intent-filter>
+                <action android:name="android.intent.action.SEND" />
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
@@ -104,8 +118,8 @@
                 <data android:scheme="http"/>
                 <data android:scheme="https"/>
                 <data android:mimeType="*/*" />
-                <data android:pathPattern=".*\\.abc"/>
-                <data android:pathPattern=".*\\.def"/>
+                <data android:pathPattern=".*\\.nc"/>
+                <data android:pathPattern=".*\\.enc"/>
 
             </intent-filter>
 

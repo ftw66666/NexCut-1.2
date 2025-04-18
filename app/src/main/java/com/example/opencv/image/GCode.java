@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import android.os.Environment;
 import android.widget.Toast;
 
 
@@ -184,7 +185,8 @@ public class GCode {
                 fileName += ".nc";
             }
 
-            File file = new File(context.getExternalFilesDir(null), fileName);
+//            File file = new File(context.getExternalFilesDir(null), fileName);
+            File file = new File(context.getExternalFilesDir("/gcodes"), fileName);
             FileOutputStream fos = new FileOutputStream(file);
             fos.write(gcode.getBytes());
             fos.close();
@@ -206,7 +208,8 @@ public class GCode {
     }
 
     public static boolean saveBitmapToFile(Bitmap bitmap, Context context, String s) {
-        File file = new File(context.getExternalFilesDir(null), s);
+//        File file = new File(context.getExternalFilesDir(null), s);
+        File file = new File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), s);
         FileOutputStream fos = null;
         try {
             fos = new FileOutputStream(file);

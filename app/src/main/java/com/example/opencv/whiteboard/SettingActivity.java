@@ -147,6 +147,9 @@ public class SettingActivity extends AppCompatActivity implements DragBoxView.Po
             updateSizeDisplay();
             runOnUiThread(this::initialInputHint);
         });
+
+        Button saveConstants = findViewById(R.id.saveConstants);
+        saveConstants.setOnClickListener(v -> saveConstants());
     }
 
     // 加载 Toolbar 菜单
@@ -165,6 +168,20 @@ public class SettingActivity extends AppCompatActivity implements DragBoxView.Po
         }
         return super.onOptionsItemSelected(item);
     }
+
+    private void saveConstants() {
+        getSharedPreferences("config", MODE_PRIVATE)
+                .edit()
+                .putInt("PlatformWidth", Constant.PlatformWidth)
+                .putInt("PlatformHeight", Constant.PlatformHeight)
+                .putInt("PrintWidth", Constant.PrintWidth)
+                .putInt("PrintHeight", Constant.PrintHeight)
+                .putFloat("PrintStartX", (float) Constant.PrintStartX)
+                .putFloat("PrintStartY", (float) Constant.PrintStartY)
+                .apply(); // 异步保存
+        showToast("参数已保存");
+    }
+
 
     private void initialSize() {
         dragBoxView.setBigBoxSize(Constant.PlatformWidth, Constant.PlatformHeight);

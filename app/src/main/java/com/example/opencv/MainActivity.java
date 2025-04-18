@@ -1,7 +1,10 @@
 package com.example.opencv;
 
+import static com.example.opencv.image.GCodeRead.copyNcFilesToStorageAsync;
+
 import android.Manifest;
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -15,6 +18,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -26,11 +30,14 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -46,6 +53,7 @@ import com.example.opencv.device.DeviceActivity;
 import com.example.opencv.device.DeviceInfoActivity;
 import com.example.opencv.device.InfoService;
 import com.example.opencv.device.device_Control;
+import com.example.opencv.image.GCodeFileAdapter;
 import com.example.opencv.image.GCodeRead;
 import com.example.opencv.image.ImageEditActivity;
 import com.example.opencv.modbus.ModbusTCPClient;
@@ -60,9 +68,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -87,6 +98,8 @@ public class MainActivity extends AppCompatActivity {
     private List<View> mViews;   //存放视图
 
     private ActivityMainBinding binding; // ViewBinding 绑定对象
+
+    private AlertDialog currentDialog;
     ModbusTCPClient mtcp = ModbusTCPClient.getInstance();
 
     @Override
@@ -108,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        new Thread(() -> FileUtils.clearDir(this)).start();
+        new Thread(() -> FileUtils.clearAppPicturesDir(this)).start();
 
 
         textColor = getResources().getColor(R.color.light_black);
@@ -118,13 +131,16 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         // **应用启动时复制 .nc 预制文件到可访问目录**
-        GCodeRead.copyNcFilesToStorageAsync(this);
+        //GCodeRead.copyNcFilesToStorageAsync(this);
         InitialButtons();
         requestAppPermissions();
+        loadConstants();
+
         //开启读取信息服务
         Intent startIntent = new Intent(MainActivity.this, InfoService.class);
         MainActivity.this.startForegroundService(startIntent);
 
+        handleImportIntent(getIntent());
         /*new Thread(new Runnable() {
             @Override
             public void run() {
@@ -157,6 +173,18 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }).start();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        handleImportIntent(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(@NonNull Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent); // ⭐ 这句很关键，更新 Activity 持有的 Intent！
     }
 
     public void onClickDevice(View view) {
@@ -252,66 +280,163 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void readGCode(View view) {
+        // 点击动画
         Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
         view.startAnimation(scaleIn);
+
+        // 获取文件列表
         List<File> ncFiles = GCodeRead.getCopiedNcFiles(this);
+        // 自定义布局
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_gcode_list, null);
+        ListView lvFiles = dialogView.findViewById(R.id.lvFiles);
+        TextView tvTitle = dialogView.findViewById(R.id.tvTitle);
+        tvTitle.setText("选择一个 GCode 文件");
+
+        // Adapter
+        GCodeFileAdapter adapter = new GCodeFileAdapter(this, ncFiles, () -> {
+            if (ncFiles.isEmpty() && currentDialog != null) {
+                currentDialog.dismiss();
+            }
+        });
+        lvFiles.setAdapter(adapter);
+
         if (ncFiles.isEmpty()) {
-            Toast.makeText(this, "没有找到已复制的 GCode 文件", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(this, "没有找到已复制的 GCode 文件", Toast.LENGTH_SHORT).show();
+//            return;
+            // 使用 Activity.this 确保上下文正确，并在主线程更新 UI
+            copyNcFilesToStorageAsync(MainActivity.this, () -> {
+                MainActivity.this.runOnUiThread(() -> {
+                    // 重新获取并刷新列表
+                    ncFiles.clear();
+                    ncFiles.addAll(GCodeRead.getCopiedNcFiles(MainActivity.this));
+                    adapter.notifyDataSetChanged();
+                });
+            });
+        }
+
+        // 构造对话框
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setCancelable(true)
+                //.setPositiveButton("分享", null)
+                .setNeutralButton("重置", null)
+                .setNegativeButton("关闭", null);
+
+        currentDialog = builder.create();
+        currentDialog.show();
+
+        // 拿到按钮，设置自定义监听，防止点击默认关闭
+        Button btnShare = currentDialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        Button btnReset = currentDialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+
+        btnShare.setOnClickListener(v -> shareGcodeDir());
+
+        btnReset.setOnClickListener(v -> {
+            // 先清空目录，再异步拷贝并刷新列表
+            boolean cleared = FileUtils.clearGcodesDir(MainActivity.this);
+            if (!cleared) {
+                Toast.makeText(MainActivity.this, "清空 GCode 目录失败", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+                    // 使用 Activity.this 确保上下文正确，并在主线程更新 UI
+                    copyNcFilesToStorageAsync(MainActivity.this, () -> {
+                        MainActivity.this.runOnUiThread(() -> {
+                            // 重新获取并刷新列表
+                            ncFiles.clear();
+                            ncFiles.addAll(GCodeRead.getCopiedNcFiles(MainActivity.this));
+                            adapter.notifyDataSetChanged();
+                        });
+                    });
+        });
+    }
+
+    private void shareGcodeDir() {
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_APP_FILES);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+
+
+//        File dir = getExternalFilesDir("gcodes");
+//        if (dir == null || !dir.exists()) {
+//            Toast.makeText(this, "目录不存在", Toast.LENGTH_SHORT).show();
+//            return;
+//        }
+//
+//        // 获取目录的 URI
+//        Uri uri = Uri.parse(dir.getPath());
+//
+//        // 创建 Intent 来启动文件浏览器
+//        Intent intent = new Intent(Intent.ACTION_VIEW);
+//        intent.setDataAndType(uri, "resource/folder");  // 这里 "resource/folder" 是 MIME 类型，表示目录
+//        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);  // 授权读取权限
+//
+//        try {
+//            // 启动文件浏览器
+//            startActivity(Intent.createChooser(intent, "打开 GCode 文件夹"));
+//        } catch (ActivityNotFoundException e) {
+//            // 如果没有合适的文件浏览器
+//            Toast.makeText(this, "没有文件浏览器可用", Toast.LENGTH_SHORT).show();
+//        }
+    }
+
+
+
+    public void showConfirmationDialog(File selectedFile) {
+        Toast.makeText(this, "已选择: " + selectedFile.getAbsolutePath(), Toast.LENGTH_SHORT).show();
+
+        new AlertDialog.Builder(this)
+                .setMessage("是否选择传输: " + selectedFile.getName())
+                .setPositiveButton("确定", (dialog, which) -> startFileTransfer(selectedFile))
+                .setNegativeButton("取消", (dialog, which) -> dialog.dismiss())
+                .setNeutralButton("分享", (dialog, which) -> startFileShare(selectedFile))
+                .show();
+    }
+
+    private void startFileTransfer(File selectedFile) {
+        Handler mainHandler = new Handler(Looper.getMainLooper());
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+
+        executor.execute(() -> {
+            try {
+                mtcp.FileTransport(0, selectedFile, MainActivity.this);
+                mainHandler.post(() ->
+                        Toast.makeText(MainActivity.this,
+                                "文件传输成功",
+                                Toast.LENGTH_SHORT).show());
+            } catch (ModbusTCPClient.ModbusException e) {
+                Log.e("TCPTest", "Transfer failed", e);
+                mainHandler.post(() ->
+                        mtcp.onFileFailed(MainActivity.this, e.getMessage()));
+            } finally {
+                executor.shutdown();
+            }
+        });
+        }
+
+    private void startFileShare(File selectedFile) {
+        if (selectedFile == null || !selectedFile.exists()) {
+            Toast.makeText(this, "文件不存在", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("选择一个 GCode 文件");
+        Uri fileUri = FileProvider.getUriForFile(this,
+                getPackageName() + ".provider",
+                selectedFile);
 
-        String[] fileArray = new String[ncFiles.size()];
-        for (int i = 0; i < ncFiles.size(); i++) {
-            fileArray[i] = ncFiles.get(i).getName();
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("*/*");
+        shareIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
+        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+        try {
+            startActivity(Intent.createChooser(shareIntent, "分享文件"));
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(this, "没有可用的应用来分享文件", Toast.LENGTH_SHORT).show();
         }
-
-        builder.setItems(fileArray, (dialog, which) -> {
-            File selectedFile = ncFiles.get(which);
-            Toast.makeText(this, "已选择: " + selectedFile.getAbsolutePath(), Toast.LENGTH_SHORT).show();
-        });
-
-        builder.setItems(fileArray, (dialog, which) -> {
-            File selectedFile = ncFiles.get(which);
-            // 创建第二个AlertDialog
-            AlertDialog.Builder secondDialogBuilder = new AlertDialog.Builder(MainActivity.this);
-            secondDialogBuilder.setMessage("是否选择传输: " + selectedFile.getName());
-            secondDialogBuilder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    Handler handler = new Handler(Looper.getMainLooper());
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                mtcp.FileTransport(0, selectedFile, MainActivity.this);
-                            } catch (ModbusTCPClient.ModbusException e) {
-                                handler.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        mtcp.onFileFailed(MainActivity.this, e.getMessage());
-                                    }
-                                });
-                                Log.d("TCPTest", e.getMessage());
-                            }
-                        }
-                    }).start();
-                }
-            });
-            secondDialogBuilder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.dismiss();
-                }
-            });
-            // 显示第二个对话框
-            secondDialogBuilder.show();
-        });
-
-        builder.show();
     }
+
 
     // 加载 Toolbar 菜单
     @Override
@@ -534,12 +659,30 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         // 设置文件类型过滤
-        intent.setType("*/*");
+        intent.setType("image/*");  // 只允许选择图片文件
         // 可选：指定MIME类型数组
         // String[] mimeTypes = {"image/*", "application/pdf"};
         // intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
 
         startActivityForResult(intent, REQUEST_CODE_OPEN_DOCUMENT);
+    }
+
+    private void handleImportIntent(Intent intent) {
+        String fileName = intent.getStringExtra("imported_file_name");
+        if (fileName != null) {
+            Toast.makeText(this, "已导入文件：" + fileName, Toast.LENGTH_LONG).show();
+            intent.removeExtra("imported_file_name"); // 防止重复显示
+        }
+    }
+
+    private void loadConstants() {
+        var sp = getSharedPreferences("config", MODE_PRIVATE);
+        Constant.PlatformWidth = sp.getInt("PlatformWidth", Constant.PlatformWidth);
+        Constant.PlatformHeight = sp.getInt("PlatformHeight", Constant.PlatformHeight);
+        Constant.PrintWidth = sp.getInt("PrintWidth", Constant.PrintWidth);
+        Constant.PrintHeight = sp.getInt("PrintHeight", Constant.PrintHeight);
+        Constant.PrintStartX = (double) sp.getFloat("PrintStartX", (float) Constant.PrintStartX);
+        Constant.PrintStartY = (double) sp.getFloat("PrintStartY", (float) Constant.PrintStartY);
     }
 }
 // add 多线程其他函数的

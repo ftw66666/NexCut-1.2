@@ -125,6 +125,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1"/>
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/saveConstants"
+                android:layout_gravity="center"
+                android:text="保存设定到本地"/>
+
         </LinearLayout>
         <LinearLayout
             android:id="@+id/rg_tab"

@@ -34,6 +34,27 @@ public class FileUtils {
 
     public static boolean clearDir(Context context) {
         File storageDir = context.getExternalFilesDir(null);
+        //File storageDir = context.getExternalFilesDir(null);
+        if (storageDir == null || !storageDir.exists()) return true;
+
+        try {
+            // 遍历删除所有子文件/目录
+            File[] files = storageDir.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    deleteRecursively(file);
+                }
+            }
+            return true;
+        } catch (Exception e) {
+            Log.e("FileUtils", "清空目录失败", e);
+            return false;
+        }
+    }
+
+    public static boolean clearGcodesDir(Context context) {
+        File storageDir = context.getExternalFilesDir("/gcodes");
+        //File storageDir = context.getExternalFilesDir(null);
         if (storageDir == null || !storageDir.exists()) return true;
 
         try {

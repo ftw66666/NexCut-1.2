@@ -67,9 +67,9 @@ public class Constant {
 
     public static int PlatformWidth = 400;
 
-    public static volatile int PlatformHeight = 400;
+    public static int PlatformHeight = 400;
 
-    public static volatile int ProcessState = 0xFF;
+    public static int ProcessState = 0xFF;
 
     public static int PrintWidth = 50;
     public static int PrintHeight = 50;
