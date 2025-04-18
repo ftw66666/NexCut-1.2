@@ -82,6 +82,7 @@ public class  ImageEditActivity extends AppCompatActivity {
     private ImageView imageView;
     private Bitmap selectedBitmap;
     private Bitmap originalBitmap;
+    private Bitmap filterBaseBitmap; // 亮度/对比度操作的起点图像
     private PhotoSelector photoSelector;
 
     private Uri imageUri;
@@ -121,28 +122,32 @@ public class  ImageEditActivity extends AppCompatActivity {
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 brightnessSeekBar.setMax(200);
                 brightnessValue = progress - 100;
-                applyFilters();
+//                applyFilters();
             }
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {}
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                applyFilters();
+            }
         });
 
         contrastSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 contrastValue = progress / 100f; // 范围从 0.1 到 3.0
-                applyFilters();
+//                applyFilters();
             }
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {}
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                applyFilters();
+            }
         });
 
 
@@ -245,6 +250,7 @@ public class  ImageEditActivity extends AppCompatActivity {
             e.printStackTrace();
             Toast.makeText(this, "图片加载失败", Toast.LENGTH_SHORT).show();
         }
+        filterBaseBitmap = selectedBitmap.copy(selectedBitmap.getConfig(), true);
     }
 
     private void BackToOrigin() {
@@ -256,21 +262,22 @@ public class  ImageEditActivity extends AppCompatActivity {
         } else {
             Toast.makeText(this, "没有原始图像可还原", Toast.LENGTH_SHORT).show();
         }
+        filterBaseBitmap = selectedBitmap.copy(selectedBitmap.getConfig(), true);
+
     }
 
     /**
      * 应用亮度、对比度
      */
     private void applyFilters() {
-        if (originalBitmap == null) return; // 始终从原图开始
+        if (filterBaseBitmap == null) return; // 基于滤镜起点图像
 
         Bitmap filteredBitmap = Bitmap.createBitmap(
-                originalBitmap.getWidth(),
-                originalBitmap.getHeight(),
+                filterBaseBitmap.getWidth(),
+                filterBaseBitmap.getHeight(),
                 Bitmap.Config.ARGB_8888
         );
 
-        // 对比度处理
         float contrastScale = contrastValue;
         float contrastTranslate = (1 - contrastScale) * 128;
 
@@ -281,7 +288,6 @@ public class  ImageEditActivity extends AppCompatActivity {
                 0, 0, 0, 1, 0
         });
 
-        // 亮度处理
         ColorMatrix brightnessMatrix = new ColorMatrix(new float[]{
                 1, 0, 0, 0, brightnessValue,
                 0, 1, 0, 0, brightnessValue,
@@ -289,18 +295,18 @@ public class  ImageEditActivity extends AppCompatActivity {
                 0, 0, 0, 1, 0
         });
 
-        // 合并矩阵：先亮度，再对比度
         brightnessMatrix.postConcat(contrastMatrix);
 
         Paint paint = new Paint();
         paint.setColorFilter(new ColorMatrixColorFilter(brightnessMatrix));
 
         Canvas canvas = new Canvas(filteredBitmap);
-        canvas.drawBitmap(originalBitmap, 0, 0, paint); // 始终基于 originalBitmap
+        canvas.drawBitmap(filterBaseBitmap, 0, 0, paint);
 
         imageView.setImageBitmap(filteredBitmap);
         selectedBitmap = filteredBitmap;
     }
+
 
 
 
@@ -311,6 +317,8 @@ public class  ImageEditActivity extends AppCompatActivity {
         if (selectedBitmap != null) {
             selectedBitmap = ImageProcessor.toGrayscale(selectedBitmap);
             imageView.setImageBitmap(selectedBitmap);
+            updateFilterBase();
+
         }
     }
 
@@ -343,6 +351,8 @@ public class  ImageEditActivity extends AppCompatActivity {
 
             selectedBitmap = binaryBitmap;
             imageView.setImageBitmap(selectedBitmap);
+            updateFilterBase();
+
         }
     }
 
@@ -378,6 +388,8 @@ public class  ImageEditActivity extends AppCompatActivity {
         } else {
             Toast.makeText(this, "请先选择图片", Toast.LENGTH_SHORT).show();
         }
+        updateFilterBase();
+
     }
 
     /**
@@ -388,6 +400,8 @@ public class  ImageEditActivity extends AppCompatActivity {
             selectedBitmap = ImageProcessor.applyGaussianBlur(selectedBitmap, 15);
             imageView.setImageBitmap(selectedBitmap);
         }
+        updateFilterBase();
+
     }
 
     /**
@@ -398,6 +412,8 @@ public class  ImageEditActivity extends AppCompatActivity {
             selectedBitmap = ImageProcessor.applyCannyEdgeDetection(selectedBitmap, 107, 250);
             imageView.setImageBitmap(selectedBitmap);
         }
+        updateFilterBase();
+
     }
 
     /**
@@ -408,6 +424,8 @@ public class  ImageEditActivity extends AppCompatActivity {
             selectedBitmap = ImageProcessor.rotateImage(selectedBitmap, 90);
             imageView.setImageBitmap(selectedBitmap);
         }
+        updateFilterBase();
+
     }
 
     /**
@@ -459,6 +477,8 @@ public class  ImageEditActivity extends AppCompatActivity {
             selectedBitmap = ImageProcessor.flipImageHorizontally(selectedBitmap);
             imageView.setImageBitmap(selectedBitmap);
         }
+        updateFilterBase();
+
     }
 
     private void verticalFlip()
@@ -468,6 +488,8 @@ public class  ImageEditActivity extends AppCompatActivity {
             selectedBitmap = ImageProcessor.flipImageVertically(selectedBitmap);
             imageView.setImageBitmap(selectedBitmap);
         }
+        updateFilterBase();
+
     }
 
     private void saveOnAssets() {
@@ -568,25 +590,38 @@ public class  ImageEditActivity extends AppCompatActivity {
                         .into(imageView);
             }
         }
-        if (resultCode == RESULT_OK && requestCode == UCrop.REQUEST_CROP) {
+        if (resultCode == Activity.RESULT_OK && requestCode == UCrop.REQUEST_CROP) {
             // 获取裁剪后的图片
             Uri resultUri = UCrop.getOutput(data);
             if (resultUri != null) {
                 Picasso.get().load(resultUri).into(imageView);
                 try {
                     selectedBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), resultUri);
+
+                    // ✅ 设置滤镜操作的基准图像
+                    filterBaseBitmap = selectedBitmap.copy(selectedBitmap.getConfig(), true);
+
+                    // 显示裁剪后的图像
+                    imageView.setImageBitmap(selectedBitmap);
+
+                    // 重置亮度/对比度滑条为初始值
+                    brightnessSeekBar.setProgress(100);
+                    contrastSeekBar.setProgress(100);
+
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-
             }
         } else if (resultCode == UCrop.RESULT_ERROR) {
-            // 错误处理
             Throwable cropError = UCrop.getError(data);
             if (cropError != null) {
                 Log.e(TAG, "Crop error: " + cropError.getMessage());
             }
         }
+    }
+    private void updateFilterBase() {
+        if (selectedBitmap != null)
+            filterBaseBitmap = selectedBitmap.copy(selectedBitmap.getConfig(), true);
     }
 
 
