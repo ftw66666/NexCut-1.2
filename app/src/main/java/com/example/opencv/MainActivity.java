@@ -66,6 +66,7 @@ import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final int REQUEST_CODE_OPEN_DOCUMENT = 1;
     private String PIC_PATH = Environment.getDataDirectory() + File.separator + Environment.DIRECTORY_DCIM + File.separator;
     private static final int PICK_IMAGE = 1;
     public static final int CAPTURE_IMAGE = 2;
@@ -527,6 +528,18 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             Toast.makeText(view.getContext(), "无法打开浏览器", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    public void openFileWithSAF(View view) {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        // 设置文件类型过滤
+        intent.setType("*/*");
+        // 可选：指定MIME类型数组
+        // String[] mimeTypes = {"image/*", "application/pdf"};
+        // intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+
+        startActivityForResult(intent, REQUEST_CODE_OPEN_DOCUMENT);
     }
 }
 // add 多线程其他函数的

@@ -2,6 +2,7 @@ package com.example.opencv.image;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -137,5 +138,26 @@ public class GCodeRead {
             }
         }
         return ncFiles;
+    }
+
+    public static void copyAFileToStorageAsync(Uri uri, Context context) {
+
+            File destDir = context.getExternalFilesDir(null);
+            File destFile = new File(destDir,"");
+
+            if (!destFile.exists()) { // 避免重复复制
+                try (InputStream is = context.getContentResolver().openInputStream(uri);
+                     FileOutputStream fos = new FileOutputStream(destFile)) {
+                    byte[] buffer = new byte[1024];
+                    int length;
+                    while ((length = is.read(buffer)) > 0) {
+                        fos.write(buffer, 0, length);
+                    }
+                    Log.d(TAG, "已复制: " + destFile.getAbsolutePath());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Log.e(TAG, "复制失败: " + e.getMessage());
+                }
+            }
     }
 }

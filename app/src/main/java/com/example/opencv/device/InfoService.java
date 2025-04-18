@@ -19,6 +19,7 @@ import com.example.opencv.Constant;
 import com.example.opencv.R;
 import com.example.opencv.modbus.ModbusTCPClient;
 import com.example.opencv.modbus.NettyModbusTCPClient;
+import com.example.opencv.whiteboard.SettingActivity;
 
 import java.util.List;
 
@@ -60,9 +61,26 @@ public class InfoService extends Service {
                             mtcp.deviceInfo = mtcp.ReadDeviceInfo();
                             mtcp.AxisInfo = mtcp.ReadAxisInfo();
                             List<Integer> machineData = mtcp.ReadMachineInfo();
-                            Constant.PlatformWidth = machineData.get(0);
-                            Constant.PlatformHeight = machineData.get(1);
+//                            Constant.PlatformWidth = machineData.get(0);
+//                            Constant.PlatformHeight = machineData.get(1);
                             Constant.ProcessState = machineData.get(2);
+
+                            try {
+                                int width = machineData.get(0);
+                                int height = machineData.get(1);
+
+                                if (width <= 0 || height <= 0) {
+                                    return;
+                                }
+
+                                Constant.PrintWidth = Math.min(width, Constant.PlatformWidth);
+                                Constant.PrintHeight = Math.min(height, Constant.PlatformHeight);
+                                Constant.PlatformWidth = width;
+                                Constant.PlatformHeight = height;
+                            } catch (NumberFormatException e) {
+                                Log.e("InfoService", "Invalid input format: " + e.getMessage());
+                            }
+
                         } catch (ModbusTCPClient.ModbusException e) {
                             Log.d("InfoService", e.getMessage());
                         }
