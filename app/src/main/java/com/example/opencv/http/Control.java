@@ -65,6 +65,14 @@ public class Control {
                                 }
                             });
                         }
+                        else{
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(context, "上传成功", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
                     } catch (IOException e) {
                         handler.post(new Runnable() {
                             @Override

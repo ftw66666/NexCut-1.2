@@ -1,6 +1,6 @@
 /*
  * This file is auto-generated.  DO NOT MODIFY.
- * Using: E:\Android\AppData\Local\Android\Sdk\build-tools\35.0.0\aidl.exe -pE:\Android\AppData\Local\Android\Sdk\platforms\android-26\framework.aidl -oE:\Android\250418\NexCut-1.2\opencv\build\generated\aidl_source_output_dir\debug\out -IE:\Android\250418\NexCut-1.2\opencv\java\src -IE:\Android\250418\NexCut-1.2\opencv\src\debug\aidl -dC:\Users\ADMINI~1\AppData\Local\Temp\aidl8770931712725884666.d E:\Android\250418\NexCut-1.2\opencv\java\src\org\opencv\engine\OpenCVEngineInterface.aidl
+ * Using: E:\Android\AppData\Local\Android\Sdk\build-tools\35.0.0\aidl.exe -pE:\Android\AppData\Local\Android\Sdk\platforms\android-26\framework.aidl -oE:\Android\250418\NexCut-1.2\opencv\build\generated\aidl_source_output_dir\debug\out -IE:\Android\250418\NexCut-1.2\opencv\java\src -IE:\Android\250418\NexCut-1.2\opencv\src\debug\aidl -dC:\Users\ADMINI~1\AppData\Local\Temp\aidl3141469034606100251.d E:\Android\250418\NexCut-1.2\opencv\java\src\org\opencv\engine\OpenCVEngineInterface.aidl
  */
 package org.opencv.engine;
 /** Class provides a Java interface for OpenCV Engine Service. It's synchronous with native OpenCVEngine class. */

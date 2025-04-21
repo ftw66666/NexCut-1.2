@@ -19,7 +19,6 @@ import com.example.opencv.R;
 import com.example.opencv.http.ApiClient;
 import com.example.opencv.http.Control;
 import com.example.opencv.modbus.ModbusTCPClient;
-import com.example.opencv.modbus.NettyModbusTCPClient;
 import com.example.opencv.whiteboard.SettingActivity;
 
 import java.util.List;

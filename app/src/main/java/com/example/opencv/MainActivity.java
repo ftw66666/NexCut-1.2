@@ -16,10 +16,13 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ImageSpan;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -38,6 +41,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.FileProvider;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -57,7 +61,6 @@ import com.example.opencv.image.GCodeRead;
 import com.example.opencv.image.ImageEditActivity;
 import com.example.opencv.modbus.ModbusTCPClient;
 import com.example.opencv.databinding.ActivityMainBinding;
-import com.example.opencv.modbus.NettyModbusTCPClient;
 import com.example.opencv.whiteboard.SettingActivity;
 import com.example.opencv.whiteboard.WhiteboardActivity;
 
@@ -76,7 +79,6 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
-    private final String PIC_PATH = Environment.getDataDirectory() + File.separator + Environment.DIRECTORY_DCIM + File.separator;
     private static final int REQUEST_CODE_OPEN_DOCUMENT = 1;
     private String PIC_PATH = Environment.getDataDirectory() + File.separator + Environment.DIRECTORY_DCIM + File.separator;
     private static final int PICK_IMAGE = 1;
@@ -403,16 +405,9 @@ public class MainActivity extends AppCompatActivity {
 
         executor.execute(() -> {
             try {
-                mtcp.FileTransport(0, selectedFile, MainActivity.this);
-                mainHandler.post(() ->
-                        Toast.makeText(MainActivity.this,
-                                "文件传输成功",
-                                Toast.LENGTH_SHORT).show());
-            } catch (ModbusTCPClient.ModbusException e) {
-                Log.e("TCPTest", "Transfer failed", e);
-                mainHandler.post(() ->
-                        mtcp.onFileFailed(MainActivity.this, e.getMessage()));
-            } finally {
+                control.FileTransfer(selectedFile, MainActivity.this);
+            }
+             finally {
                 executor.shutdown();
             }
         });
