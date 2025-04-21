@@ -3,10 +3,10 @@ package com.example.opencv.device;
 import java.util.Objects;
 
 public class Device {
-    private String ip;
-    private int port;
-    private String model;
-    private String deviceId;
+    private final String ip;
+    private final int port;
+    private final String model;
+    private final String deviceId;
     private long lastUpdated; // 最后一次更新时间（毫秒）
 
     public Device(String ip, int port, String model, String deviceId) {

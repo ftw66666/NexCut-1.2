@@ -15,8 +15,9 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
-import com.example.opencv.Constant;
 import com.example.opencv.R;
+import com.example.opencv.http.ApiClient;
+import com.example.opencv.http.Control;
 import com.example.opencv.modbus.ModbusTCPClient;
 import com.example.opencv.modbus.NettyModbusTCPClient;
 import com.example.opencv.whiteboard.SettingActivity;
@@ -25,6 +26,10 @@ import java.util.List;
 
 public class InfoService extends Service {
     ModbusTCPClient mtcp = ModbusTCPClient.getInstance();
+
+    ApiClient apiClient = ApiClient.getInstance();
+
+    Control control = new Control();
     private static final int NOTIFICATION_ID = 1;
     private static final String CHANNEL_ID = "InfoDeviceServiceChannel";
 
@@ -50,43 +55,15 @@ public class InfoService extends Service {
             @Override
             public void run() {
                 while (true) {
-                    if (mtcp.isConnected.get()) {
-                        try {
-                            Thread.sleep(100);
-                        } catch (InterruptedException e) {
-                            Thread.currentThread().interrupt();
-                            break;
-                        }
-                        try {
-                            mtcp.deviceInfo = mtcp.ReadDeviceInfo();
-                            mtcp.AxisInfo = mtcp.ReadAxisInfo();
-                            List<Integer> machineData = mtcp.ReadMachineInfo();
-//                            Constant.PlatformWidth = machineData.get(0);
-//                            Constant.PlatformHeight = machineData.get(1);
-                            Constant.ProcessState = machineData.get(2);
-
-                            try {
-                                int width = machineData.get(0);
-                                int height = machineData.get(1);
-
-                                if (width <= 0 || height <= 0) {
-                                    return;
-                                }
-
-                                Constant.PrintWidth = Math.min(width, Constant.PlatformWidth);
-                                Constant.PrintHeight = Math.min(height, Constant.PlatformHeight);
-                                Constant.PlatformWidth = width;
-                                Constant.PlatformHeight = height;
-                            } catch (NumberFormatException e) {
-                                Log.e("InfoService", "Invalid input format: " + e.getMessage());
-                            }
-
-                        } catch (ModbusTCPClient.ModbusException e) {
-                            Log.d("InfoService", e.getMessage());
-                        }
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
                     }
+                    control.GetMachineInfo();
                 }
             }
+
         }).start();
         return START_STICKY;
     }

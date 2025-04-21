@@ -14,6 +14,7 @@ package com.example.opencv.image;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.widget.Toast;
 
 import org.opencv.core.Mat;
 import org.opencv.core.Size;

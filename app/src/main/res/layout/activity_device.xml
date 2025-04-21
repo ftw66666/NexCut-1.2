@@ -65,18 +65,10 @@
                         android:text="IP" />
 
                     <TextView
-                        android:id="@+id/textView2"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="0.2"
-                        android:gravity="center"
-                        android:text="端口" />
-
-                    <TextView
                         android:id="@+id/textView3"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
-                        android:layout_weight="0.2"
+                        android:layout_weight="0.3"
                         android:gravity="center"
                         android:text="设备型号" />
 
@@ -84,7 +76,7 @@
                         android:id="@+id/textView4"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
-                        android:layout_weight="0.2"
+                        android:layout_weight="0.3"
                         android:gravity="center"
                         android:text="设备编号" />
                 </LinearLayout>

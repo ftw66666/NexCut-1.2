@@ -1,7 +1,12 @@
 package com.example.opencv.image;
 
+import static android.content.ContentValues.TAG;
+import static com.example.opencv.MainActivity.CAPTURE_IMAGE;
+
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -16,41 +21,20 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
-import android.app.ProgressDialog;
-import android.os.Handler;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-
-import org.opencv.android.OpenCVLoader;
-
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.Toast;
-
-import com.example.opencv.Constant;
-import com.example.opencv.whiteboard.SettingActivity;
-import com.yalantis.ucrop.UCrop;
-import com.squareup.picasso.Picasso;
-
-import static android.content.ContentValues.TAG;
-
-
-import static com.example.opencv.MainActivity.CAPTURE_IMAGE;
-
-
-import android.Manifest;
-import android.widget.Button;
-import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.Nullable;
@@ -60,11 +44,16 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.opencv.Constant;
 import com.example.opencv.MainActivity;
 import com.example.opencv.R;
 import com.example.opencv.modbus.ModbusTCPClient;
+import com.example.opencv.whiteboard.SettingActivity;
 import com.example.opencv.whiteboard.WhiteboardActivity;
+import com.squareup.picasso.Picasso;
+import com.yalantis.ucrop.UCrop;
 
+import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
@@ -74,6 +63,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class  ImageEditActivity extends AppCompatActivity {
     private static final int REQUEST_GALLERY = 1;
@@ -498,7 +489,6 @@ public class  ImageEditActivity extends AppCompatActivity {
         /* 前缀 */
         /* 后缀 */
         /* 目录 */
-        return;
     }
 
 
@@ -751,7 +741,8 @@ public class  ImageEditActivity extends AppCompatActivity {
     }
 
     private void graffitiToGCode() {
-        if (getIntent().getStringExtra("GCodeimageUri") == null) return;
+        if (getIntent().getStringExtra("GCodeimageUri") == null) {
+        }
         else {
             float whiteboardAspectRatio = getIntent().getFloatExtra("whiteboardAspectRatio",1f);
             try {

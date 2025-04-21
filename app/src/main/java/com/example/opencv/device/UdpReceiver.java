@@ -1,24 +1,21 @@
 package com.example.opencv.device;
 
-import android.util.Log;
-
-
 import android.os.Handler;
+import android.util.Log;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class UdpReceiver {
     private static final String TAG = "UdpReceiver";
     private DatagramSocket socket;
-    private int port;
-    private Handler handler;
-    private OnDeviceReceivedListener listener;
-    private ExecutorService executorService;
+    private final int port;
+    private final Handler handler;
+    private final OnDeviceReceivedListener listener;
+    private final ExecutorService executorService;
 
     public UdpReceiver(int port, Handler handler, OnDeviceReceivedListener listener) {
         this.port = port;

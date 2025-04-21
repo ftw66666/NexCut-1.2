@@ -1,0 +1,28 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="org.opencv" >
+4
+5    <uses-sdk android:minSdkVersion="21" />
+6
+7    <uses-permission android:name="android.permission.CAMERA" />
+7-->D:\AndroidProject\NexCut-1.2\opencv\java\AndroidManifest.xml:4:5-65
+7-->D:\AndroidProject\NexCut-1.2\opencv\java\AndroidManifest.xml:4:22-62
+8
+9    <uses-feature
+9-->D:\AndroidProject\NexCut-1.2\opencv\java\AndroidManifest.xml:5:5-83
+10        android:name="android.hardware.camera"
+10-->D:\AndroidProject\NexCut-1.2\opencv\java\AndroidManifest.xml:5:19-57
+11        android:required="true" />
+11-->D:\AndroidProject\NexCut-1.2\opencv\java\AndroidManifest.xml:5:58-81
+12
+13    <queries>
+13-->D:\AndroidProject\NexCut-1.2\opencv\java\AndroidManifest.xml:6:5-10:15
+14        <intent>
+14-->D:\AndroidProject\NexCut-1.2\opencv\java\AndroidManifest.xml:7:13-9:22
+15            <action android:name="android.media.action.IMAGE_CAPTURE" />
+15-->D:\AndroidProject\NexCut-1.2\opencv\java\AndroidManifest.xml:8:17-77
+15-->D:\AndroidProject\NexCut-1.2\opencv\java\AndroidManifest.xml:8:25-74
+16        </intent>
+17    </queries>
+18
+19</manifest>

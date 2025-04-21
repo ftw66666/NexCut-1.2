@@ -105,7 +105,7 @@ public class MultiImageSelectorFragment extends Fragment {
     // image result data set
     private ArrayList<String> resultList = new ArrayList<>();
     // folder result data set
-    private ArrayList<Folder> mResultFolder = new ArrayList<>();
+    private final ArrayList<Folder> mResultFolder = new ArrayList<>();
 
     private GridView mImageGridView;
     private Callback mCallback;
@@ -192,7 +192,7 @@ public class MultiImageSelectorFragment extends Fragment {
 
         mPopupAnchorView = view.findViewById(R.id.footer);
 
-        mCategoryText = (TextView) view.findViewById(R.id.category_btn);
+        mCategoryText = view.findViewById(R.id.category_btn);
         if (mRequestType == WhiteBoardFragment.REQUEST_IMAGE) {
             mCategoryText.setText(R.string.folder_all);
         } else if (mRequestType == WhiteBoardFragment.REQUEST_BACKGROUND) {
@@ -219,7 +219,7 @@ public class MultiImageSelectorFragment extends Fragment {
             }
         });
 
-        mImageGridView = (GridView) view.findViewById(R.id.grid);
+        mImageGridView = view.findViewById(R.id.grid);
         mImageGridView.setAdapter(mImageAdapter);
         mImageGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -601,7 +601,7 @@ public class MultiImageSelectorFragment extends Fragment {
      * 查询图片数据库的某个文件夹所有图片数据
      * 以及所有包含图片的文件夹数据
      */
-    private LoaderManager.LoaderCallbacks<Cursor> mLoaderCallback = new LoaderManager.LoaderCallbacks<Cursor>() {
+    private final LoaderManager.LoaderCallbacks<Cursor> mLoaderCallback = new LoaderManager.LoaderCallbacks<Cursor>() {
         //要查询的数据
         private final String[] IMAGE_PROJECTION = {
                 MediaStore.Images.Media.DATA,

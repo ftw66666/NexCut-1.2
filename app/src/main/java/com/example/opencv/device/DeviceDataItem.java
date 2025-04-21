@@ -1,8 +1,8 @@
 package com.example.opencv.device;
 
 public class DeviceDataItem {
-    private String name;
-    private String value;
+    private final String name;
+    private final String value;
 
     public DeviceDataItem(String name, String value) {
         this.name = name;

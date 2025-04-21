@@ -16,14 +16,10 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.Looper;
-import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ImageSpan;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -40,8 +36,8 @@ import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.FileProvider;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -49,10 +45,13 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.example.opencv.Utils.CenteredImageSpan;
 import com.example.opencv.Utils.FileUtils;
+import com.example.opencv.databinding.ActivityMainBinding;
 import com.example.opencv.device.DeviceActivity;
 import com.example.opencv.device.DeviceInfoActivity;
 import com.example.opencv.device.InfoService;
 import com.example.opencv.device.device_Control;
+import com.example.opencv.http.ApiClient;
+import com.example.opencv.http.Control;
 import com.example.opencv.image.GCodeFileAdapter;
 import com.example.opencv.image.GCodeRead;
 import com.example.opencv.image.ImageEditActivity;
@@ -77,13 +76,13 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
+    private final String PIC_PATH = Environment.getDataDirectory() + File.separator + Environment.DIRECTORY_DCIM + File.separator;
     private static final int REQUEST_CODE_OPEN_DOCUMENT = 1;
     private String PIC_PATH = Environment.getDataDirectory() + File.separator + Environment.DIRECTORY_DCIM + File.separator;
     private static final int PICK_IMAGE = 1;
     public static final int CAPTURE_IMAGE = 2;
     private static final int EDIT_IMAGE = 3;
-    //private ImageView imageView;
-    private String currentPhotoPath;
+
     public static Uri imageUri;
     public Uri photoUri;
     public static Bitmap bitmap;
@@ -101,6 +100,10 @@ public class MainActivity extends AppCompatActivity {
 
     private AlertDialog currentDialog;
     ModbusTCPClient mtcp = ModbusTCPClient.getInstance();
+
+    ApiClient apiClient = ApiClient.getInstance();
+
+    Control control = new Control();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -162,13 +165,13 @@ public class MainActivity extends AppCompatActivity {
                         Thread.currentThread().interrupt();
                         break;
                     }
-                    if (!mtcp.isConnected.get()) {
-                        if (Objects.equals(mtcp.ConnectDeviceId, ""))
+                    if (apiClient.isConnected.get() && apiClient.isInfo.get()) {
+                        int deviceState = apiClient.machineInfo.getMc().getRun() & 0xFFFF;
+                        runOnUiThread(() -> SetDeviceButton(apiClient.ConnectDeviceId, deviceState));
+                    } else {
+                        if (Objects.equals(apiClient.ConnectDeviceId, ""))
                             runOnUiThread(() -> SetDeviceButton("NexCut-X1"));
-                        else runOnUiThread(() -> SetDeviceButton(mtcp.ConnectDeviceId));
-                    } else if (!mtcp.deviceInfo.isEmpty()) {
-                        int deviceState = mtcp.deviceInfo.get(8) & 0xFFFF;
-                        runOnUiThread(() -> SetDeviceButton(mtcp.ConnectDeviceId, deviceState));
+                        else runOnUiThread(() -> SetDeviceButton(apiClient.ConnectDeviceId));
                     }
                 }
             }

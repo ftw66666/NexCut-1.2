@@ -60,7 +60,7 @@ public class WhiteboardActivity extends AppCompatActivity {
     public Handler handler;
     public ProgressBarUtils progressHelper;
 
-    private static int TARGET_WIDTH = 1920;
+    private static final int TARGET_WIDTH = 1920;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
