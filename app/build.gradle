@@ -52,10 +52,8 @@ dependencies {
     //implementation libs.firebase.crashlytics.buildtools
     implementation "commons-codec:commons-codec:1.16.0"
     implementation "commons-logging:commons-logging:1.2"
-    implementation 'io.netty:netty-buffer:4.1.97.Final'    // 缓冲区实现
-    implementation 'io.netty:netty-transport:4.1.97.Final' // 传输层抽象
-    implementation 'io.netty:netty-codec:4.1.97.Final'       // 基础编解码
-    implementation 'io.netty:netty-handler:4.1.97.Final'   // 通用处理器
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.google.code.gson:gson:2.10.1") // 用于 JSON 解析
     implementation libs.junit
     implementation project(':app:whiteboardlib')
     androidTestImplementation libs.ext.junit

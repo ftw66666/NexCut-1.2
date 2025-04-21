@@ -16,9 +16,9 @@ import java.util.Set;
 
 public class DeviceTableAdapter extends RecyclerView.Adapter<DeviceTableAdapter.ViewHolder> {
 
-    private List<Device> deviceList;
-    private Set<Device> deviceSet;
-    private OnDeviceClickListener clickListener;
+    private final List<Device> deviceList;
+    private final Set<Device> deviceSet;
+    private final OnDeviceClickListener clickListener;
 
     public interface OnDeviceClickListener {
         void onDeviceClick(Device device);
@@ -41,7 +41,6 @@ public class DeviceTableAdapter extends RecyclerView.Adapter<DeviceTableAdapter.
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Device device = deviceList.get(position);
         holder.ipTextView.setText(device.getIp());
-        holder.portTextView.setText(String.valueOf(device.getPort()));
         holder.modelTextView.setText(device.getModel());
         holder.deviceIdTextView.setText(device.getDeviceId());
 
@@ -64,7 +63,6 @@ public class DeviceTableAdapter extends RecyclerView.Adapter<DeviceTableAdapter.
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             ipTextView = itemView.findViewById(R.id.ipTextView);
-            portTextView = itemView.findViewById(R.id.portTextView);
             modelTextView = itemView.findViewById(R.id.modelTextView);
             deviceIdTextView = itemView.findViewById(R.id.deviceIdTextView);
         }

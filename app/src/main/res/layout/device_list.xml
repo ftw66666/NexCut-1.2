@@ -14,23 +14,16 @@
         android:text="IP" />
 
     <TextView
-        android:id="@+id/portTextView"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="0.2"
-        android:text="端口" />
-
-    <TextView
         android:id="@+id/modelTextView"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="0.2"
+        android:layout_weight="0.3"
         android:text="设备型号" />
 
     <TextView
         android:id="@+id/deviceIdTextView"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="0.2"
+        android:layout_weight="0.3"
         android:text="设备编号" />
 </LinearLayout>

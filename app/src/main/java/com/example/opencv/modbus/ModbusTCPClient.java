@@ -3,7 +3,6 @@ package com.example.opencv.modbus;
 import static org.apache.commons.codec.digest.DigestUtils.md5Hex;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -11,7 +10,6 @@ import android.widget.Toast;
 
 import com.example.opencv.Constant;
 import com.example.opencv.Utils.ProgressBarUtils;
-import com.example.opencv.device.InfoService;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -22,18 +20,9 @@ import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 
 public class ModbusTCPClient {
@@ -267,7 +256,7 @@ public class ModbusTCPClient {
             }
             try {
                 connect(LastHost, LastPort, unitId);
-                if (isConnected.get() == true) {
+                if (isConnected.get()) {
                     Log.d("fileaddr", "重连成功");
                     return true;
                 }

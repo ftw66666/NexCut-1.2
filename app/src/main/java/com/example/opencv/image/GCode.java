@@ -14,6 +14,7 @@ package com.example.opencv.image;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.widget.Toast;
 
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
@@ -22,8 +23,6 @@ import org.opencv.imgproc.Imgproc;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-
-import android.widget.Toast;
 
 
 public class GCode {

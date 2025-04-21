@@ -18,15 +18,15 @@ public class DragBoxView extends View {
     private int originalBigBoxHeight = 400;
 
     // 实际显示尺寸和变换矩阵
-    private RectF displayBigBoxRect = new RectF();
-    private Matrix transformMatrix = new Matrix();
-    private Matrix inverseMatrix = new Matrix();
+    private final RectF displayBigBoxRect = new RectF();
+    private final Matrix transformMatrix = new Matrix();
+    private final Matrix inverseMatrix = new Matrix();
 
     // 小框相关参数（基于原始坐标系）
-    private RectF originalSmallBoxRect = new RectF(0, 0, 100, 100);
-    private RectF displaySmallBoxRect = new RectF();
+    private final RectF originalSmallBoxRect = new RectF(0, 0, 100, 100);
+    private final RectF displaySmallBoxRect = new RectF();
 
-    private Paint paint = new Paint();
+    private final Paint paint = new Paint();
     private boolean isDragging = false;
 
     // 坐标监听接口

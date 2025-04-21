@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -25,18 +24,20 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.opencv.Constant;
 import com.example.opencv.MainActivity;
 import com.example.opencv.R;
-import com.example.opencv.image.ImageEditActivity;
+import com.example.opencv.http.ApiClient;
+import com.example.opencv.http.MachineInfo;
 import com.example.opencv.modbus.ModbusTCPClient;
-import com.example.opencv.modbus.NettyModbusTCPClient;
 import com.example.opencv.whiteboard.SettingActivity;
 import com.example.opencv.whiteboard.WhiteboardActivity;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class DeviceInfoActivity extends AppCompatActivity {
 
     ModbusTCPClient mtcp = ModbusTCPClient.getInstance();
+    ApiClient apiClient = ApiClient.getInstance();
 
     private RecyclerView recyclerView;
     private device_InfoItemAdapter adapter;
@@ -109,22 +110,25 @@ public class DeviceInfoActivity extends AppCompatActivity {
                         // 获取设备信息
                         //List<Integer> deviceInfo = mtcp.ReadDeviceInfo();
 
-                        List<DeviceDataItem> deviceData = praseDeviceData(mtcp.deviceInfo);
-                        deviceData.addAll(praseAxisData(mtcp.AxisInfo));
-                        deviceData.add(new DeviceDataItem("打印平台宽度", Constant.PlatformWidth + "mm"));
-                        deviceData.add(new DeviceDataItem("打印平台高度", Constant.PlatformHeight + "mm"));
-                        deviceData.add(new DeviceDataItem("加工文件状态", Integer.toUnsignedString(Constant.ProcessState)));
-                        // 在主线程更新UI
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                // 清空当前数据
-                                dataList.clear();
-                                dataList.addAll(deviceData);
-                                // 通知Adapter数据已更新
-                                adapter.notifyDataSetChanged();
-                            }
-                        });
+//                        List<DeviceDataItem> deviceData = praseDeviceData(mtcp.deviceInfo);
+//                        deviceData.addAll(praseAxisData(mtcp.AxisInfo));
+//                        deviceData.add(new DeviceDataItem("打印平台宽度", Constant.PlatformWidth + "mm"));
+//                        deviceData.add(new DeviceDataItem("打印平台高度", Constant.PlatformHeight + "mm"));
+//                        deviceData.add(new DeviceDataItem("加工文件状态", Integer.toUnsignedString(Constant.ProcessState)));
+                        if (apiClient.isConnected.get() && apiClient.isInfo.get()) {
+                            List<DeviceDataItem> deviceData = praseData();
+                            // 在主线程更新UI
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    // 清空当前数据
+                                    dataList.clear();
+                                    dataList.addAll(deviceData);
+                                    // 通知Adapter数据已更新
+                                    adapter.notifyDataSetChanged();
+                                }
+                            });
+                        }
                         Thread.sleep(100);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
@@ -265,6 +269,38 @@ public class DeviceInfoActivity extends AppCompatActivity {
         int minute = (data >> 8) & 0xFF;
         int second = data & 0xFF;
         return hour + ":" + minute + ":" + second;
+    }
+
+    public List<DeviceDataItem> praseData() {
+        List<DeviceDataItem> dataItems = new ArrayList<>();
+        dataItems.add(new DeviceDataItem("FTC状态", apiClient.machineInfo.getFtc().isEnable() ? "使能" : "失能"));
+        MachineInfo.MachineStatus machineStatus = apiClient.machineInfo.getMc();
+        dataItems.add(new DeviceDataItem("连接状态", machineStatus.isConnect() ? "已连接" : "未连接"));
+        dataItems.add(new DeviceDataItem("坐标", Arrays.toString(machineStatus.getCoordinate())));
+        dataItems.add(new DeviceDataItem("DA", Arrays.toString(machineStatus.getDa())));
+        int DIState = 0;
+        boolean[] di = machineStatus.getDi();
+        for (int i = 0; i < di.length; i++) {
+            if (di[i]) {
+                DIState = 1 << i;
+            }
+        }
+        boolean[] DO = machineStatus.getDO();
+        int DOState = 0;
+        for (int i = 0; i < DO.length; i++) {
+            if (DO[i]) {
+                DOState |= 1 << (i + 16);
+            }
+        }
+        dataItems.add(new DeviceDataItem("DO", Integer.toUnsignedString(DOState)));
+
+        MachineInfo.MachineStatus.ProcessStatus processStatus = machineStatus.getProcess();
+        dataItems.add(new DeviceDataItem("文件", processStatus.getFile()));
+        dataItems.add(new DeviceDataItem("进度", processStatus.getSchedule() + "%"));
+        dataItems.add(new DeviceDataItem("Run", Integer.toUnsignedString(machineStatus.getRun())));
+        dataItems.add(new DeviceDataItem("version", Integer.toUnsignedString(machineStatus.getVersions())));
+        dataItems.add(new DeviceDataItem("warning", machineStatus.isWarning() ? "有警告" : "无警告"));
+        return dataItems;
     }
 
     @Override

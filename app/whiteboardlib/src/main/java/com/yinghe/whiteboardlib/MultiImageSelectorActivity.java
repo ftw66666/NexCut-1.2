@@ -92,7 +92,7 @@ public class MultiImageSelectorActivity extends AppCompatActivity
         mDefaultCount = intent.getIntExtra(EXTRA_SELECT_COUNT, DEFAULT_IMAGE_SIZE);
         int mRequestType = intent.getIntExtra(EXTRA_REQUEST_TYPE, WhiteBoardFragment.REQUEST_IMAGE);
         final int mode = intent.getIntExtra(EXTRA_SELECT_MODE, MODE_MULTI);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         if (mRequestType == WhiteBoardFragment.REQUEST_BACKGROUND) {
             toolbar.setTitle("选择背景");
         } else if (mRequestType == WhiteBoardFragment.REQUEST_IMAGE) {
@@ -111,7 +111,7 @@ public class MultiImageSelectorActivity extends AppCompatActivity
             resultList = intent.getStringArrayListExtra(EXTRA_DEFAULT_SELECTED_LIST);
         }
         //多选模式下的提交按钮
-        mSubmitButton = (Button) findViewById(R.id.commit);
+        mSubmitButton = findViewById(R.id.commit);
         if (mode == MODE_MULTI) {
             updateDoneText(resultList);
             mSubmitButton.setVisibility(View.VISIBLE);
@@ -232,9 +232,7 @@ public class MultiImageSelectorActivity extends AppCompatActivity
 
     @Override
     public void onImageUnselected(String path) {
-        if (resultList.contains(path)) {
-            resultList.remove(path);
-        }
+        resultList.remove(path);
         updateDoneText(resultList);
     }
 

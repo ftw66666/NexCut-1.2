@@ -32,7 +32,7 @@ public class ProgressBarUtils {
     }
 
     // 显示对话框
-    public void showProgressDialog(Context context,String title) {
+    public void showProgressDialog(Context context, String title) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         LayoutInflater inflater = LayoutInflater.from(context);
         View dialogView = inflater.inflate(R.layout.file_processbar, null);
@@ -62,4 +62,6 @@ public class ProgressBarUtils {
             progressDialog.dismiss();
         }
     }
+
+
 }

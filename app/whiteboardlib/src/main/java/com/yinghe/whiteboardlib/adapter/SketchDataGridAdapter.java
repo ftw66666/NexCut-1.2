@@ -39,9 +39,9 @@ public class SketchDataGridAdapter extends BaseAdapter {
 
     List<SketchData> sketchDataList;
 
-    private Context mContext;
-    private LayoutInflater mInflater;
-    private OnActionCallback onActionCallback;
+    private final Context mContext;
+    private final LayoutInflater mInflater;
+    private final OnActionCallback onActionCallback;
 
     public SketchDataGridAdapter(Context context, List<SketchData> sketchDataList, OnActionCallback onActionCallback) {
         this.mContext = context;
@@ -115,8 +115,8 @@ public class SketchDataGridAdapter extends BaseAdapter {
                 onActionCallback.onSelectCallback(getItem(position));
             }
         });
-        holder.sketchIV = (ImageView) view.findViewById(R.id.grid_sketch);
-        holder.deleteIV = (ImageView) view.findViewById(R.id.grid_delete);
+        holder.sketchIV = view.findViewById(R.id.grid_sketch);
+        holder.deleteIV = view.findViewById(R.id.grid_delete);
         holder.deleteIV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -124,8 +124,8 @@ public class SketchDataGridAdapter extends BaseAdapter {
                     onActionCallback.onDeleteCallback(position);
             }
         });
-        holder.numberTV = (TextView) view.findViewById(R.id.grid_number);
-        holder.addIV = (ImageView) view.findViewById(R.id.grid_add);
+        holder.numberTV = view.findViewById(R.id.grid_number);
+        holder.addIV = view.findViewById(R.id.grid_add);
         holder.addIV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
