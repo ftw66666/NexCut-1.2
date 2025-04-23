@@ -59,6 +59,7 @@ public class InfoService extends Service {
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }
+                    control.GetMachineInfo(getApplicationContext());
                 }
             }
         }).start();
