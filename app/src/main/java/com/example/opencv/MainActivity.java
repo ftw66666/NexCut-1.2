@@ -29,6 +29,7 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -152,9 +153,9 @@ public class MainActivity extends AppCompatActivity {
         Intent startIntent = new Intent(MainActivity.this, InfoService.class);
         MainActivity.this.startForegroundService(startIntent);
 
-        // 启动监听 Service
-        Intent serviceIntent = new Intent(this, ExitMonitorService.class);
-        startForegroundService(serviceIntent);
+//        // 启动监听 Service
+//        Intent serviceIntent = new Intent(this, ExitMonitorService.class);
+//        startForegroundService(serviceIntent);
 
 
         handleImportIntent(getIntent());
@@ -307,6 +308,8 @@ public class MainActivity extends AppCompatActivity {
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_gcode_list, null);
         ListView lvFiles = dialogView.findViewById(R.id.lvFiles);
         TextView tvTitle = dialogView.findViewById(R.id.tvTitle);
+        ImageButton btnRefresh = dialogView.findViewById(R.id.btnRefresh);
+
         tvTitle.setText("选择一个加工文件");
 
         // Adapter
@@ -316,6 +319,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         lvFiles.setAdapter(adapter);
+
+        btnRefresh.setOnClickListener(v -> {
+
+            ncFiles.clear();
+            ncFiles.addAll(GCodeRead.getCopiedNcFiles(MainActivity.this));
+            adapter.notifyDataSetChanged();
+        });
 
         if (ncFiles.isEmpty()) {
 //            Toast.makeText(this, "没有找到已复制的 GCode 文件", Toast.LENGTH_SHORT).show();
@@ -414,7 +424,11 @@ public class MainActivity extends AppCompatActivity {
                 .setMessage("是否选择传输: " + selectedFile.getName())
                 .setPositiveButton("确定", (dialog, which) -> startFileTransfer(selectedFile))
                 .setNegativeButton("取消", (dialog, which) -> dialog.dismiss())
-                .setNeutralButton("分享", (dialog, which) -> startFileShare(selectedFile))
+                .setNeutralButton("分享", (dialog, which) ->
+                {
+                    startFileShare(selectedFile);
+                    //dialog.dismiss();
+                })
                 .show();
     }
 
