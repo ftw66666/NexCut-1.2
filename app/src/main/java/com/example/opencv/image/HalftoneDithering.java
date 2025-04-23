@@ -1,16 +1,11 @@
 package com.example.opencv.image;
-import android.content.Context;
+
 import android.graphics.Bitmap;
-import android.graphics.Color;
 
 import org.opencv.android.Utils;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 
 public class HalftoneDithering {
     public static Bitmap applyHalftone(Bitmap inputBitmap) {

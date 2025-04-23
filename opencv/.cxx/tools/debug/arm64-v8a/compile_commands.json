@@ -1,7 +1,7 @@
 [
 {
-  "directory": "D:/androidproject/NexCut-1.2/opencv/.cxx/Debug/164z6z6b/arm64-v8a",
-  "command": "C:\\Users\\yukikaze\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=aarch64-none-linux-android21 --sysroot=C:/Users/yukikaze/AppData/Local/Android/Sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/windows-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC -o CMakeFiles\\opencv_jni_shared.dir\\dummy.cpp.o -c D:\\androidproject\\NexCut-1.2\\opencv\\libcxx_helper\\dummy.cpp",
-  "file": "D:\\androidproject\\NexCut-1.2\\opencv\\libcxx_helper\\dummy.cpp"
+  "directory": "E:/Android/250418/NexCut-1.2/opencv/.cxx/Debug/164z6z6b/arm64-v8a",
+  "command": "E:\\Android\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=aarch64-none-linux-android21 --sysroot=E:/Android/AppData/Local/Android/Sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/windows-x86_64/sysroot -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC -o CMakeFiles\\opencv_jni_shared.dir\\dummy.cpp.o -c E:\\Android\\250418\\NexCut-1.2\\opencv\\libcxx_helper\\dummy.cpp",
+  "file": "E:\\Android\\250418\\NexCut-1.2\\opencv\\libcxx_helper\\dummy.cpp"
 }
 ]

@@ -1,13 +1,14 @@
 package com.example.opencv.image;
 
+import android.graphics.Bitmap;
+
+import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Rect;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
-import android.graphics.Bitmap;
-import org.opencv.android.Utils;
 
 
 public class ImageProcessor {

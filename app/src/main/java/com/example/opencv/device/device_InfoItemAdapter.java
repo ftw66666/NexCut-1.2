@@ -12,7 +12,7 @@ import com.example.opencv.R;
 import java.util.List;
 
 public class device_InfoItemAdapter extends RecyclerView.Adapter<device_InfoItemAdapter.ViewHolder> {
-    private List<DeviceDataItem> dataList;
+    private final List<DeviceDataItem> dataList;
 
     public device_InfoItemAdapter(List<DeviceDataItem> dataList) {
         this.dataList = dataList;

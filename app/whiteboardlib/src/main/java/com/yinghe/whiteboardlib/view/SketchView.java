@@ -841,7 +841,7 @@ public class SketchView extends View implements OnTouchListener {
     public void setBackgroundByPath(String path) {
         Bitmap sampleBM = getSampleBitMap(path);
         if (sampleBM != null) {
-            setBackgroundByBitmap(sampleBM);
+            setBackgroundByBitmapWithAspectFit(sampleBM);
         } else {
             Toast.makeText(mContext, "图片文件路径有误！", Toast.LENGTH_SHORT).show();
         }
@@ -853,6 +853,36 @@ public class SketchView extends View implements OnTouchListener {
         backgroundDstRect = new Rect(0, 0, mWidth, mHeight);
         invalidate();
     }
+    public void setBackgroundByBitmapWithAspectFit(Bitmap sampleBM) {
+        if (sampleBM == null || mWidth == 0 || mHeight == 0) return;
+
+        int srcWidth = sampleBM.getWidth();
+        int srcHeight = sampleBM.getHeight();
+
+        float scale = Math.min((float) mWidth / srcWidth, (float) mHeight / srcHeight);
+        int scaledWidth = Math.round(srcWidth * scale);
+        int scaledHeight = Math.round(srcHeight * scale);
+
+        // 创建一个新的 Bitmap，大小为背景区域，初始为白色
+        Bitmap backgroundBM = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(backgroundBM);
+        canvas.drawColor(Color.WHITE); // 填充白色
+
+        // 计算图片居中的位置
+        int left = (mWidth - scaledWidth) / 2;
+        int top = (mHeight - scaledHeight) / 2;
+        Rect dstRect = new Rect(left, top, left + scaledWidth, top + scaledHeight);
+
+        // 把原图按比例绘制到新背景图上
+        canvas.drawBitmap(sampleBM, null, dstRect, null);
+
+        // 更新背景
+        curSketchData.backgroundBM = backgroundBM;
+        backgroundSrcRect = new Rect(0, 0, mWidth, mHeight);
+        backgroundDstRect = new Rect(0, 0, mWidth, mHeight);
+        invalidate();
+    }
+
 
     public Bitmap getSampleBitMap(String path) {
         Bitmap sampleBM = null;
@@ -923,6 +953,6 @@ public class SketchView extends View implements OnTouchListener {
 
     public interface OnDrawChangedListener {
 
-        public void onDrawChanged();
+        void onDrawChanged();
     }
 }

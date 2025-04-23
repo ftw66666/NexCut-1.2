@@ -1,9 +1,11 @@
 package com.example.opencv;
 
+import static com.example.opencv.image.GCodeRead.copyNcFilesToStorageAsync;
+
 import android.Manifest;
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.ContentValues;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -26,13 +28,19 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.FileProvider;
 import androidx.core.graphics.Insets;
@@ -42,30 +50,37 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.example.opencv.Utils.CenteredImageSpan;
 import com.example.opencv.Utils.FileUtils;
+import com.example.opencv.databinding.ActivityMainBinding;
 import com.example.opencv.device.DeviceActivity;
 import com.example.opencv.device.DeviceInfoActivity;
 import com.example.opencv.device.InfoService;
 import com.example.opencv.device.device_Control;
+import com.example.opencv.http.ApiClient;
+import com.example.opencv.http.Control;
+import com.example.opencv.http.ProgressRequestBody;
+import com.example.opencv.image.GCodeFileAdapter;
 import com.example.opencv.image.GCodeRead;
 import com.example.opencv.image.ImageEditActivity;
+import com.example.opencv.misc.AboutActivity;
 import com.example.opencv.modbus.ModbusTCPClient;
-import com.example.opencv.databinding.ActivityMainBinding;
-import com.example.opencv.modbus.NettyModbusTCPClient;
 import com.example.opencv.whiteboard.SettingActivity;
 import com.example.opencv.whiteboard.WhiteboardActivity;
-
-import androidx.appcompat.app.AppCompatDelegate;
+import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final int REQUEST_CODE_OPEN_DOCUMENT = 1;
     private String PIC_PATH = Environment.getDataDirectory() + File.separator + Environment.DIRECTORY_DCIM + File.separator;
     private static final int PICK_IMAGE = 1;
     public static final int CAPTURE_IMAGE = 2;
@@ -85,7 +100,13 @@ public class MainActivity extends AppCompatActivity {
     private List<View> mViews;   //存放视图
 
     private ActivityMainBinding binding; // ViewBinding 绑定对象
+
+    private AlertDialog currentDialog;
     ModbusTCPClient mtcp = ModbusTCPClient.getInstance();
+
+    ApiClient apiClient = ApiClient.getInstance();
+
+    Control control = new Control();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        new Thread(() -> FileUtils.clearDir(this)).start();
+        new Thread(() -> FileUtils.clearAppPicturesDir(this)).start();
 
 
         textColor = getResources().getColor(R.color.light_black);
@@ -116,13 +137,22 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         // **应用启动时复制 .nc 预制文件到可访问目录**
-        GCodeRead.copyNcFilesToStorageAsync(this);
+        //GCodeRead.copyNcFilesToStorageAsync(this);
         InitialButtons();
+        loadImagesFromAssets();
         requestAppPermissions();
+        loadConstants();
+
         //开启读取信息服务
         Intent startIntent = new Intent(MainActivity.this, InfoService.class);
         MainActivity.this.startForegroundService(startIntent);
 
+        // 启动监听 Service
+//        Intent serviceIntent = new Intent(this, ExitMonitorService.class);
+//        startForegroundService(serviceIntent);
+
+
+        handleImportIntent(getIntent());
         /*new Thread(new Runnable() {
             @Override
             public void run() {
@@ -144,17 +174,29 @@ public class MainActivity extends AppCompatActivity {
                         Thread.currentThread().interrupt();
                         break;
                     }
-                    if (!mtcp.isConnected.get()) {
-                        if (Objects.equals(mtcp.ConnectDeviceId, ""))
+                    if (apiClient.isConnected.get() && apiClient.isInfo.get()) {
+                        int deviceState = apiClient.machineInfo.getMc().getRun() & 0xFFFF;
+                        runOnUiThread(() -> SetDeviceButton(apiClient.ConnectDeviceId, deviceState));
+                    } else {
+                        if (Objects.equals(apiClient.ConnectDeviceId, ""))
                             runOnUiThread(() -> SetDeviceButton("NexCut-X1"));
-                        else runOnUiThread(() -> SetDeviceButton(mtcp.ConnectDeviceId));
-                    } else if (!mtcp.deviceInfo.isEmpty()) {
-                        int deviceState = mtcp.deviceInfo.get(8) & 0xFFFF;
-                        runOnUiThread(() -> SetDeviceButton(mtcp.ConnectDeviceId, deviceState));
+                        else runOnUiThread(() -> SetDeviceButton(apiClient.ConnectDeviceId));
                     }
                 }
             }
         }).start();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        handleImportIntent(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(@NonNull Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent); // ⭐ 这句很关键，更新 Activity 持有的 Intent！
     }
 
     public void onClickDevice(View view) {
@@ -250,66 +292,162 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void readGCode(View view) {
+        // 点击动画
         Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
         view.startAnimation(scaleIn);
+
+        // 获取文件列表
         List<File> ncFiles = GCodeRead.getCopiedNcFiles(this);
+        // 自定义布局
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_gcode_list, null);
+        ListView lvFiles = dialogView.findViewById(R.id.lvFiles);
+        TextView tvTitle = dialogView.findViewById(R.id.tvTitle);
+        tvTitle.setText("选择一个加工文件");
+
+        // Adapter
+        GCodeFileAdapter adapter = new GCodeFileAdapter(this, ncFiles, () -> {
+            if (ncFiles.isEmpty() && currentDialog != null) {
+                currentDialog.dismiss();
+            }
+        });
+        lvFiles.setAdapter(adapter);
+
         if (ncFiles.isEmpty()) {
-            Toast.makeText(this, "没有找到已复制的 GCode 文件", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(this, "没有找到已复制的 GCode 文件", Toast.LENGTH_SHORT).show();
+//            return;
+            // 使用 Activity.this 确保上下文正确，并在主线程更新 UI
+            copyNcFilesToStorageAsync(MainActivity.this, () -> {
+                MainActivity.this.runOnUiThread(() -> {
+                    // 重新获取并刷新列表
+                    ncFiles.clear();
+                    ncFiles.addAll(GCodeRead.getCopiedNcFiles(MainActivity.this));
+                    adapter.notifyDataSetChanged();
+                });
+            });
+        }
+
+        // 构造对话框
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setCancelable(true)
+                //.setPositiveButton("分享", null)
+                .setNeutralButton("重置", null)
+                .setNegativeButton("关闭", null);
+
+        currentDialog = builder.create();
+        currentDialog.show();
+
+        // 拿到按钮，设置自定义监听，防止点击默认关闭
+        Button btnShare = currentDialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        Button btnReset = currentDialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+
+        btnShare.setOnClickListener(v -> shareGcodeDir());
+
+        btnReset.setOnClickListener(v -> {
+            new AlertDialog.Builder(MainActivity.this)
+                    .setMessage("是否重置为默认文件？")
+                    .setPositiveButton("确定", (dialog, which) -> {
+                        // 用户点击“确定”后，先清空目录，再异步拷贝并刷新列表
+                        boolean cleared = FileUtils.clearGcodesDir(MainActivity.this);
+                        if (!cleared) {
+                            Toast.makeText(MainActivity.this, "清空 GCode 目录失败", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        // 拷贝默认文件并刷新 UI
+                        copyNcFilesToStorageAsync(MainActivity.this, () -> {
+                            MainActivity.this.runOnUiThread(() -> {
+                                ncFiles.clear();
+                                ncFiles.addAll(GCodeRead.getCopiedNcFiles(MainActivity.this));
+                                adapter.notifyDataSetChanged();
+                                Toast.makeText(MainActivity.this, "重置完成", Toast.LENGTH_SHORT).show();
+                            });
+                        });
+                    })
+                    .setNegativeButton("取消", (dialog, which) -> dialog.dismiss())
+                    .show();
+        });
+
+    }
+
+    private void shareGcodeDir() {
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_APP_FILES);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+
+
+//        File dir = getExternalFilesDir("gcodes");
+//        if (dir == null || !dir.exists()) {
+//            Toast.makeText(this, "目录不存在", Toast.LENGTH_SHORT).show();
+//            return;
+//        }
+//
+//        // 获取目录的 URI
+//        Uri uri = Uri.parse(dir.getPath());
+//
+//        // 创建 Intent 来启动文件浏览器
+//        Intent intent = new Intent(Intent.ACTION_VIEW);
+//        intent.setDataAndType(uri, "resource/folder");  // 这里 "resource/folder" 是 MIME 类型，表示目录
+//        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);  // 授权读取权限
+//
+//        try {
+//            // 启动文件浏览器
+//            startActivity(Intent.createChooser(intent, "打开 GCode 文件夹"));
+//        } catch (ActivityNotFoundException e) {
+//            // 如果没有合适的文件浏览器
+//            Toast.makeText(this, "没有文件浏览器可用", Toast.LENGTH_SHORT).show();
+//        }
+    }
+
+
+    public void showConfirmationDialog(File selectedFile) {
+        Toast.makeText(this, "已选择: " + selectedFile.getAbsolutePath(), Toast.LENGTH_SHORT).show();
+
+        new AlertDialog.Builder(this)
+                .setMessage("是否选择传输: " + selectedFile.getName())
+                .setPositiveButton("确定", (dialog, which) -> startFileTransfer(selectedFile))
+                .setNegativeButton("取消", (dialog, which) -> dialog.dismiss())
+                .setNeutralButton("分享", (dialog, which) -> startFileShare(selectedFile))
+                .show();
+    }
+
+
+    private void startFileTransfer(File selectedFile) {
+        Handler mainHandler = new Handler(Looper.getMainLooper());
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+
+        executor.execute(() -> {
+            try {
+                control.FileTransfer(selectedFile, MainActivity.this);
+            } finally {
+                executor.shutdown();
+            }
+        });
+    }
+
+    private void startFileShare(File selectedFile) {
+        if (selectedFile == null || !selectedFile.exists()) {
+            Toast.makeText(this, "文件不存在", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("选择一个 GCode 文件");
+        Uri fileUri = FileProvider.getUriForFile(this,
+                getPackageName() + ".provider",
+                selectedFile);
 
-        String[] fileArray = new String[ncFiles.size()];
-        for (int i = 0; i < ncFiles.size(); i++) {
-            fileArray[i] = ncFiles.get(i).getName();
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("*/*");
+        shareIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
+        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+        try {
+            startActivity(Intent.createChooser(shareIntent, "分享文件"));
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(this, "没有可用的应用来分享文件", Toast.LENGTH_SHORT).show();
         }
-
-        builder.setItems(fileArray, (dialog, which) -> {
-            File selectedFile = ncFiles.get(which);
-            Toast.makeText(this, "已选择: " + selectedFile.getAbsolutePath(), Toast.LENGTH_SHORT).show();
-        });
-
-        builder.setItems(fileArray, (dialog, which) -> {
-            File selectedFile = ncFiles.get(which);
-            // 创建第二个AlertDialog
-            AlertDialog.Builder secondDialogBuilder = new AlertDialog.Builder(MainActivity.this);
-            secondDialogBuilder.setMessage("是否选择传输: " + selectedFile.getName());
-            secondDialogBuilder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    Handler handler = new Handler(Looper.getMainLooper());
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                mtcp.FileTransport(0, selectedFile, MainActivity.this);
-                            } catch (ModbusTCPClient.ModbusException e) {
-                                handler.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        mtcp.onFileFailed(MainActivity.this, e.getMessage());
-                                    }
-                                });
-                                Log.d("TCPTest", e.getMessage());
-                            }
-                        }
-                    }).start();
-                }
-            });
-            secondDialogBuilder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.dismiss();
-                }
-            });
-            // 显示第二个对话框
-            secondDialogBuilder.show();
-        });
-
-        builder.show();
     }
+
 
     // 加载 Toolbar 菜单
     @Override
@@ -338,13 +476,13 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == PICK_IMAGE && resultCode == RESULT_OK && data != null) {
             imageUri = data.getData();
             try {
-                bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
+                //bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
                 Intent intent = new Intent(MainActivity.this, ImageEditActivity.class);
                 intent.putExtra("imageUri", imageUri.toString());
                 startActivity(intent);
 
                 //imageView.setImageBitmap(bitmap);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         } else if (requestCode == CAPTURE_IMAGE && resultCode == RESULT_OK) {
@@ -452,22 +590,24 @@ public class MainActivity extends AppCompatActivity {
         spannable = new SpannableString(" " + "相册");
         spannable.setSpan(imageSpan, 0, 1, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
         button.setText(spannable);
-        //预设
-        button = findViewById(R.id.button3);
-        drawable = getResources().getDrawable(R.drawable.pics_icon);
-        drawable.setBounds(0, 0, 180, 180); // 设置大小
-        imageSpan = new CenteredImageSpan(drawable);
-        spannable = new SpannableString(" " + "素材");
-        spannable.setSpan(imageSpan, 0, 1, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
-        button.setText(spannable);
+
 //        button.setTextColor(textColor);
 //        button.setBackgroundColor(backgroundColor);
         //文件
-        button = findViewById(R.id.button4);
+        button = findViewById(R.id.button3);
         drawable = getResources().getDrawable(R.drawable.file_icon);
         drawable.setBounds(0, 0, 180, 180); // 设置大小
         imageSpan = new CenteredImageSpan(drawable);
         spannable = new SpannableString(" " + "文件");
+        spannable.setSpan(imageSpan, 0, 1, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+        button.setText(spannable);
+        //预设
+        //版本
+        button = findViewById(R.id.button4);
+        drawable = getResources().getDrawable(R.drawable.about_icon);
+        drawable.setBounds(0, 0, 180, 180); // 设置大小
+        imageSpan = new CenteredImageSpan(drawable);
+        spannable = new SpannableString(" " + "关于");
         spannable.setSpan(imageSpan, 0, 1, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
         button.setText(spannable);
     }
@@ -526,6 +666,126 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             Toast.makeText(view.getContext(), "无法打开浏览器", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    public void openFileWithSAF(View view) {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        // 设置文件类型过滤
+        intent.setType("image/*");  // 只允许选择图片文件
+        // 可选：指定MIME类型数组
+        // String[] mimeTypes = {"image/*", "application/pdf"};
+        // intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+
+        startActivityForResult(intent, REQUEST_CODE_OPEN_DOCUMENT);
+    }
+
+    public void appAbout(View view) {
+        Intent intent = new Intent(MainActivity.this, AboutActivity.class);
+        startActivity(intent);
+    }
+
+    private void handleImportIntent(Intent intent) {
+        String fileName = intent.getStringExtra("imported_file_name");
+        if (fileName != null) {
+            Toast.makeText(this, "已导入文件：" + fileName, Toast.LENGTH_LONG).show();
+            intent.removeExtra("imported_file_name"); // 防止重复显示
+        }
+    }
+
+    private void loadConstants() {
+        var sp = getSharedPreferences("config", MODE_PRIVATE);
+        Constant.PlatformWidth = sp.getInt("PlatformWidth", Constant.PlatformWidth);
+        Constant.PlatformHeight = sp.getInt("PlatformHeight", Constant.PlatformHeight);
+        Constant.PrintWidth = sp.getInt("PrintWidth", Constant.PrintWidth);
+        Constant.PrintHeight = sp.getInt("PrintHeight", Constant.PrintHeight);
+        Constant.PrintStartX = (double) sp.getFloat("PrintStartX", (float) Constant.PrintStartX);
+        Constant.PrintStartY = (double) sp.getFloat("PrintStartY", (float) Constant.PrintStartY);
+    }
+
+    private void loadImagesFromAssets() {
+        LinearLayout container = findViewById(R.id.image_container);
+
+        try {
+            String[] fileList = getAssets().list("showimage"); // 文件夹名称
+            if (fileList != null) {
+                for (String fileName : fileList) {
+                    String assetPath = "showimage/" + fileName;
+
+
+                    ImageView imageView = new ImageView(this);
+                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                            dpToPx(120), dpToPx(120)); // 缩小尺寸
+                    params.setMargins(dpToPx(8), 0, dpToPx(8), 0);
+                    imageView.setLayoutParams(params);
+
+                    imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                    imageView.setAdjustViewBounds(true);
+                    imageView.setTag(copyAssetToCache(assetPath));
+                    //String uri = copyAssetToCache(assetPath);
+
+                    // 加载图片
+                    Picasso.get()
+                            .load("file:///android_asset/" + assetPath)
+                            .placeholder(R.drawable.placeholder) // 可选：加载中图标
+                            .error(R.drawable.error)             // 可选：失败图标
+                            .into(imageView);
+
+
+                    // 点击事件
+                    imageView.setOnClickListener(v -> {
+                        String uri = (String) v.getTag();
+                        if (uri != null) onImageClick(uri); // 传给你的函数
+                    });
+
+                    // 添加到容器
+                    container.addView(imageView);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "加载图片失败", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void onImageClick(String uri) {
+
+        //Toast.makeText(this, "点击图片：" + uri, Toast.LENGTH_SHORT).show();
+        // TODO: 你可以在这里打开预览、下载、设置背景等
+        Intent intent = new Intent(MainActivity.this, ImageEditActivity.class);
+        intent.putExtra("imageUri", uri);
+        startActivity(intent);
+    }
+
+    private String copyAssetToCache(String assetPath) {
+        File cacheFile = new File(getCacheDir(), new File(assetPath).getName());
+        try (InputStream is = getAssets().open(assetPath);
+             FileOutputStream os = new FileOutputStream(cacheFile)) {
+
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = is.read(buffer)) > 0) {
+                os.write(buffer, 0, length);
+            }
+
+            return FileProvider.getUriForFile(this, getPackageName() + ".provider", cacheFile).toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
+
+    private int dpToPx(int dp) {
+        float density = getResources().getDisplayMetrics().density;
+        return Math.round(dp * density);
+    }
+
+    @Override
+    protected void onDestroy() {
+        control.Logout(MainActivity.this, false);
+        Log.d("ExitMonitor", "App 已退出");
+        super.onDestroy();
+        // 执行你需要的方法
     }
 }
 // add 多线程其他函数的

@@ -166,7 +166,7 @@
                         android:layout_columnWeight="1"
                         android:layout_margin="@dimen/command_button_margin"
                         android:background="@drawable/btn_pause"
-                        android:onClick="Stop" />
+                        android:onClick="Pause" />
 
                     <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/command_3"
@@ -184,7 +184,7 @@
                         android:layout_columnWeight="1"
                         android:layout_margin="@dimen/command_button_margin"
                         android:background="@drawable/btn_follow"
-                        android:onClick="FTC" />
+                        android:onClick="FTCFollow" />
 
                     <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/command_5"
@@ -192,8 +192,7 @@
                         android:layout_height="@dimen/command_button_height"
                         android:layout_columnWeight="1"
                         android:layout_margin="@dimen/command_button_margin"
-                        android:background="@drawable/btn_frame"
-                        android:onClick="workBroder" />
+                        android:background="@drawable/btn_frame" />
 
                     <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/command_6"

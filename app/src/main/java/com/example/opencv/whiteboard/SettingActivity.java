@@ -24,14 +24,17 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.opencv.Constant;
 import com.example.opencv.MainActivity;
 import com.example.opencv.R;
+import com.example.opencv.http.ApiClient;
 
 
-public class SettingActivity extends AppCompatActivity implements DragBoxView.PositionListener{
+public class SettingActivity extends AppCompatActivity implements DragBoxView.PositionListener {
     private DragBoxView dragBoxView;
     private EditText etBigWidth, etBigHeight, etSmallWidth, etSmallHeight, etPosX, etPosY;
-    private TextView tvSizeInfo, tvPosition;
+    private TextView etSizeInfo, tvSizeInfo, tvPosition;
 
     public Toolbar toolbar;
+
+    private ApiClient apiClient = ApiClient.getInstance();
 
     //private static int TARGET_WIDTH=1600;
 
@@ -64,6 +67,7 @@ public class SettingActivity extends AppCompatActivity implements DragBoxView.Po
         etPosY = findViewById(R.id.etPosY);
         tvPosition = findViewById(R.id.tvPosition);
         tvSizeInfo = findViewById(R.id.tvSizeInfo);
+        etSizeInfo = findViewById(R.id.etSizeInfo);
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -86,7 +90,7 @@ public class SettingActivity extends AppCompatActivity implements DragBoxView.Po
                     return;
                 }
 
-                dragBoxView.setSmallBoxSize(Math.min(width, dragBoxView.getSmallBoxWidth()),Math.min(height,dragBoxView.getSmallBoxHeight()));
+                dragBoxView.setSmallBoxSize(Math.min(width, dragBoxView.getSmallBoxWidth()), Math.min(height, dragBoxView.getSmallBoxHeight()));
                 dragBoxView.setBigBoxSize(width, height);
                 updateSizeDisplay();
                 runOnUiThread(this::initialInputHint);
@@ -102,17 +106,17 @@ public class SettingActivity extends AppCompatActivity implements DragBoxView.Po
                 int width = parseInt(etSmallWidth.getText().toString(), dragBoxView.getSmallBoxWidth());
                 int height = parseInt(etSmallHeight.getText().toString(), dragBoxView.getSmallBoxHeight());
 
-                if(width <= 0 || height <= 0){
+                if (width <= 0 || height <= 0) {
                     showToast("打印尺寸必须大于0");
                     return;
                 }
 
-                if(width > dragBoxView.getBigBoxWidth()){
+                if (width > dragBoxView.getBigBoxWidth()) {
                     showToast("打印宽度不能超过平台宽度");
                     return;
                 }
 
-                if(height > dragBoxView.getBigBoxHeight()){
+                if (height > dragBoxView.getBigBoxHeight()) {
                     showToast("打印长度不能超过平台长度");
                     return;
                 }
@@ -134,12 +138,12 @@ public class SettingActivity extends AppCompatActivity implements DragBoxView.Po
             float maxX = dragBoxView.getBigBoxWidth() - dragBoxView.getSmallBoxWidth();
             float maxY = dragBoxView.getBigBoxHeight() - dragBoxView.getSmallBoxHeight();
 
-            if(x < 0 || x > maxX){
+            if (x < 0 || x > maxX) {
                 showToast("X坐标需在0~" + maxX + "之间");
                 return;
             }
 
-            if(y < 0 || y > maxY){
+            if (y < 0 || y > maxY) {
                 showToast("Y坐标需在0~" + maxY + "之间");
                 return;
             }
@@ -147,6 +151,15 @@ public class SettingActivity extends AppCompatActivity implements DragBoxView.Po
             updateSizeDisplay();
             runOnUiThread(this::initialInputHint);
         });
+
+        Button saveConstants = findViewById(R.id.saveConstants);
+        saveConstants.setOnClickListener(v -> saveConstants());
+    }
+
+    @Override
+    protected void onDestroy() {
+        saveConstants(); // 保存配置
+        super.onDestroy(); // 调用父类
     }
 
     // 加载 Toolbar 菜单
@@ -166,31 +179,54 @@ public class SettingActivity extends AppCompatActivity implements DragBoxView.Po
         return super.onOptionsItemSelected(item);
     }
 
+    private void saveConstants() {
+        getSharedPreferences("config", MODE_PRIVATE)
+                .edit()
+                .putInt("PlatformWidth", Constant.PlatformWidth)
+                .putInt("PlatformHeight", Constant.PlatformHeight)
+                .putInt("PrintWidth", Constant.PrintWidth)
+                .putInt("PrintHeight", Constant.PrintHeight)
+                .putFloat("PrintStartX", (float) Constant.PrintStartX)
+                .putFloat("PrintStartY", (float) Constant.PrintStartY)
+                .apply(); // 异步保存
+        showToast("参数已保存");
+    }
+
+
     private void initialSize() {
+        if (apiClient.isConnected.get() && apiClient.isInfo.get()) {
+            int[] Platform = apiClient.machineInfo.getMc().getLimit();
+            Constant.PlatformWidth = Platform[0];
+            Constant.PlatformHeight = Platform[1];
+        }
         dragBoxView.setBigBoxSize(Constant.PlatformWidth, Constant.PlatformHeight);
         dragBoxView.setSmallBoxSize(Constant.PrintWidth, Constant.PrintHeight);
         dragBoxView.setSmallBoxPosition((float) Constant.PrintStartX, (float) Constant.PrintStartY);
     }
 
     private void initialInputHint() {
-            etBigWidth.setHint(String.valueOf(dragBoxView.getBigBoxWidth()));
-            etBigHeight.setHint(String.valueOf(dragBoxView.getBigBoxHeight()));
+        etBigWidth.setHint(String.valueOf(dragBoxView.getBigBoxWidth()));
+        etBigHeight.setHint(String.valueOf(dragBoxView.getBigBoxHeight()));
 
-            etSmallWidth.setHint(String.valueOf(dragBoxView.getSmallBoxWidth()));
-            etSmallHeight.setHint(String.valueOf(dragBoxView.getSmallBoxHeight()));
+        etSmallWidth.setHint(String.valueOf(dragBoxView.getSmallBoxWidth()));
+        etSmallHeight.setHint(String.valueOf(dragBoxView.getSmallBoxHeight()));
 
-            etPosX.setHint(String.valueOf(dragBoxView.getSmallBoxPosX()));
-            etPosY.setHint(String.valueOf(dragBoxView.getSmallBoxPosY()));
+        etPosX.setHint(String.valueOf(dragBoxView.getSmallBoxPosX()));
+        etPosY.setHint(String.valueOf(dragBoxView.getSmallBoxPosY()));
     }
 
     // 更新尺寸显示
     private void updateSizeDisplay() {
-        String sizeText = String.format("打印平台大小：%dx%d 打印区域大小：%dx%d",
+        String tvSizeText = String.format("机床幅面(蓝框)：%dx%d",
                 dragBoxView.getBigBoxWidth(),
-                dragBoxView.getBigBoxHeight(),
+                dragBoxView.getBigBoxHeight());
+
+        String etSizeText = String.format("绘图区(红框)：%dx%d",
                 dragBoxView.getSmallBoxWidth(),
                 dragBoxView.getSmallBoxHeight());
-        tvSizeInfo.setText(sizeText);
+
+        tvSizeInfo.setText(tvSizeText);
+        etSizeInfo.setText(etSizeText);
     }
 
     // 正确实现接口方法
@@ -198,12 +234,16 @@ public class SettingActivity extends AppCompatActivity implements DragBoxView.Po
     public void onPositionChanged(float x, float y) {
         Constant.PrintStartX = x;
         Constant.PrintStartY = y;
-        runOnUiThread(() ->
-                tvPosition.setText(
-                String.format("实时坐标：X=%.1f, Y=%.1f", x, y)
+        runOnUiThread(() -> {
+            // 设置 hint
+            etPosX.setHint(String.valueOf(x));
+            etPosY.setHint(String.valueOf(y));
 
-        ));
+            // 设置坐标显示
+            tvPosition.setText(String.format("实时坐标：X=%.1f, Y=%.1f", x, y));
+        });
     }
+
 
     private int parseInt(String str, int defaultValue) {
         try {

@@ -163,7 +163,7 @@
                             android:layout_margin="5dp"
                             android:background="@drawable/btn1"
                             android:gravity="center"
-                            android:onClick="onClickOpenBrowser"
+                            android:onClick="readGCode"
                             android:stateListAnimator="@anim/anim_scale_in"
                             android:textSize="24dp"
                             android:text="@string/Prefab"
@@ -197,7 +197,7 @@
                             android:backgroundTint="@color/white"
                             android:backgroundTintMode="screen"
                             android:minHeight="100dp"
-                            android:onClick="readGCode"
+                            android:onClick="appAbout"
                             android:stateListAnimator="@anim/anim_scale_in"
                             android:text="@string/File"
                             android:textColorLink="@color/light_black"
@@ -241,75 +241,24 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="0.2"
                         android:gravity="center"
-                        android:onClick="readGCode"
+                        android:onClick="onClickOpenBrowser"
                         android:text="查看更多 >"
                         android:textColor="@color/gray" />
                 </LinearLayout>
-                <LinearLayout
+                <HorizontalScrollView
+                    android:id="@+id/image_scroll"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginVertical="5dp"
-                    android:gravity="top"
-                    android:minHeight="30dp"
-                    app:layout_column="2"
-                    app:layout_columnWeight="1"
-                    app:layout_row="1"
-                    app:layout_rowWeight="1">
+                    android:fillViewport="true"
+                    android:scrollbars="none">
+
                     <LinearLayout
-                        android:layout_width="0dp"
+                        android:id="@+id/image_container"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:layout_weight="1"
-                        android:layout_margin="5dp"
-                        app:layout_column="1"
-                        app:layout_columnWeight="1"
-                        app:layout_row="1"
-                        app:layout_rowWeight="1">
-                        <ImageView
-                            android:id="@+id/image1"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:src="@drawable/picture0"
-                            android:adjustViewBounds="true"
-                            android:scaleType="fitCenter"
-                            android:textColor="@color/white" />
-                        <TextView
-                            android:id="@+id/imageName1"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center"
-                            android:text="Prefab1.nc"
-                            android:textColor="#03A9F4" />
-                    </LinearLayout>
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:layout_weight="1"
-                        android:layout_margin="5dp"
-                        app:layout_column="1"
-                        app:layout_columnWeight="1"
-                        app:layout_row="1"
-                        app:layout_rowWeight="1">
-                        <ImageView
-                            android:id="@+id/image2"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:src="@drawable/picture1"
-                            android:adjustViewBounds="true"
-                            android:scaleType="fitCenter"
-                            android:textColor="@color/gray" />
-                        <TextView
-                            android:id="@+id/imageName2"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center"
-                            android:text="Prefab2.nc"
-                            android:textColor="#03A9F4" />
-                    </LinearLayout>
-                </LinearLayout>
+                        android:orientation="horizontal"
+                        android:padding="8dp"/>
+                </HorizontalScrollView>
 
             </LinearLayout>
 

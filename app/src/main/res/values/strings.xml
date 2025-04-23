@@ -12,6 +12,8 @@
     <string name="user">user</string>
     <string name="File">文件</string>
     <string name="action_settings">Settings</string>
+    <string name="picture2_text">雷峰夕照</string>
+    <string name="picture3_text">南屏晚钟</string>
     <string-array name="axis_numbers">
         <item>轴0</item>
         <item>轴1</item>

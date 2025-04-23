@@ -155,7 +155,7 @@ public class WhiteBoardFragment extends Fragment implements SketchView.OnDrawCha
     private AlertDialog dialog;
     private ArrayList<String> mSelectPath;
 
-    private List<SketchData> sketchDataList = new ArrayList<>();
+    private final List<SketchData> sketchDataList = new ArrayList<>();
 //    //    private SketchData curSketchData;
 //    private List<String> sketchPathList = new ArrayList<>();
 //    private int dataPosition;
@@ -568,25 +568,25 @@ public class WhiteBoardFragment extends Fragment implements SketchView.OnDrawCha
 
     private void findView(View view) {
 
-        sketchGV = (GridView) view.findViewById(R.id.sketch_data_gv);
+        sketchGV = view.findViewById(R.id.sketch_data_gv);
 
         //画板整体布局
-        mSketchView = (SketchView) view.findViewById(R.id.sketch_view);
+        mSketchView = view.findViewById(R.id.sketch_view);
 
         controlLayout = view.findViewById(R.id.controlLayout);
 
-        btn_add = (ImageView) view.findViewById(R.id.btn_add);
-        btn_stroke = (ImageView) view.findViewById(R.id.btn_stroke);
-        btn_eraser = (ImageView) view.findViewById(R.id.btn_eraser);
-        btn_undo = (ImageView) view.findViewById(R.id.btn_undo);
-        btn_redo = (ImageView) view.findViewById(R.id.btn_redo);
-        btn_photo = (ImageView) view.findViewById(R.id.btn_photo);
-        btn_background = (ImageView) view.findViewById(R.id.btn_background);
-        btn_drag = (ImageView) view.findViewById(R.id.btn_drag);
-        btn_save = (ImageView) view.findViewById(R.id.btn_save);
-        btn_empty = (ImageView) view.findViewById(R.id.btn_empty);
-        btn_send = (ImageView) view.findViewById(R.id.btn_send);
-        btn_send_space = (ImageView) view.findViewById(R.id.btn_send_space);
+        btn_add = view.findViewById(R.id.btn_add);
+        btn_stroke = view.findViewById(R.id.btn_stroke);
+        btn_eraser = view.findViewById(R.id.btn_eraser);
+        btn_undo = view.findViewById(R.id.btn_undo);
+        btn_redo = view.findViewById(R.id.btn_redo);
+        btn_photo = view.findViewById(R.id.btn_photo);
+        btn_background = view.findViewById(R.id.btn_background);
+        btn_drag = view.findViewById(R.id.btn_drag);
+        btn_save = view.findViewById(R.id.btn_save);
+        btn_empty = view.findViewById(R.id.btn_empty);
+        btn_send = view.findViewById(R.id.btn_send);
+        btn_send_space = view.findViewById(R.id.btn_send_space);
         if (isTeacher) {
             btn_send.setVisibility(View.VISIBLE);
             btn_send_space.setVisibility(View.VISIBLE);
@@ -619,21 +619,21 @@ public class WhiteBoardFragment extends Fragment implements SketchView.OnDrawCha
                 .LAYOUT_INFLATER_SERVICE);
         //画笔弹窗布局
         popupStrokeLayout = inflater.inflate(R.layout.popup_sketch_stroke, null);
-        strokeImageView = (ImageView) popupStrokeLayout.findViewById(R.id.stroke_circle);
-        strokeAlphaImage = (ImageView) popupStrokeLayout.findViewById(R.id.stroke_alpha_circle);
-        strokeSeekBar = (SeekBar) (popupStrokeLayout.findViewById(R.id.stroke_seekbar));
-        strokeAlphaSeekBar = (SeekBar) (popupStrokeLayout.findViewById(R.id.stroke_alpha_seekbar));
+        strokeImageView = popupStrokeLayout.findViewById(R.id.stroke_circle);
+        strokeAlphaImage = popupStrokeLayout.findViewById(R.id.stroke_alpha_circle);
+        strokeSeekBar = popupStrokeLayout.findViewById(R.id.stroke_seekbar);
+        strokeAlphaSeekBar = popupStrokeLayout.findViewById(R.id.stroke_alpha_seekbar);
         //画笔颜色
-        strokeTypeRG = (RadioGroup) popupStrokeLayout.findViewById(R.id.stroke_type_radio_group);
-        strokeColorRG = (RadioGroup) popupStrokeLayout.findViewById(R.id.stroke_color_radio_group);
+        strokeTypeRG = popupStrokeLayout.findViewById(R.id.stroke_type_radio_group);
+        strokeColorRG = popupStrokeLayout.findViewById(R.id.stroke_color_radio_group);
 
         //橡皮擦弹窗布局
         popupEraserLayout = inflater.inflate(R.layout.popup_sketch_eraser, null);
-        eraserImageView = (ImageView) popupEraserLayout.findViewById(R.id.stroke_circle);
-        eraserSeekBar = (SeekBar) (popupEraserLayout.findViewById(R.id.stroke_seekbar));
+        eraserImageView = popupEraserLayout.findViewById(R.id.stroke_circle);
+        eraserSeekBar = popupEraserLayout.findViewById(R.id.stroke_seekbar);
         //文本录入弹窗布局
         popupTextLayout = inflater.inflate(R.layout.popup_sketch_text, null);
-        strokeET = (EditText) popupTextLayout.findViewById(R.id.text_pupwindow_et);
+        strokeET = popupTextLayout.findViewById(R.id.text_pupwindow_et);
         getSketchSize();//计算选择图片弹窗的高宽
     }
 
@@ -806,7 +806,8 @@ public class WhiteBoardFragment extends Fragment implements SketchView.OnDrawCha
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE) {
-            if (resultCode == getActivity().RESULT_OK) {
+            getActivity();
+            if (resultCode == Activity.RESULT_OK) {
                 mSelectPath = data.getStringArrayListExtra(MultiImageSelector.EXTRA_RESULT);
                 String path = "";
                 if (mSelectPath.size() == 1) {
@@ -820,7 +821,8 @@ public class WhiteBoardFragment extends Fragment implements SketchView.OnDrawCha
                 showBtn(btn_drag);
             }
         } else if (requestCode == REQUEST_BACKGROUND) {//设置背景成功
-            if (resultCode == getActivity().RESULT_OK) {
+            getActivity();
+            if (resultCode == Activity.RESULT_OK) {
                 mSelectPath = data.getStringArrayListExtra(MultiImageSelector.EXTRA_RESULT);
                 String path = "";
                 if (mSelectPath.size() == 1) {
@@ -1218,8 +1220,8 @@ public class WhiteBoardFragment extends Fragment implements SketchView.OnDrawCha
 
 
                 // 智能文字布局
-                String widthText = "宽度: " + platformWidth + "mm";
-                String heightText = "高度: " + platformHeight + "mm";
+                String widthText = "绘图区宽度: " + platformWidth + "mm";
+                String heightText = "绘图区高度: " + platformHeight + "mm";
 
                 // 计算可用空间
                 int viewHeight = rootView.getHeight();
@@ -1307,7 +1309,7 @@ public class WhiteBoardFragment extends Fragment implements SketchView.OnDrawCha
 
             // ... 其他原有方法（setAlpha, setColorFilter, getOpacity）保持不变 ...
         };
-        };
+        }
 
     // 供外部调用的刷新方法
     public void refreshCornerBorder() {

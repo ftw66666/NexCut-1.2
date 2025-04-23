@@ -4,22 +4,10 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-
-import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
-
-import com.example.opencv.Constant;
-import com.example.opencv.MainActivity;
-import com.example.opencv.R;
-import com.example.opencv.modbus.ModbusTCPClient;
-import com.example.opencv.whiteboard.SettingActivity;
-import com.example.opencv.whiteboard.WhiteboardActivity;
-
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.text.InputType;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -31,6 +19,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -38,6 +28,15 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.opencv.Constant;
+import com.example.opencv.MainActivity;
+import com.example.opencv.R;
+import com.example.opencv.http.ApiClient;
+import com.example.opencv.http.Control;
+import com.example.opencv.modbus.ModbusTCPClient;
+import com.example.opencv.whiteboard.SettingActivity;
+import com.example.opencv.whiteboard.WhiteboardActivity;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -49,14 +48,16 @@ import java.util.concurrent.Executors;
 
 public class DeviceActivity extends AppCompatActivity implements UdpReceiver.OnDeviceReceivedListener {
     ModbusTCPClient mtcp = ModbusTCPClient.getInstance();
+    Control control = new Control();
+    ApiClient apiClient = ApiClient.getInstance();
     private static final String TAG = "UdpListener";
-    private static final long DEVICE_EXPIRATION_MS = 20 * 1000; // 10秒超时
+    private static final long DEVICE_EXPIRATION_MS = 10 * 1000; // 10秒超时
     private Set<Device> deviceSet;
     private UdpReceiver udpReceiver;
     private DeviceTableAdapter deviceTableAdapter;
     private RecyclerView deviceTable;
     private ExecutorService executorService;
-    private Handler expirationHandler = new Handler(Looper.getMainLooper());
+    private final Handler expirationHandler = new Handler(Looper.getMainLooper());
     public ImageView noDeviceImage;
 
     public Toolbar toolbar;
@@ -99,25 +100,10 @@ public class DeviceActivity extends AppCompatActivity implements UdpReceiver.OnD
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
-                                try {
-                                    mtcp.connect(device.getIp(), device.getPort(), 1);
-                                    mtcp.ConnectDeviceId = device.getDeviceId();
-                                    handler.post(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            mtcp.onConnected(DeviceActivity.this, device.getDeviceId());
-                                            findViewById(R.id.button8).setClickable(true);
-                                        }
-                                    });
-                                } catch (ModbusTCPClient.ModbusException e) {
-                                    handler.post(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            mtcp.onConnectionFailed(DeviceActivity.this, device.getDeviceId());
-                                        }
-                                    });
-                                    Log.d("UdpListener", e.getMessage());
-                                }
+                                apiClient.BASE_URL.replace(0, apiClient.BASE_URL.length(), "http://" + device.getIp() + ":" + "8080/NexCut");
+                                control.Login(DeviceActivity.this, "NexCut", "12345678");
+                                Constant.IsOfficial = true;
+                                apiClient.ConnectDeviceId = device.getDeviceId();
                             }
                         }).start();
                     }

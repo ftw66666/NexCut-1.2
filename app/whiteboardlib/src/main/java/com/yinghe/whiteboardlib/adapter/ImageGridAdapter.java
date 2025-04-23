@@ -29,14 +29,14 @@ public class ImageGridAdapter extends BaseAdapter {
     private static final int TYPE_NORMAL = 1;
     private final int mRequestType;
 
-    private Context mContext;
+    private final Context mContext;
 
-    private LayoutInflater mInflater;
+    private final LayoutInflater mInflater;
     private boolean showCamera = true;
     private boolean showSelectIndicator = true;
 
     private List<Image> mImages = new ArrayList<>();
-    private List<Image> mSelectedImages = new ArrayList<>();
+    private final List<Image> mSelectedImages = new ArrayList<>();
 
     final int mGridWidth;
 
@@ -211,8 +211,8 @@ public class ImageGridAdapter extends BaseAdapter {
         View mask;
 
         ViewHolder(View view) {
-            image = (ImageView) view.findViewById(R.id.image);
-            indicator = (ImageView) view.findViewById(R.id.checkmark);
+            image = view.findViewById(R.id.image);
+            indicator = view.findViewById(R.id.checkmark);
             mask = view.findViewById(R.id.mask);
             view.setTag(this);
         }

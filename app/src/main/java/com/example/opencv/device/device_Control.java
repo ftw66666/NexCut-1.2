@@ -1,38 +1,24 @@
 package com.example.opencv.device;
 
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
 import android.content.Intent;
-
-
-import android.graphics.Color;
-import android.media.Image;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.text.InputType;
 import android.util.Log;
-import android.util.TypedValue;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.EditText;
 import android.widget.GridLayout;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.NumberPicker;
 import android.widget.Switch;
 import android.widget.Toast;
-
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -42,12 +28,12 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.example.opencv.Constant;
 import com.example.opencv.MainActivity;
 import com.example.opencv.R;
-import com.example.opencv.image.ImageEditActivity;
+import com.example.opencv.http.ApiClient;
+import com.example.opencv.http.Control;
+import com.example.opencv.http.MachineInfo;
 import com.example.opencv.modbus.ModbusTCPClient;
-import com.example.opencv.modbus.NettyModbusTCPClient;
 import com.example.opencv.whiteboard.SettingActivity;
 import com.example.opencv.whiteboard.WhiteboardActivity;
 
@@ -60,9 +46,12 @@ public class device_Control extends AppCompatActivity {
     public static final int AXIS_X = 1;
     public static final int AXIS_Z = 3;
     public static final int DEFAULT_SPEED = 50;  //mm/s
-    public static final int DEFAULT_DISTANCE = 1000; // mm
+    public static final int DEFAULT_DISTANCE = 1; // mm
     // public static final int LONG_PRESS_DELAY = 10;  // 长按触发延迟(ms)
     ModbusTCPClient mtcp = ModbusTCPClient.getInstance();
+
+    ApiClient apiClient = ApiClient.getInstance();
+    Control control = new Control();
     private static final String TAG = "devicecontrol";
     private Button button_up;
     private Button button_down;
@@ -76,7 +65,7 @@ public class device_Control extends AppCompatActivity {
 
     private ConstraintLayout allAxisLayout;
 
-    private GridLayout zControls,moveControls;
+    private GridLayout zControls, moveControls;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -128,13 +117,16 @@ public class device_Control extends AppCompatActivity {
         for (int i = 1; i <= 8; i++) {
             Switch doSwitch = new Switch(this);
             final int doNumber = i;
-
-
             doSwitch.setText("DO" + i);
+            if (apiClient.isConnected.get() && apiClient.isInfo.get()) {
+                doSwitch.setChecked(apiClient.machineInfo.getMc().getDO()[i - 1]);
+            } else {
+                doSwitch.setChecked(false);
+            }
             doSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    setDO(doNumber, isChecked);
+                    setDO(doNumber, isChecked, doSwitch);
                 }
             });
 
@@ -175,9 +167,11 @@ public class device_Control extends AppCompatActivity {
                 while (true) {
                     try {
                         Thread.sleep(100);
-                        if (mtcp.isConnected.get()) {
-                            if (!mtcp.deviceInfo.isEmpty()) {
-                                updateDIState();
+                        if (apiClient.isConnected.get() && apiClient.isInfo.get()) {
+                            MachineInfo.MachineStatus mc = apiClient.machineInfo.getMc();
+                            boolean[] di = mc.getDi();
+                            if (di.length != 0) {
+                                updateDIState(di);
                             }
                         } else {
                             shutDwonDI();
@@ -190,11 +184,11 @@ public class device_Control extends AppCompatActivity {
         }).start();
     }
 
-    private void updateDIState() {
-        int distate = mtcp.deviceInfo.get(4);
-        for (int i = 0; i < DIImageViews.size(); i++) {
+    private void updateDIState(boolean[] di) {
+
+        for (int i = 0; i < di.length; i++) {
             ImageView imageView = DIImageViews.get(i);
-            if (((distate >> i) & 1) == 1) {
+            if (di[i]) {
                 runOnUiThread(() -> {
                     imageView.setBackgroundTintList(getColorStateList(R.color.DI_True));
                 });
@@ -248,75 +242,49 @@ public class device_Control extends AppCompatActivity {
 
     @SuppressLint("ClickableViewAccessibility")
     private void btnMoveControl(Button button, int axis, int speed, int distance) {
-        button.setOnTouchListener(new View.OnTouchListener() {
-            private Handler handler = new Handler();
-            private Runnable longPressRunnable = new Runnable() {
-                @Override
-                public void run() {
-                    moveAxis(axis, speed, distance);
-                }
-            };
 
-            public boolean onTouch(View v, MotionEvent event) {
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        handler.post(longPressRunnable);
-                        return true;
-                    case MotionEvent.ACTION_UP:
-                        //button_stop.performClick();
-                        Stop(v);
-                        return true;
-                }
-                return false;
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                moveAxis(axis, speed, distance);
             }
         });
+//        button.setOnTouchListener(new View.OnTouchListener() {
+//            private Handler handler = new Handler();
+//            private Runnable longPressRunnable = new Runnable() {
+//                @Override
+//                public void run() {
+//                    moveAxis(axis, speed, distance);
+//                }
+//            };
+//
+//            public boolean onTouch(View v, MotionEvent event) {
+//                switch (event.getAction()) {
+//                    case MotionEvent.ACTION_DOWN:
+//                        handler.post(longPressRunnable);
+//                        return true;
+//                    case MotionEvent.ACTION_UP:
+//                        //button_stop.performClick();
+//                        Stop(v);
+//                        return true;
+//                }
+//                return false;
+//            }
+//
+//    });
     }
 
     private void moveAxis(int axis, int speed, int distance) {
         // 在这里实现你的轴移动逻辑
         // 参数：axis (0-3), speed (mm/s), distance (mm)，均为整数
-        new Thread(new Runnable() {
-            Handler handler = new Handler(Looper.getMainLooper());
-
-            @Override
-            public void run() {
-                try {
-                    mtcp.ControlAxisRun(axis, speed * 1000, distance * 1000);
-                } catch (ModbusTCPClient.ModbusException e) {
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            mtcp.onWriteFailed(device_Control.this, e.getMessage());
-                        }
-                    });
-                    Log.d("TCPTest", e.getMessage());
-                }
-            }
-        }).start();
+        control.MoveAxis(axis, distance, speed, this);
     }
 
     // 控制DO开关
-    private void setDO(int doNumber, boolean state) {
+    private void setDO(int doNumber, boolean state, Switch switch1) {
         // 在这里实现你的DO控制逻辑
         // 参数：doNumber (1-8), state (true/false)
-        new Thread(new Runnable() {
-            Handler handler = new Handler(Looper.getMainLooper());
-
-            @Override
-            public void run() {
-                try {
-                    mtcp.ControlDO(doNumber, state ? 1 : 0);
-                } catch (ModbusTCPClient.ModbusException e) {
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            mtcp.onWriteFailed(device_Control.this, e.getMessage());
-                        }
-                    });
-                    Log.d("TCPTest", e.getMessage());
-                }
-            }
-        }).start();
+        control.SetDO(this, doNumber, state, switch1);
     }
 
     // 控制DA输出
@@ -324,7 +292,7 @@ public class device_Control extends AppCompatActivity {
         // 在这里实现你的DA控制逻辑
         // 参数：daNumber (1-2), value (mV)
         new Thread(new Runnable() {
-            Handler handler = new Handler(Looper.getMainLooper());
+            final Handler handler = new Handler(Looper.getMainLooper());
 
             @Override
             public void run() {
@@ -344,129 +312,56 @@ public class device_Control extends AppCompatActivity {
     }
 
     public void Stop(View view) {
-        new Thread(new Runnable() {
-            Handler handler = new Handler(Looper.getMainLooper());
+        control.Stop(this);
+    }
 
-            @Override
-            public void run() {
-                try {
-                    mtcp.ControlStop();
-                } catch (ModbusTCPClient.ModbusException e) {
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            mtcp.onWriteFailed(device_Control.this, e.getMessage());
-                        }
-                    });
-                    Log.d("TCPTest", e.getMessage());
-                }
-            }
-        }).start();
+    public void Pause(View view) {
+        control.Pause(this);
     }
 
     public void Back(View view) {
-        new Thread(new Runnable() {
-            Handler handler = new Handler(Looper.getMainLooper());
-
-            @Override
-            public void run() {
-                try {
-                    mtcp.ControlBack();
-                } catch (ModbusTCPClient.ModbusException e) {
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            mtcp.onWriteFailed(device_Control.this, e.getMessage());
-                        }
-                    });
-                    Log.d("TCPTest", e.getMessage());
-                }
-            }
-        }).start();
+        control.SystemOrigin(this);
     }
 
     public void BackZero(View view) {
-        new Thread(new Runnable() {
-            Handler handler = new Handler(Looper.getMainLooper());
-
-            @Override
-            public void run() {
-                try {
-                    mtcp.ControlBackZero();
-                } catch (ModbusTCPClient.ModbusException e) {
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            mtcp.onWriteFailed(device_Control.this, e.getMessage());
-                        }
-                    });
-                    Log.d("TCPTest", e.getMessage());
-                }
-            }
-        }).start();
+        control.Zero(this);
     }
 
-    public void FTC(View view) {
-        new Thread(new Runnable() {
-            Handler handler = new Handler(Looper.getMainLooper());
+    public void FTCCalibration(View view) {
+        control.FTCCalibration(this);
+    }
 
-            @Override
-            public void run() {
-                try {
-                    mtcp.ControlFTC();
-                } catch (ModbusTCPClient.ModbusException e) {
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            mtcp.onWriteFailed(device_Control.this, e.getMessage());
-                        }
-                    });
-                    Log.d("TCPTest", e.getMessage());
-                }
-            }
-        }).start();
+    public void FTCFollow(View view) {
+        control.FTCFollow(this);
     }
 
     public void workBroder(View view) {
-        new Thread(new Runnable() {
-            Handler handler = new Handler(Looper.getMainLooper());
+//        new Thread(new Runnable() {
+//            Handler handler = new Handler(Looper.getMainLooper());
+//
+//            @Override
+//            public void run() {
+//                try {
+//                    mtcp.ControlWorkBroder();
+//                } catch (ModbusTCPClient.ModbusException e) {
+//                    handler.post(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            mtcp.onWriteFailed(device_Control.this, e.getMessage());
+//                        }
+//                    });
+//                    Log.d("TCPTest", e.getMessage());
+//                }
+//            }
+//        }).start();
+    }
 
-            @Override
-            public void run() {
-                try {
-                    mtcp.ControlWorkBroder();
-                } catch (ModbusTCPClient.ModbusException e) {
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            mtcp.onWriteFailed(device_Control.this, e.getMessage());
-                        }
-                    });
-                    Log.d("TCPTest", e.getMessage());
-                }
-            }
-        }).start();
+    public void LoadFile(View view) {
+        control.LoadFile(this);
     }
 
     public void Process(View view) {
-        new Thread(new Runnable() {
-            Handler handler = new Handler(Looper.getMainLooper());
-
-            @Override
-            public void run() {
-                try {
-                    mtcp.ControlOfflineProcess(0);
-                } catch (ModbusTCPClient.ModbusException e) {
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            mtcp.onWriteFailed(device_Control.this, e.getMessage());
-                        }
-                    });
-                    Log.d("TCPTest", e.getMessage());
-                }
-            }
-        }).start();
+        control.Start(this, false, 100);
     }
 
     public void mainPage(View view) {
