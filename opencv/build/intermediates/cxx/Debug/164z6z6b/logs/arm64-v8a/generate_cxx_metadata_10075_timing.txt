@@ -1,3 +1,7 @@
 # C/C++ build system timings
+<<<<<<<< HEAD:opencv/build/intermediates/cxx/Debug/164z6z6b/logs/arm64-v8a/generate_cxx_metadata_10075_timing.txt
 generate_cxx_metadata 10ms
+========
+generate_cxx_metadata 13ms
+>>>>>>>> origin/main:opencv/build/intermediates/cxx/Debug/164z6z6b/logs/arm64-v8a/generate_cxx_metadata_3779_timing.txt
 

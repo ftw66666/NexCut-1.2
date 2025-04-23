@@ -7,15 +7,21 @@ import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Build;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
+import com.example.opencv.Constant;
 import com.example.opencv.R;
 import com.example.opencv.http.ApiClient;
 import com.example.opencv.http.Control;
 import com.example.opencv.modbus.ModbusTCPClient;
+
+import java.util.List;
 
 public class InfoService extends Service {
     ModbusTCPClient mtcp = ModbusTCPClient.getInstance();
@@ -53,10 +59,8 @@ public class InfoService extends Service {
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }
-                    control.GetMachineInfo(getApplicationContext());
                 }
             }
-
         }).start();
         return START_STICKY;
     }

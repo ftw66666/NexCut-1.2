@@ -1,16 +1,22 @@
 {
   "info": {
-    "name": "x86",
-    "bitness": 32,
+    "name": "x86_64",
+    "bitness": 64,
     "isDefault": true,
     "isDeprecated": false,
-    "architecture": "x86",
-    "triple": "i686-linux-android",
-    "llvmTriple": "i686-none-linux-android"
+    "architecture": "x86_64",
+    "triple": "x86_64-linux-android",
+    "llvmTriple": "x86_64-none-linux-android"
   },
+<<<<<<<< HEAD:opencv/build/intermediates/cxx/RelWithDebInfo/684f7336/logs/x86/build_model.json
   "cxxBuildFolder": "D:\\AndroidProject\\NexCut-1.2\\opencv\\.cxx\\RelWithDebInfo\\684f7336\\x86",
   "soFolder": "D:\\AndroidProject\\NexCut-1.2\\opencv\\build\\intermediates\\cxx\\RelWithDebInfo\\684f7336\\obj\\x86",
   "soRepublishFolder": "D:\\AndroidProject\\NexCut-1.2\\opencv\\build\\intermediates\\cmake\\release\\obj\\x86",
+========
+  "cxxBuildFolder": "E:\\Android\\250418\\NexCut-1.2\\opencv\\.cxx\\Debug\\164z6z6b\\x86_64",
+  "soFolder": "E:\\Android\\250418\\NexCut-1.2\\opencv\\build\\intermediates\\cxx\\Debug\\164z6z6b\\obj\\x86_64",
+  "soRepublishFolder": "E:\\Android\\250418\\NexCut-1.2\\opencv\\build\\intermediates\\cmake\\debug\\obj\\x86_64",
+>>>>>>>> origin/main:opencv/build/intermediates/cxx/Debug/164z6z6b/logs/x86_64/build_model.json
   "abiPlatformVersion": 21,
   "cmake": {
     "effectiveConfiguration": {
@@ -24,12 +30,9 @@
     ],
     "cFlagsList": [],
     "cppFlagsList": [],
-    "variantName": "release",
-    "isDebuggableEnabled": false,
+    "variantName": "debug",
+    "isDebuggableEnabled": true,
     "validAbiList": [
-      "armeabi-v7a",
-      "arm64-v8a",
-      "x86",
       "x86_64"
     ],
     "buildTargetSet": [
@@ -38,6 +41,7 @@
     "implicitBuildTargetSet": [],
     "cmakeSettingsConfiguration": "android-gradle-plugin-predetermined-name",
     "module": {
+<<<<<<<< HEAD:opencv/build/intermediates/cxx/RelWithDebInfo/684f7336/logs/x86/build_model.json
       "cxxFolder": "D:\\AndroidProject\\NexCut-1.2\\opencv\\.cxx",
       "intermediatesBaseFolder": "D:\\AndroidProject\\NexCut-1.2\\opencv\\build\\intermediates",
       "intermediatesFolder": "D:\\AndroidProject\\NexCut-1.2\\opencv\\build\\intermediates\\cxx",
@@ -45,6 +49,15 @@
       "moduleRootFolder": "D:\\AndroidProject\\NexCut-1.2\\opencv",
       "moduleBuildFile": "D:\\AndroidProject\\NexCut-1.2\\opencv\\build.gradle",
       "makeFile": "D:\\AndroidProject\\NexCut-1.2\\opencv\\libcxx_helper\\CMakeLists.txt",
+========
+      "cxxFolder": "E:\\Android\\250418\\NexCut-1.2\\opencv\\.cxx",
+      "intermediatesBaseFolder": "E:\\Android\\250418\\NexCut-1.2\\opencv\\build\\intermediates",
+      "intermediatesFolder": "E:\\Android\\250418\\NexCut-1.2\\opencv\\build\\intermediates\\cxx",
+      "gradleModulePathName": ":opencv",
+      "moduleRootFolder": "E:\\Android\\250418\\NexCut-1.2\\opencv",
+      "moduleBuildFile": "E:\\Android\\250418\\NexCut-1.2\\opencv\\build.gradle",
+      "makeFile": "E:\\Android\\250418\\NexCut-1.2\\opencv\\libcxx_helper\\CMakeLists.txt",
+>>>>>>>> origin/main:opencv/build/intermediates/cxx/Debug/164z6z6b/logs/x86_64/build_model.json
       "buildSystem": "CMAKE",
       "ndkFolder": "D:\\Android\\SDK\\ndk\\27.0.12077973",
       "ndkFolderBeforeSymLinking": "D:\\Android\\SDK\\ndk\\27.0.12077973",
@@ -154,9 +167,15 @@
         "SYSTEM": {}
       },
       "project": {
+<<<<<<<< HEAD:opencv/build/intermediates/cxx/RelWithDebInfo/684f7336/logs/x86/build_model.json
         "rootBuildGradleFolder": "D:\\AndroidProject\\NexCut-1.2",
         "sdkFolder": "D:\\Android\\SDK",
+========
+        "rootBuildGradleFolder": "E:\\Android\\250418\\NexCut-1.2",
+        "sdkFolder": "E:\\Android\\AppData\\Local\\Android\\Sdk",
+>>>>>>>> origin/main:opencv/build/intermediates/cxx/Debug/164z6z6b/logs/x86_64/build_model.json
         "isBuildOnlyTargetAbiEnabled": true,
+        "ideBuildTargetAbi": "x86_64,arm64-v8a",
         "isCmakeBuildCohabitationEnabled": false,
         "isPrefabEnabled": false
       },
@@ -168,21 +187,31 @@
     "prefabPackages": [],
     "prefabPackageConfigurations": [],
     "stlType": "c++_shared",
-    "optimizationTag": "RelWithDebInfo"
+    "optimizationTag": "Debug"
   },
   "buildSettings": {
     "environmentVariables": []
   },
+<<<<<<<< HEAD:opencv/build/intermediates/cxx/RelWithDebInfo/684f7336/logs/x86/build_model.json
   "prefabFolder": "D:\\AndroidProject\\NexCut-1.2\\opencv\\.cxx\\RelWithDebInfo\\684f7336\\prefab\\x86",
   "isActiveAbi": true,
   "fullConfigurationHash": "684f7336181l3k683a686o5d3m4i6e19qr312b184c6y3p4e4e4q36drn2n",
   "fullConfigurationHashKey": "# Values used to calculate the hash in this folder name.\n# Should not depend on the absolute path of the project itself.\n#   - AGP: 8.9.1.\n#   - $NDK is the path to NDK 27.0.12077973.\n#   - $PROJECT is the path to the parent folder of the root Gradle build file.\n#   - $ABI is the ABI to be built with. The specific value doesn\u0027t contribute to the value of the hash.\n#   - $HASH is the hash value computed from this text.\n#   - $CMAKE is the path to CMake 3.22.1.\n#   - $NINJA is the path to Ninja.\n-H$PROJECT/opencv/libcxx_helper\n-DCMAKE_SYSTEM_NAME\u003dAndroid\n-DCMAKE_EXPORT_COMPILE_COMMANDS\u003dON\n-DCMAKE_SYSTEM_VERSION\u003d21\n-DANDROID_PLATFORM\u003dandroid-21\n-DANDROID_ABI\u003d$ABI\n-DCMAKE_ANDROID_ARCH_ABI\u003d$ABI\n-DANDROID_NDK\u003d$NDK\n-DCMAKE_ANDROID_NDK\u003d$NDK\n-DCMAKE_TOOLCHAIN_FILE\u003d$NDK/build/cmake/android.toolchain.cmake\n-DCMAKE_MAKE_PROGRAM\u003d$NINJA\n-DCMAKE_LIBRARY_OUTPUT_DIRECTORY\u003d$PROJECT/opencv/build/intermediates/cxx/RelWithDebInfo/$HASH/obj/$ABI\n-DCMAKE_RUNTIME_OUTPUT_DIRECTORY\u003d$PROJECT/opencv/build/intermediates/cxx/RelWithDebInfo/$HASH/obj/$ABI\n-DCMAKE_BUILD_TYPE\u003dRelWithDebInfo\n-B$PROJECT/opencv/.cxx/RelWithDebInfo/$HASH/$ABI\n-GNinja\n-DANDROID_STL\u003dc++_shared",
   "configurationArguments": [
     "-HD:\\AndroidProject\\NexCut-1.2\\opencv\\libcxx_helper",
+========
+  "prefabFolder": "E:\\Android\\250418\\NexCut-1.2\\opencv\\.cxx\\Debug\\164z6z6b\\prefab\\x86_64",
+  "isActiveAbi": true,
+  "fullConfigurationHash": "164z6z6b2e4t403p5o5y2x5o2j6231146o76bc133e6i102y3970492n5u526n",
+  "fullConfigurationHashKey": "# Values used to calculate the hash in this folder name.\n# Should not depend on the absolute path of the project itself.\n#   - AGP: 8.9.1.\n#   - $NDK is the path to NDK 27.0.12077973.\n#   - $PROJECT is the path to the parent folder of the root Gradle build file.\n#   - $ABI is the ABI to be built with. The specific value doesn\u0027t contribute to the value of the hash.\n#   - $HASH is the hash value computed from this text.\n#   - $CMAKE is the path to CMake 3.22.1.\n#   - $NINJA is the path to Ninja.\n-H$PROJECT/opencv/libcxx_helper\n-DCMAKE_SYSTEM_NAME\u003dAndroid\n-DCMAKE_EXPORT_COMPILE_COMMANDS\u003dON\n-DCMAKE_SYSTEM_VERSION\u003d21\n-DANDROID_PLATFORM\u003dandroid-21\n-DANDROID_ABI\u003d$ABI\n-DCMAKE_ANDROID_ARCH_ABI\u003d$ABI\n-DANDROID_NDK\u003d$NDK\n-DCMAKE_ANDROID_NDK\u003d$NDK\n-DCMAKE_TOOLCHAIN_FILE\u003d$NDK/build/cmake/android.toolchain.cmake\n-DCMAKE_MAKE_PROGRAM\u003d$NINJA\n-DCMAKE_LIBRARY_OUTPUT_DIRECTORY\u003d$PROJECT/opencv/build/intermediates/cxx/Debug/$HASH/obj/$ABI\n-DCMAKE_RUNTIME_OUTPUT_DIRECTORY\u003d$PROJECT/opencv/build/intermediates/cxx/Debug/$HASH/obj/$ABI\n-DCMAKE_BUILD_TYPE\u003dDebug\n-B$PROJECT/opencv/.cxx/Debug/$HASH/$ABI\n-GNinja\n-DANDROID_STL\u003dc++_shared",
+  "configurationArguments": [
+    "-HE:\\Android\\250418\\NexCut-1.2\\opencv\\libcxx_helper",
+>>>>>>>> origin/main:opencv/build/intermediates/cxx/Debug/164z6z6b/logs/x86_64/build_model.json
     "-DCMAKE_SYSTEM_NAME\u003dAndroid",
     "-DCMAKE_EXPORT_COMPILE_COMMANDS\u003dON",
     "-DCMAKE_SYSTEM_VERSION\u003d21",
     "-DANDROID_PLATFORM\u003dandroid-21",
+<<<<<<<< HEAD:opencv/build/intermediates/cxx/RelWithDebInfo/684f7336/logs/x86/build_model.json
     "-DANDROID_ABI\u003dx86",
     "-DCMAKE_ANDROID_ARCH_ABI\u003dx86",
     "-DANDROID_NDK\u003dD:\\Android\\SDK\\ndk\\27.0.12077973",
@@ -198,4 +227,21 @@
   ],
   "stlLibraryFile": "D:\\Android\\SDK\\ndk\\27.0.12077973\\toolchains\\llvm\\prebuilt\\windows-x86_64\\sysroot\\usr\\lib\\i686-linux-android\\libc++_shared.so",
   "intermediatesParentFolder": "D:\\AndroidProject\\NexCut-1.2\\opencv\\build\\intermediates\\cxx\\RelWithDebInfo\\684f7336"
+========
+    "-DANDROID_ABI\u003dx86_64",
+    "-DCMAKE_ANDROID_ARCH_ABI\u003dx86_64",
+    "-DANDROID_NDK\u003dE:\\Android\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973",
+    "-DCMAKE_ANDROID_NDK\u003dE:\\Android\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973",
+    "-DCMAKE_TOOLCHAIN_FILE\u003dE:\\Android\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973\\build\\cmake\\android.toolchain.cmake",
+    "-DCMAKE_MAKE_PROGRAM\u003dE:\\Android\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+    "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY\u003dE:\\Android\\250418\\NexCut-1.2\\opencv\\build\\intermediates\\cxx\\Debug\\164z6z6b\\obj\\x86_64",
+    "-DCMAKE_RUNTIME_OUTPUT_DIRECTORY\u003dE:\\Android\\250418\\NexCut-1.2\\opencv\\build\\intermediates\\cxx\\Debug\\164z6z6b\\obj\\x86_64",
+    "-DCMAKE_BUILD_TYPE\u003dDebug",
+    "-BE:\\Android\\250418\\NexCut-1.2\\opencv\\.cxx\\Debug\\164z6z6b\\x86_64",
+    "-GNinja",
+    "-DANDROID_STL\u003dc++_shared"
+  ],
+  "stlLibraryFile": "E:\\Android\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973\\toolchains\\llvm\\prebuilt\\windows-x86_64\\sysroot\\usr\\lib\\x86_64-linux-android\\libc++_shared.so",
+  "intermediatesParentFolder": "E:\\Android\\250418\\NexCut-1.2\\opencv\\build\\intermediates\\cxx\\Debug\\164z6z6b"
+>>>>>>>> origin/main:opencv/build/intermediates/cxx/Debug/164z6z6b/logs/x86_64/build_model.json
 }

@@ -42,11 +42,14 @@ public class ExitMonitorService extends Service {
         // 🔥 用户划掉 App 或从最近任务关闭时会调用这里
         doSomethingOnAppExit();
         super.onTaskRemoved(rootIntent);
+
+
     }
 
     private void doSomethingOnAppExit() {
         Log.d("ExitMonitor", "App1 已退出");
         // control.Logout(getApplicationContext(), true);
+        Log.d("ExitMonitor", "App 被关闭了，执行清理任务！");
         // TODO: 你的操作，比如清理缓存、上传状态、退出登录等
     }
 

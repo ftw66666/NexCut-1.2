@@ -245,6 +245,7 @@ public class SettingActivity extends AppCompatActivity implements DragBoxView.Po
     }
 
 
+
     private int parseInt(String str, int defaultValue) {
         try {
             return Integer.parseInt(str);

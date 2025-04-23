@@ -28,6 +28,7 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -62,16 +63,21 @@ import com.example.opencv.image.GCodeFileAdapter;
 import com.example.opencv.image.GCodeRead;
 import com.example.opencv.image.ImageEditActivity;
 import com.example.opencv.misc.AboutActivity;
+import com.example.opencv.misc.ExitMonitorService;
 import com.example.opencv.modbus.ModbusTCPClient;
+import com.example.opencv.databinding.ActivityMainBinding;
 import com.example.opencv.whiteboard.SettingActivity;
 import com.example.opencv.whiteboard.WhiteboardActivity;
 import com.squareup.picasso.Picasso;
+
+import androidx.appcompat.app.AppCompatDelegate;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -147,22 +153,12 @@ public class MainActivity extends AppCompatActivity {
         Intent startIntent = new Intent(MainActivity.this, InfoService.class);
         MainActivity.this.startForegroundService(startIntent);
 
-        // 启动监听 Service
+//        // 启动监听 Service
 //        Intent serviceIntent = new Intent(this, ExitMonitorService.class);
 //        startForegroundService(serviceIntent);
 
 
         handleImportIntent(getIntent());
-        /*new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    mtcp.connect("10.84.164.63", 4002, 1, MainActivity.this);
-                } catch (NettyModbusTCPClient.ModbusException e) {
-                    Log.d("TCPtest", e.getMessage());
-                }
-            }
-        }).start();*/
 
         new Thread(new Runnable() {
             @Override
@@ -302,6 +298,8 @@ public class MainActivity extends AppCompatActivity {
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_gcode_list, null);
         ListView lvFiles = dialogView.findViewById(R.id.lvFiles);
         TextView tvTitle = dialogView.findViewById(R.id.tvTitle);
+        ImageButton btnRefresh = dialogView.findViewById(R.id.btnRefresh);
+
         tvTitle.setText("选择一个加工文件");
 
         // Adapter
@@ -311,6 +309,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         lvFiles.setAdapter(adapter);
+
+        btnRefresh.setOnClickListener(v -> {
+
+            ncFiles.clear();
+            ncFiles.addAll(GCodeRead.getCopiedNcFiles(MainActivity.this));
+            adapter.notifyDataSetChanged();
+        });
 
         if (ncFiles.isEmpty()) {
 //            Toast.makeText(this, "没有找到已复制的 GCode 文件", Toast.LENGTH_SHORT).show();
@@ -401,6 +406,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+
     public void showConfirmationDialog(File selectedFile) {
         Toast.makeText(this, "已选择: " + selectedFile.getAbsolutePath(), Toast.LENGTH_SHORT).show();
 
@@ -408,7 +414,11 @@ public class MainActivity extends AppCompatActivity {
                 .setMessage("是否选择传输: " + selectedFile.getName())
                 .setPositiveButton("确定", (dialog, which) -> startFileTransfer(selectedFile))
                 .setNegativeButton("取消", (dialog, which) -> dialog.dismiss())
-                .setNeutralButton("分享", (dialog, which) -> startFileShare(selectedFile))
+                .setNeutralButton("分享", (dialog, which) ->
+                {
+                    startFileShare(selectedFile);
+                    //dialog.dismiss();
+                })
                 .show();
     }
 
@@ -420,11 +430,12 @@ public class MainActivity extends AppCompatActivity {
         executor.execute(() -> {
             try {
                 control.FileTransfer(selectedFile, MainActivity.this);
-            } finally {
+            }
+             finally {
                 executor.shutdown();
             }
         });
-    }
+        }
 
     private void startFileShare(File selectedFile) {
         if (selectedFile == null || !selectedFile.exists()) {
@@ -713,6 +724,7 @@ public class MainActivity extends AppCompatActivity {
                     String assetPath = "showimage/" + fileName;
 
 
+
                     ImageView imageView = new ImageView(this);
                     LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                             dpToPx(120), dpToPx(120)); // 缩小尺寸
@@ -732,10 +744,11 @@ public class MainActivity extends AppCompatActivity {
                             .into(imageView);
 
 
+
                     // 点击事件
                     imageView.setOnClickListener(v -> {
                         String uri = (String) v.getTag();
-                        if (uri != null) onImageClick(uri); // 传给你的函数
+                        if(uri != null) onImageClick(uri); // 传给你的函数
                     });
 
                     // 添加到容器
@@ -779,13 +792,11 @@ public class MainActivity extends AppCompatActivity {
         float density = getResources().getDisplayMetrics().density;
         return Math.round(dp * density);
     }
-
     @Override
     protected void onDestroy() {
-        control.Logout(MainActivity.this, false);
-        Log.d("ExitMonitor", "App 已退出");
         super.onDestroy();
         // 执行你需要的方法
+        Log.d("ExitMonitor", "111App 被关闭了，执行清理任务！");
     }
 }
 // add 多线程其他函数的
