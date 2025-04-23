@@ -1,0 +1,2 @@
+ninja: Entering directory `D:\AndroidProject\NexCut-1.2\opencv\.cxx\Debug\5z1i6643\x86'
+ninja: no work to do.
