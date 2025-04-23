@@ -794,9 +794,9 @@ public class MainActivity extends AppCompatActivity {
     }
     @Override
     protected void onDestroy() {
+        control.Logout(MainActivity.this,false);
         super.onDestroy();
         // 执行你需要的方法
-        Log.d("ExitMonitor", "111App 被关闭了，执行清理任务！");
     }
 }
 // add 多线程其他函数的
