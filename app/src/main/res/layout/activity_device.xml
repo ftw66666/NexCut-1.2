@@ -223,5 +223,5 @@
                 android:scaleType="fitCenter"
                 android:src="@drawable/setting_icon" />
         </LinearLayout>
-    </LinearLayout>
+</LinearLayout>
 </LinearLayout>

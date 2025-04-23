@@ -11,8 +11,8 @@ android {
         applicationId "com.example.opencv"
         minSdk 26
         targetSdk 35
-        versionCode 1
-        versionName "1.0"
+        versionCode 2       // 整数，每次发布必须 +1
+        versionName "1.2.1" // 字符串，用户看到的版本号
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

@@ -29,7 +29,7 @@ import com.example.opencv.R;
 public class SettingActivity extends AppCompatActivity implements DragBoxView.PositionListener{
     private DragBoxView dragBoxView;
     private EditText etBigWidth, etBigHeight, etSmallWidth, etSmallHeight, etPosX, etPosY;
-    private TextView tvSizeInfo, tvPosition;
+    private TextView etSizeInfo, tvSizeInfo, tvPosition;
 
     public Toolbar toolbar;
 
@@ -64,6 +64,7 @@ public class SettingActivity extends AppCompatActivity implements DragBoxView.Po
         etPosY = findViewById(R.id.etPosY);
         tvPosition = findViewById(R.id.tvPosition);
         tvSizeInfo = findViewById(R.id.tvSizeInfo);
+        etSizeInfo = findViewById(R.id.etSizeInfo);
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -152,6 +153,12 @@ public class SettingActivity extends AppCompatActivity implements DragBoxView.Po
         saveConstants.setOnClickListener(v -> saveConstants());
     }
 
+    @Override
+    protected void onDestroy() {
+        saveConstants(); // 保存配置
+        super.onDestroy(); // 调用父类
+    }
+
     // 加载 Toolbar 菜单
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -184,6 +191,11 @@ public class SettingActivity extends AppCompatActivity implements DragBoxView.Po
 
 
     private void initialSize() {
+//        if(isConnect)
+//        {
+//            Constant.PlatformWidth = 1;
+//            Constant.PlatformHeight = 1;
+//        }
         dragBoxView.setBigBoxSize(Constant.PlatformWidth, Constant.PlatformHeight);
         dragBoxView.setSmallBoxSize(Constant.PrintWidth, Constant.PrintHeight);
         dragBoxView.setSmallBoxPosition((float) Constant.PrintStartX, (float) Constant.PrintStartY);
@@ -202,12 +214,16 @@ public class SettingActivity extends AppCompatActivity implements DragBoxView.Po
 
     // 更新尺寸显示
     private void updateSizeDisplay() {
-        String sizeText = String.format("打印平台大小：%dx%d 打印区域大小：%dx%d",
+        String tvSizeText = String.format("机床幅面(蓝框)：%dx%d",
                 dragBoxView.getBigBoxWidth(),
-                dragBoxView.getBigBoxHeight(),
+                dragBoxView.getBigBoxHeight());
+
+        String etSizeText = String.format("绘图区(红框)：%dx%d",
                 dragBoxView.getSmallBoxWidth(),
                 dragBoxView.getSmallBoxHeight());
-        tvSizeInfo.setText(sizeText);
+
+        tvSizeInfo.setText(tvSizeText);
+        etSizeInfo.setText(etSizeText);
     }
 
     // 正确实现接口方法
@@ -215,12 +231,17 @@ public class SettingActivity extends AppCompatActivity implements DragBoxView.Po
     public void onPositionChanged(float x, float y) {
         Constant.PrintStartX = x;
         Constant.PrintStartY = y;
-        runOnUiThread(() ->
-                tvPosition.setText(
-                String.format("实时坐标：X=%.1f, Y=%.1f", x, y)
+        runOnUiThread(() -> {
+            // 设置 hint
+            etPosX.setHint(String.valueOf(x));
+            etPosY.setHint(String.valueOf(y));
 
-        ));
+            // 设置坐标显示
+            tvPosition.setText(String.format("实时坐标：X=%.1f, Y=%.1f", x, y));
+        });
     }
+
+
 
     private int parseInt(String str, int defaultValue) {
         try {

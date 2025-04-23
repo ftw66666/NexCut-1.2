@@ -1220,8 +1220,8 @@ public class WhiteBoardFragment extends Fragment implements SketchView.OnDrawCha
 
 
                 // 智能文字布局
-                String widthText = "宽度: " + platformWidth + "mm";
-                String heightText = "高度: " + platformHeight + "mm";
+                String widthText = "绘图区宽度: " + platformWidth + "mm";
+                String heightText = "绘图区高度: " + platformHeight + "mm";
 
                 // 计算可用空间
                 int viewHeight = rootView.getHeight();

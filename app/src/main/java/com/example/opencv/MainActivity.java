@@ -29,6 +29,8 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -59,16 +61,20 @@ import com.example.opencv.http.Control;
 import com.example.opencv.image.GCodeFileAdapter;
 import com.example.opencv.image.GCodeRead;
 import com.example.opencv.image.ImageEditActivity;
+import com.example.opencv.misc.AboutActivity;
+import com.example.opencv.misc.ExitMonitorService;
 import com.example.opencv.modbus.ModbusTCPClient;
 import com.example.opencv.databinding.ActivityMainBinding;
 import com.example.opencv.whiteboard.SettingActivity;
 import com.example.opencv.whiteboard.WhiteboardActivity;
+import com.squareup.picasso.Picasso;
 
 import androidx.appcompat.app.AppCompatDelegate;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -138,12 +144,18 @@ public class MainActivity extends AppCompatActivity {
         // **应用启动时复制 .nc 预制文件到可访问目录**
         //GCodeRead.copyNcFilesToStorageAsync(this);
         InitialButtons();
+        loadImagesFromAssets();
         requestAppPermissions();
         loadConstants();
 
         //开启读取信息服务
         Intent startIntent = new Intent(MainActivity.this, InfoService.class);
         MainActivity.this.startForegroundService(startIntent);
+
+        // 启动监听 Service
+        Intent serviceIntent = new Intent(this, ExitMonitorService.class);
+        startForegroundService(serviceIntent);
+
 
         handleImportIntent(getIntent());
         /*new Thread(new Runnable() {
@@ -295,7 +307,7 @@ public class MainActivity extends AppCompatActivity {
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_gcode_list, null);
         ListView lvFiles = dialogView.findViewById(R.id.lvFiles);
         TextView tvTitle = dialogView.findViewById(R.id.tvTitle);
-        tvTitle.setText("选择一个 GCode 文件");
+        tvTitle.setText("选择一个加工文件");
 
         // Adapter
         GCodeFileAdapter adapter = new GCodeFileAdapter(this, ncFiles, () -> {
@@ -337,23 +349,30 @@ public class MainActivity extends AppCompatActivity {
         btnShare.setOnClickListener(v -> shareGcodeDir());
 
         btnReset.setOnClickListener(v -> {
-            // 先清空目录，再异步拷贝并刷新列表
-            boolean cleared = FileUtils.clearGcodesDir(MainActivity.this);
-            if (!cleared) {
-                Toast.makeText(MainActivity.this, "清空 GCode 目录失败", Toast.LENGTH_SHORT).show();
-                return;
-            }
+            new AlertDialog.Builder(MainActivity.this)
+                    .setMessage("是否重置为默认文件？")
+                    .setPositiveButton("确定", (dialog, which) -> {
+                        // 用户点击“确定”后，先清空目录，再异步拷贝并刷新列表
+                        boolean cleared = FileUtils.clearGcodesDir(MainActivity.this);
+                        if (!cleared) {
+                            Toast.makeText(MainActivity.this, "清空 GCode 目录失败", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
 
-                    // 使用 Activity.this 确保上下文正确，并在主线程更新 UI
-                    copyNcFilesToStorageAsync(MainActivity.this, () -> {
-                        MainActivity.this.runOnUiThread(() -> {
-                            // 重新获取并刷新列表
-                            ncFiles.clear();
-                            ncFiles.addAll(GCodeRead.getCopiedNcFiles(MainActivity.this));
-                            adapter.notifyDataSetChanged();
+                        // 拷贝默认文件并刷新 UI
+                        copyNcFilesToStorageAsync(MainActivity.this, () -> {
+                            MainActivity.this.runOnUiThread(() -> {
+                                ncFiles.clear();
+                                ncFiles.addAll(GCodeRead.getCopiedNcFiles(MainActivity.this));
+                                adapter.notifyDataSetChanged();
+                                Toast.makeText(MainActivity.this, "重置完成", Toast.LENGTH_SHORT).show();
+                            });
                         });
-                    });
+                    })
+                    .setNegativeButton("取消", (dialog, which) -> dialog.dismiss())
+                    .show();
         });
+
     }
 
     private void shareGcodeDir() {
@@ -398,6 +417,7 @@ public class MainActivity extends AppCompatActivity {
                 .setNeutralButton("分享", (dialog, which) -> startFileShare(selectedFile))
                 .show();
     }
+
 
     private void startFileTransfer(File selectedFile) {
         Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -463,13 +483,13 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == PICK_IMAGE && resultCode == RESULT_OK && data != null) {
             imageUri = data.getData();
             try {
-                bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
+                //bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
                 Intent intent = new Intent(MainActivity.this, ImageEditActivity.class);
                 intent.putExtra("imageUri", imageUri.toString());
                 startActivity(intent);
 
                 //imageView.setImageBitmap(bitmap);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         } else if (requestCode == CAPTURE_IMAGE && resultCode == RESULT_OK) {
@@ -577,22 +597,24 @@ public class MainActivity extends AppCompatActivity {
         spannable = new SpannableString(" " + "相册");
         spannable.setSpan(imageSpan, 0, 1, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
         button.setText(spannable);
-        //预设
-        button = findViewById(R.id.button3);
-        drawable = getResources().getDrawable(R.drawable.pics_icon);
-        drawable.setBounds(0, 0, 180, 180); // 设置大小
-        imageSpan = new CenteredImageSpan(drawable);
-        spannable = new SpannableString(" " + "素材");
-        spannable.setSpan(imageSpan, 0, 1, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
-        button.setText(spannable);
+
 //        button.setTextColor(textColor);
 //        button.setBackgroundColor(backgroundColor);
         //文件
-        button = findViewById(R.id.button4);
+        button = findViewById(R.id.button3);
         drawable = getResources().getDrawable(R.drawable.file_icon);
         drawable.setBounds(0, 0, 180, 180); // 设置大小
         imageSpan = new CenteredImageSpan(drawable);
         spannable = new SpannableString(" " + "文件");
+        spannable.setSpan(imageSpan, 0, 1, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+        button.setText(spannable);
+        //预设
+        //版本
+        button = findViewById(R.id.button4);
+        drawable = getResources().getDrawable(R.drawable.about_icon);
+        drawable.setBounds(0, 0, 180, 180); // 设置大小
+        imageSpan = new CenteredImageSpan(drawable);
+        spannable = new SpannableString(" " + "关于");
         spannable.setSpan(imageSpan, 0, 1, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
         button.setText(spannable);
     }
@@ -665,6 +687,11 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(intent, REQUEST_CODE_OPEN_DOCUMENT);
     }
 
+    public void appAbout(View view) {
+        Intent intent = new Intent(MainActivity.this, AboutActivity.class);
+        startActivity(intent);
+    }
+
     private void handleImportIntent(Intent intent) {
         String fileName = intent.getStringExtra("imported_file_name");
         if (fileName != null) {
@@ -681,6 +708,91 @@ public class MainActivity extends AppCompatActivity {
         Constant.PrintHeight = sp.getInt("PrintHeight", Constant.PrintHeight);
         Constant.PrintStartX = (double) sp.getFloat("PrintStartX", (float) Constant.PrintStartX);
         Constant.PrintStartY = (double) sp.getFloat("PrintStartY", (float) Constant.PrintStartY);
+    }
+
+    private void loadImagesFromAssets() {
+        LinearLayout container = findViewById(R.id.image_container);
+
+        try {
+            String[] fileList = getAssets().list("showimage"); // 文件夹名称
+            if (fileList != null) {
+                for (String fileName : fileList) {
+                    String assetPath = "showimage/" + fileName;
+
+
+
+                    ImageView imageView = new ImageView(this);
+                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                            dpToPx(120), dpToPx(120)); // 缩小尺寸
+                    params.setMargins(dpToPx(8), 0, dpToPx(8), 0);
+                    imageView.setLayoutParams(params);
+
+                    imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                    imageView.setAdjustViewBounds(true);
+                    imageView.setTag(copyAssetToCache(assetPath));
+                    //String uri = copyAssetToCache(assetPath);
+
+                    // 加载图片
+                    Picasso.get()
+                            .load("file:///android_asset/" + assetPath)
+                            .placeholder(R.drawable.placeholder) // 可选：加载中图标
+                            .error(R.drawable.error)             // 可选：失败图标
+                            .into(imageView);
+
+
+
+                    // 点击事件
+                    imageView.setOnClickListener(v -> {
+                        String uri = (String) v.getTag();
+                        if(uri != null) onImageClick(uri); // 传给你的函数
+                    });
+
+                    // 添加到容器
+                    container.addView(imageView);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "加载图片失败", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void onImageClick(String uri) {
+
+        //Toast.makeText(this, "点击图片：" + uri, Toast.LENGTH_SHORT).show();
+        // TODO: 你可以在这里打开预览、下载、设置背景等
+        Intent intent = new Intent(MainActivity.this, ImageEditActivity.class);
+        intent.putExtra("imageUri", uri);
+        startActivity(intent);
+    }
+
+    private String copyAssetToCache(String assetPath) {
+        File cacheFile = new File(getCacheDir(), new File(assetPath).getName());
+        try (InputStream is = getAssets().open(assetPath);
+             FileOutputStream os = new FileOutputStream(cacheFile)) {
+
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = is.read(buffer)) > 0) {
+                os.write(buffer, 0, length);
+            }
+
+            return FileProvider.getUriForFile(this, getPackageName() + ".provider", cacheFile).toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
+
+    private int dpToPx(int dp) {
+        float density = getResources().getDisplayMetrics().density;
+        return Math.round(dp * density);
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // 执行你需要的方法
+        Log.d("ExitMonitor", "111App 被关闭了，执行清理任务！");
     }
 }
 // add 多线程其他函数的

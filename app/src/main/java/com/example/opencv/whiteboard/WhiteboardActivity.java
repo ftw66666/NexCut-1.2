@@ -362,16 +362,23 @@ public class WhiteboardActivity extends AppCompatActivity {
         builder.setView(layout);
 
         builder.setPositiveButton("确认", (dialog, which) -> {
-            boolean useHalftone = halftoneCheckbox.isChecked();
-            String lineDensityInputText = lineDensityInput.getText().toString().trim();
-            String laserPowerInputText = laserPowerInput.getText().toString().trim();
+            if(!Constant.IsOfficial)
+            {
+                Toast.makeText(this, "请先连接至NexCut官方设备", Toast.LENGTH_SHORT).show();
+                //dialog.dismiss();
+            }
+            else {
+                boolean useHalftone = halftoneCheckbox.isChecked();
+                String lineDensityInputText = lineDensityInput.getText().toString().trim();
+                String laserPowerInputText = laserPowerInput.getText().toString().trim();
 
-            int lineDensity = (lineDensityInputText.isEmpty() || Integer.parseInt(lineDensityInputText) <= 0) ? 6 : Integer.parseInt(lineDensityInputText); // 默认0，如果未输入
-            int laserPower = (laserPowerInputText.isEmpty() || Integer.parseInt(laserPowerInputText) <= 0 ) ? 20 : Integer.parseInt(laserPowerInputText);
-            //Toast.makeText(this, "rho , laserPower = " + lineDensity + " " + laserPower, Toast.LENGTH_SHORT).show();
+                int lineDensity = (lineDensityInputText.isEmpty() || Integer.parseInt(lineDensityInputText) <= 0) ? 6 : Integer.parseInt(lineDensityInputText); // 默认0，如果未输入
+                int laserPower = (laserPowerInputText.isEmpty() || Integer.parseInt(laserPowerInputText) <= 0) ? 20 : Integer.parseInt(laserPowerInputText);
+                //Toast.makeText(this, "rho , laserPower = " + lineDensity + " " + laserPower, Toast.LENGTH_SHORT).show();
 
-            // 调用你的处理函数
-            imageEditActivityGCode(useHalftone, lineDensity, laserPower);
+                // 调用你的处理函数
+                imageEditActivityGCode(useHalftone, lineDensity, laserPower);
+            }
         });
 
         builder.setNegativeButton("取消", (dialog, which) -> dialog.dismiss());

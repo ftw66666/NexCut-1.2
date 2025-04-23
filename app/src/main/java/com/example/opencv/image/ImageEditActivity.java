@@ -232,9 +232,9 @@ public class  ImageEditActivity extends AppCompatActivity {
         try {
             // 使用ContentResolver直接打开流
             InputStream inputStream = getContentResolver().openInputStream(imageUri);
-            selectedBitmap = BitmapFactory.decodeStream(inputStream);
+            Bitmap tempbitmap = BitmapFactory.decodeStream(inputStream);
             if (inputStream != null) inputStream.close();
-
+            selectedBitmap = compressBitmap(tempbitmap);
             originalBitmap = selectedBitmap.copy(selectedBitmap.getConfig(), true);
             imageView.setImageBitmap(selectedBitmap);
         } catch (IOException e) {
@@ -673,7 +673,7 @@ public class  ImageEditActivity extends AppCompatActivity {
         }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("选择一个 GCode 文件");
+        builder.setTitle("选择一个加工文件");
 
         String[] fileArray = new String[ncFiles.size()];
         for (int i = 0; i < ncFiles.size(); i++) {
@@ -740,7 +740,25 @@ public class  ImageEditActivity extends AppCompatActivity {
         );
     }
 
+    private Bitmap compressBitmap(Bitmap bitmap) {
+        int maxWidth = 1920;
+        int maxHeight = 1080;
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+
+        if (width > maxWidth || height > maxHeight) {
+            float scale = Math.min((float) maxWidth / width, (float) maxHeight / height);
+            int newWidth = Math.round(width * scale);
+            int newHeight = Math.round(height * scale);
+            return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true);
+        } else {
+            return bitmap;
+        }
+
+    }
+
     private void graffitiToGCode() {
+
         if (getIntent().getStringExtra("GCodeimageUri") == null) {
         }
         else {

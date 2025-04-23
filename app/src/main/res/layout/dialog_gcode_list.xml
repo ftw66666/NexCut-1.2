@@ -7,12 +7,12 @@
 
     <TextView
         android:id="@+id/tvTitle"
-        android:text="选择一个 GCode 文件"
-        android:textSize="18sp"
-        android:paddingBottom="8dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/black"/>
+        android:paddingBottom="8dp"
+        android:text="选择一个加工文件"
+        android:textColor="@color/black"
+        android:textSize="18sp" />
 
     <ListView
         android:id="@+id/lvFiles"

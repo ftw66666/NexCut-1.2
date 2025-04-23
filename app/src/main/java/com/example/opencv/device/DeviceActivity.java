@@ -120,6 +120,7 @@ public class DeviceActivity extends AppCompatActivity implements UdpReceiver.OnD
 //                                }
                                 apiClient.BASE_URL.replace(0, apiClient.BASE_URL.length(), "http://" + device.getIp() + ":" + "8080/NexCut");
                                 apiClient.isConnected.set(true);
+                                Constant.IsOfficial = true;
                                 apiClient.ConnectDeviceId = device.getDeviceId();
                             }
                         }).start();

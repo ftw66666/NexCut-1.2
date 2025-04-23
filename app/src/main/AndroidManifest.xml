@@ -63,6 +63,7 @@
         </provider>
 
 
+
         <activity android:name="com.yalantis.ucrop.UCropActivity" />
         <service
             android:name=".device.InfoService"
@@ -70,6 +71,11 @@
             android:exported="true"
             android:foregroundServiceType="dataSync"
             tools:ignore="ForegroundServicePermission" />
+
+        <service
+            android:name=".misc.ExitMonitorService"
+            android:exported="false" />
+
         <activity
             android:name=".device.DeviceInfoActivity"
             android:exported="false" />
@@ -83,6 +89,8 @@
 <!--                android:name="android.support.FILE_PROVIDER_PATHS"-->
 <!--                android:resource="@xml/filepaths" />-->
 <!--        </provider> &lt;!&ndash; 启动 Activity &ndash;&gt;-->
+        <activity android:name=".misc.AboutActivity"
+            android:exported="true" />
         <activity
             android:name=".device.DeviceActivity"
             android:exported="false" />
@@ -108,7 +116,7 @@
             </intent-filter></activity>
 
         <activity
-            android:name=".device.NCActivity"
+            android:name=".misc.NCActivity"
             android:exported="true"
             android:launchMode="singleTop">
             <intent-filter>
