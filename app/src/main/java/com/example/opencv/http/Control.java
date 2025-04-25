@@ -428,6 +428,84 @@ public class Control {
         }).start();
     }
 
+    public void Border(Context context, int speed) {
+        Handler handler = new Handler(Looper.getMainLooper());
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (VailadContect(context)) {
+                    try {
+                        Response response = apiClient.border(speed);
+                        GenericResponse genericResponse = apiClient.gson.fromJson(response.body().string(), GenericResponse.class);
+                        if (response.isSuccessful()) {
+                            if (!genericResponse.isState()) {
+                                handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(context, "走边框失败." + genericResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
+                        } else {
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(context, "走边框失败", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    } catch (IOException e) {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(context, "走边框失败", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                }
+            }
+        }).start();
+    }
+
+    public void AxisStop(Context context) {
+        Handler handler = new Handler(Looper.getMainLooper());
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (VailadContect(context)) {
+                    try {
+                        Response response = apiClient.axisStop();
+                        GenericResponse genericResponse = apiClient.gson.fromJson(response.body().string(), GenericResponse.class);
+                        if (response.isSuccessful()) {
+                            if (!genericResponse.isState()) {
+                                handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(context, "单轴停止失败." + genericResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
+                        } else {
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(context, "单轴停止失败", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    } catch (IOException e) {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(context, "单轴停止失败", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                }
+            }
+        }).start();
+    }
+
     public FileListResponse GetLocalFileList(Context context) {
         Handler handler = new Handler(Looper.getMainLooper());
         if (VailadContect(context)) {
@@ -526,7 +604,8 @@ public class Control {
                                                                 }
                                                             });
                                                         }
-                                                    } catch (IOException e) {
+                                                    } catch (
+                                                            IOException e) {
                                                         handler.post(new Runnable() {
                                                             @Override
                                                             public void run() {
@@ -937,6 +1016,84 @@ public class Control {
                             @Override
                             public void run() {
                                 Toast.makeText(context, "FTC跟随失败", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                }
+            }
+        }).start();
+    }
+
+    public void FTCStop(Context context) {
+        Handler handler = new Handler(Looper.getMainLooper());
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (VailadContect(context)) {
+                    try {
+                        Response response = apiClient.FTCStop();
+                        GenericResponse genericResponse = apiClient.gson.fromJson(response.body().string(), GenericResponse.class);
+                        if (response.isSuccessful()) {
+                            if (!genericResponse.isState()) {
+                                handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(context, "FTC停止失败." + genericResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
+                        } else {
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(context, "FTC停止失败", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    } catch (IOException e) {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(context, "FTC停止失败", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                }
+            }
+        }).start();
+    }
+
+    public void FTCMove(Context context, int distance, int speed) {
+        Handler handler = new Handler(Looper.getMainLooper());
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (VailadContect(context)) {
+                    try {
+                        Response response = apiClient.FTCMove(distance, speed);
+                        GenericResponse genericResponse = apiClient.gson.fromJson(response.body().string(), GenericResponse.class);
+                        if (response.isSuccessful()) {
+                            if (!genericResponse.isState()) {
+                                handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(context, "FTC移动失败." + genericResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
+                        } else {
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(context, "FTC移动失败", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    } catch (IOException e) {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(context, "FTC移动失败", Toast.LENGTH_SHORT).show();
                             }
                         });
                     }

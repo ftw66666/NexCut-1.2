@@ -85,6 +85,16 @@ public class ApiClient {
     public Response zeroReturn() throws IOException {
         return postRequest("/Axis/Zero", "");
     }
+
+    public Response border(int speed) throws IOException {
+        @SuppressLint("DefaultLocale") String json = String.format("{\"Speed\":%d}",
+                speed);
+        return postRequest("/Axis/Border", json);
+    }
+
+    public Response axisStop() throws IOException {
+        return postRequest("/Axis/Stop", "");
+    }
     // endregion
 
     // region File 接口
@@ -181,6 +191,15 @@ public class ApiClient {
 
     public Response enableFollowing() throws IOException {
         return postRequest("/FTC/Follow", "");
+    }
+
+    public Response FTCMove(int distance, int speed) throws IOException {
+        @SuppressLint("DefaultLocale") String json = String.format("{\"Distance\":%d,\"Speed\":%d}", distance, speed);
+        return postRequest("/FTC/Move", json);
+    }
+
+    public Response FTCStop() throws IOException {
+        return postRequest("/FTC/Stop", "");
     }
     // endregion
 
