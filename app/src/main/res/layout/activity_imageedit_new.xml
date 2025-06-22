@@ -171,6 +171,15 @@
 
                             <!-- 半调网屏 -->
                             <Button
+                                android:id="@+id/btnEdge"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:layout_weight="1"
+                                android:text="边缘检测"
+                                android:visibility="gone" />
+
+                            <Button
                                 android:id="@+id/btnHalftone"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
