@@ -17,12 +17,18 @@ import android.graphics.Bitmap;
 import android.widget.Toast;
 
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfPoint2f;
+import org.opencv.core.Point;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 import android.os.Environment;
 import android.widget.Toast;
@@ -30,8 +36,22 @@ import android.widget.Toast;
 
 public class GCode {
     private static final int MAX_POWER = 255;
-
     public static String generateGCode0(Mat image, int rho, int targetWidth, int targetHeight, double startX, double startY, int laserPower) {
+        // 调用新的、功能更全的内部版本，并传入一个固定的默认阈值
+        return generateGCode0(image, rho, targetWidth, targetHeight, startX, startY, laserPower, 127);
+    }
+    /**
+     * 【新的内部实现版本】
+     * 生成灰度雕刻的G-code，允许指定灰度阈值。
+     * 这是实际执行工作负载的函数。
+     */
+    // 建议的重构版本 generateGCode0
+    public static String generateGCode0(Mat image, int rho, int targetWidth, int targetHeight,
+                                        double startX, double startY, int laserPower, int grayThreshold)
+    {
+        if (image == null || image.empty()) {
+            return "; Error: Input image for grayscale is empty.\n";
+        }
 
         int padding = 5;
 
@@ -39,101 +59,244 @@ public class GCode {
         gcode.append("M4 S0\n");
 
         // 1. 原图转灰度图
-        Bitmap bitmap = ImageProcessor.matToBitmap(image);
-        Bitmap grayBitmap = ImageProcessor.toGrayscale(bitmap);
-        Mat grayImage = ImageProcessor.bitmapToMat(grayBitmap);
-        int originRows = grayImage.rows();
-        int originCols = grayImage.cols();
-//        if (originRows > targetHeight * rho) {
-//            rho = originRows / targetHeight + 1;
-//        }
-
-        // 2. 缩放图像到目标尺寸
-        int cols = targetWidth * rho;
-        int rows = targetHeight * rho;
+        Bitmap bitmap = null;
+        Bitmap grayBitmap = null;
+        Mat grayImage = new Mat();
         Mat resized = new Mat();
-        Imgproc.resize(grayImage, resized, new Size(cols, rows), 0, 0, Imgproc.INTER_LINEAR);
 
-        // 3. 生成 GCode
-        double pixelWidth = 1.0 / rho;
-        double pixelHeight = 1.0 / rho;
+        try {
+            bitmap = ImageProcessor.matToBitmap(image);
+            grayBitmap = ImageProcessor.toGrayscale(bitmap);
+            grayImage = ImageProcessor.bitmapToMat(grayBitmap);
 
-        for (int y = 0; y < rows; y++) {
-            double realY = startY + targetHeight - y * pixelHeight;
-            boolean isEngraving = false;
-            boolean firstEngraveFound = false;
-            double xStart = -1;
-            double xEnd = -1;
+            // 2. 缩放图像到目标尺寸
+            int cols = targetWidth * rho;
+            int rows = targetHeight * rho;
+            Imgproc.resize(grayImage, resized, new Size(cols, rows), 0, 0, Imgproc.INTER_AREA); // INTER_AREA 更适合缩小图像
 
-            if (y % 2 == 0) {
-                // 偶数行：左 → 右
-                for (int x = 0; x < cols; x++) {
+            // 3. 生成 GCode
+            double pixelWidth = 1.0 / rho;
+
+            for (int y = 0; y < rows; y++) {
+                double realY = startY + targetHeight - (y * pixelWidth); // 使用pixelWidth，保持宽高比
+                boolean isEngraving = false;
+                double lineStartEngraveX = -1; // 记录本行第一个雕刻点，用于添加padding
+
+                // 扫描方向：偶数行从左到右，奇数行从右到左 (Z字形扫描)
+                int startCol = (y % 2 == 0) ? 0 : cols - 1;
+                int endCol = (y % 2 == 0) ? cols : -1;
+                int step = (y % 2 == 0) ? 1 : -1;
+
+                for (int x = startCol; x != endCol; x += step) {
                     double gray = resized.get(y, x)[0];
-                    boolean shouldEngrave = gray < 218;
+                    boolean shouldEngrave = gray < grayThreshold;
 
-                    if (shouldEngrave && !isEngraving) {
-                        xStart = x * pixelWidth;
-                        if (!firstEngraveFound) {
-                            // 在第一个雕刻段之前加 padding 空移
-                            gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart - padding + startX, realY));
-                            firstEngraveFound = true;
-                        }
-                        gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart + startX, realY));
+                    if (shouldEngrave && !isEngraving) { // 从非雕刻区进入雕刻区
                         isEngraving = true;
-                    } else if (!shouldEngrave && isEngraving) {
-                        xEnd = (x - 1) * pixelWidth;
-                        gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd + startX, realY, laserPower));
+                        double currentX = x * pixelWidth + startX;
+                        if (lineStartEngraveX < 0) { // 是本行第一个雕刻段
+                            lineStartEngraveX = currentX;
+                            // 移动到雕刻段前方padding处
+                            double safeMoveX = (step == 1) ? currentX - padding : currentX + padding;
+                            gcode.append(String.format(Locale.US, "G0 X%.3f Y%.3f\n", safeMoveX, realY));
+                        }
+                        // 快速移动到雕刻起点，准备开激光
+                        gcode.append(String.format(Locale.US, "G0 X%.3f Y%.3f\n", currentX, realY));
+                    } else if (!shouldEngrave && isEngraving) { // 从雕刻区进入非雕刻区
                         isEngraving = false;
+                        // x-step 是因为当前x已经不雕刻了，上一个点才是雕刻段的终点
+                        double endEngraveX = (x - step) * pixelWidth + startX;
+                        // 执行雕刻指令
+                        gcode.append(String.format(Locale.US, "G1 X%.3f Y%.3f S%d\n", endEngraveX, realY, laserPower));
                     }
                 }
-                if (isEngraving) {
-                    xEnd = (cols - 1) * pixelWidth;
-                    gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd + startX, realY, laserPower));
-                    isEngraving = false;
-                }
-                if (firstEngraveFound && xEnd >= 0) {
-                    gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xEnd + padding + startX, realY));
-                }
 
+                // 如果一行扫描结束时仍在雕刻状态，需要收尾
+                if (isEngraving) {
+                    double finalX = ((step == 1 ? cols - 1 : 0) * pixelWidth) + startX;
+                    gcode.append(String.format(Locale.US, "G1 X%.3f Y%.3f S%d\n", finalX, realY, laserPower));
+                }
+            }
+        } finally {
+            // !!! 关键：释放所有资源 !!!
+            if (bitmap != null && !bitmap.isRecycled()) bitmap.recycle();
+            if (grayBitmap != null && !grayBitmap.isRecycled()) grayBitmap.recycle();
+            grayImage.release();
+            resized.release();
+        }
+
+        gcode.append("M5\n");
+        return gcode.toString();
+    }
+    // 优化后的 generateGCodeFromEdges (改动很小)
+    public static String generateGCodeFromEdges(Mat image,
+                                                double targetWidth, double targetHeight,
+                                                double startX, double startY,
+                                                int laserPower,
+                                                boolean invertBinary,
+                                                double simplifyEpsilonFactor) {
+
+        if (image == null || image.empty()) {
+            return "; Error: Input image for outline is empty.\n";
+        }
+
+        // 资源将在 finally 块中释放
+        Mat grayMat = new Mat();
+        Mat binaryMat = new Mat();
+        Mat hierarchy = new Mat();
+        List<MatOfPoint> contours = new ArrayList<>();
+        List<MatOfPoint> processedContours = new ArrayList<>();
+
+        try {
+            // 1. 预处理：灰度化和二值化
+            if (image.channels() > 1) {
+                Imgproc.cvtColor(image, grayMat, Imgproc.COLOR_BGR2GRAY);
             } else {
-                // 奇数行：右 → 左
-                for (int x = cols - 1; x >= 0; x--) {
-                    double gray = resized.get(y, x)[0];
-                    boolean shouldEngrave = gray < 128;
+                grayMat = image.clone();
+            }
 
-                    if (shouldEngrave && !isEngraving) {
-                        xStart = x * pixelWidth;
-                        if (!firstEngraveFound) {
-                            // 在第一个雕刻段之前加 padding 空移
-                            gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart + padding + startX, realY));
-                            firstEngraveFound = true;
-                        }
-                        gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xStart + startX, realY));
-                        isEngraving = true;
-                    } else if (!shouldEngrave && isEngraving) {
-                        xEnd = (x + 1) * pixelWidth;
-                        gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd + startX, realY, laserPower));
-                        isEngraving = false;
+            int thresholdType = invertBinary ? Imgproc.THRESH_BINARY_INV : Imgproc.THRESH_BINARY;
+            Imgproc.threshold(grayMat, binaryMat, 127, 255, thresholdType | Imgproc.THRESH_OTSU);
+
+
+            // 2. 查找并简化轮廓
+            Imgproc.findContours(binaryMat, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+
+            if (simplifyEpsilonFactor > 0) {
+                for (MatOfPoint contour : contours) {
+                    MatOfPoint2f contour2f = new MatOfPoint2f(contour.toArray());
+                    double perimeter = Imgproc.arcLength(contour2f, true);
+                    double epsilon = simplifyEpsilonFactor * perimeter;
+                    MatOfPoint2f approxContour2f = new MatOfPoint2f();
+                    Imgproc.approxPolyDP(contour2f, approxContour2f, epsilon, true);
+                    if (approxContour2f.toArray().length > 1) {
+                        processedContours.add(new MatOfPoint(approxContour2f.toArray()));
                     }
                 }
-                if (isEngraving) {
-                    xEnd = 0;
-                    gcode.append(String.format("G1 X%.2f Y%.2f S%d\n", xEnd + startX, realY, laserPower));
-                    isEngraving = false;
+            } else {
+                processedContours.addAll(contours);
+            }
+
+            if (processedContours.isEmpty()) {
+                return "; Info: No contours found in image.\n";
+            }
+
+            // 3. 遍历轮廓并生成G代码
+            StringBuilder gcode = new StringBuilder();
+            gcode.append("M4 S0\n"); // 启动动态激光模式，功率为0
+
+            double scaleX = targetWidth / binaryMat.width();
+            double scaleY = targetHeight / binaryMat.height();
+
+            for (MatOfPoint contour : processedContours) {
+                Point[] points = contour.toArray();
+                if (points.length < 2) continue;
+
+                Point startPointImg = points[0];
+                double machineStartX = startX + (startPointImg.x * scaleX);
+                double machineStartY = startY + ((binaryMat.height() - 1 - startPointImg.y) * scaleY);
+
+                gcode.append(String.format(Locale.US, "G0 X%.3f Y%.3f\n", machineStartX, machineStartY)); // S0是默认值，可省略
+                gcode.append(String.format(Locale.US, "G1 S%d\n", laserPower)); // 开激光
+
+                for (int i = 1; i < points.length; i++) {
+                    Point pImg = points[i];
+                    double machineX = startX + (pImg.x * scaleX);
+                    double machineY = startY + ((binaryMat.height() - 1 - pImg.y) * scaleY);
+                    gcode.append(String.format(Locale.US, "G1 X%.3f Y%.3f\n", machineX, machineY));
                 }
-                if (firstEngraveFound && xEnd >= 0) {
-                    gcode.append(String.format("G0 X%.2f Y%.2f S0\n", xEnd - padding + startX, realY));
+                // 闭合路径
+                gcode.append(String.format(Locale.US, "G1 X%.3f Y%.3f\n", machineStartX, machineStartY));
+                gcode.append("G1 S0\n"); // 关激光
+            }
+
+            // 4. 结束指令
+            gcode.append("M5\n");
+            gcode.append(String.format(Locale.US, "G0 X%.3f Y%.3f\n", 0.0, 0.0));
+
+            return gcode.toString();
+
+        } finally {
+            // 确保所有 Mat 对象都被释放
+            grayMat.release();
+            binaryMat.release();
+            hierarchy.release();
+            for (MatOfPoint contour : contours) contour.release();
+            // processedContours 中的 MatOfPoint 是从 contours 移动或创建的，也需要考虑释放
+            // 但由于它们是局部变量，Java的GC会处理MatOfPoint对象本身，其内部的Mat数据在 findContours 后由 contours 列表管理并已释放
+        }
+    }
+
+    /**
+     * 生成包含灰度雕刻和外部轮廓切割的G-code。
+     *
+     * @param image                 源图像Mat对象
+     * @param rho                   灰度雕刻分辨率 (lines/mm)
+     * @param targetWidth           目标宽度 (mm)
+     * @param targetHeight          目标高度 (mm)
+     * @param startX                加工起始点X坐标
+     * @param startY                加工起始点Y坐标
+     * @param laserPower            激光功率
+     * @param simplifyEpsilonFactor 轮廓简化因子 (推荐 0.001 - 0.01)
+     * @param invertBinary          对于轮廓查找是否反转二值化图像
+     * @return                      完整的G-code字符串
+     */
+    public static String generateGCodeWithOutline(Mat image, Mat frameImage,
+                                                  int rho, int targetWidth, int targetHeight,
+                                                  double startX, double startY, int laserPower,int cutPower,
+                                                  double simplifyEpsilonFactor, boolean invertBinary) {
+
+        // 1. 生成灰度雕刻部分的 G-code
+        String grayscaleGCode = generateGCode0(image, rho, targetWidth, targetHeight, startX, startY, laserPower, 128); // 使用重构后的函数
+
+        // 2. 生成轮廓切割部分的 G-code
+        // 注意：这里的image应该是原始图像，或者与灰度雕刻使用相同的图像
+        String outlineGCode = generateGCodeFromEdges(frameImage, targetWidth, targetHeight, startX, startY, cutPower, invertBinary, simplifyEpsilonFactor);
+
+        // 3. 智能拼接 G-code
+        StringBuilder finalGCode = new StringBuilder();
+
+        // 添加统一的头部
+        finalGCode.append("M4 S0\n"); // 启动动态激光模式
+
+        // -- 添加灰度雕刻代码 --
+        // 去除 generateGCode0 返回结果的 M4 和 M5
+        if (grayscaleGCode != null && !grayscaleGCode.isEmpty()) {
+            String[] grayLines = grayscaleGCode.split("\n");
+            // 从第二行开始，到倒数第二行结束，忽略 M4 和 M5
+            for (int i = 1; i < grayLines.length - 1; i++) {
+                if (!grayLines[i].trim().isEmpty()) {
+                    finalGCode.append(grayLines[i]).append("\n");
                 }
             }
         }
 
-        gcode.append("M5\n");
-        grayImage.release();
-        resized.release();
-        return gcode.toString();
+        // -- 添加轮廓切割代码 --
+        // 去除 generateGCodeFromEdges 返回结果的 M4, M5 和 G0 X0 Y0
+        if (outlineGCode != null && !outlineGCode.isEmpty() && !outlineGCode.startsWith(";")) {
+            String[] outlineLines = outlineGCode.split("\n");
+            // 从第二行开始，到倒数第三行结束，忽略 M4, M5, 和最后的 G0
+            for (int i = 1; i < outlineLines.length - 2; i++) {
+                if (!outlineLines[i].trim().isEmpty()) {
+                    finalGCode.append(outlineLines[i]).append("\n");
+                }
+            }
+        }
+
+        // 添加统一的尾部
+        finalGCode.append("M5\n"); // 全部完成，关闭激光
+        finalGCode.append(String.format(Locale.US, "G0 X%.3f Y%.3f S0\n", 0.0, 0.0)); // 返回机器原点
+
+        return finalGCode.toString();
     }
 
-
+    public static String generateGCodeWithOutline(Mat image,
+                                                  int rho, int targetWidth, int targetHeight,
+                                                  double startX, double startY, int laserPower,int cutPower,
+                                                  double simplifyEpsilonFactor, boolean invertBinary)
+    {
+       return generateGCodeWithOutline(image,image,rho,targetWidth,targetHeight,startX,startY,laserPower,cutPower,simplifyEpsilonFactor,invertBinary);
+    }
     public static Mat cropGCode(Mat image, int targetWidth, int targetHeight, float whiteboardAspectRatio) {
         Bitmap bitmap = ImageProcessor.matToBitmap(image);
         int originalWidth = bitmap.getWidth();

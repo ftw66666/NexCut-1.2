@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item type="id" name="radio_no_frame" />
+    <item type="id" name="radio_auto_frame" />
+    <item type="id" name="radio_manual_frame" />
+</resources>

@@ -30,6 +30,7 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.net.Uri;
 import android.os.Environment;
 import androidx.annotation.NonNull;
 import android.text.Layout;
@@ -52,6 +53,7 @@ import com.yinghe.whiteboardlib.bean.SketchData;
 import com.yinghe.whiteboardlib.bean.StrokeRecord;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.logging.Logger;
 
 import static com.yinghe.whiteboardlib.Utils.BitmapUtils.createBitmapThumbnail;
@@ -846,6 +848,8 @@ public class SketchView extends View implements OnTouchListener {
             Toast.makeText(mContext, "图片文件路径有误！", Toast.LENGTH_SHORT).show();
         }
     }
+
+
 
     public void setBackgroundByBitmap(Bitmap sampleBM) {
         curSketchData.backgroundBM = sampleBM;

@@ -76,6 +76,6 @@ public class Constant {
     public static double PrintStartX = 175;
     public static double PrintStartY = 175;
 
-    public static boolean IsOfficial = false;
+    public static boolean IsOfficial = true;
 
 }

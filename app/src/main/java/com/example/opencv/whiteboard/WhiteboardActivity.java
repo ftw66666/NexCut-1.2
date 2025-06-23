@@ -17,6 +17,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -51,7 +53,10 @@ public class WhiteboardActivity extends AppCompatActivity {
     private WhiteBoardFragment whiteBoardFragment;
 
     private Bitmap bitmap;
+
+    private Bitmap bitmapFrame;
     private Uri imageUri;
+    private Uri frameUri;
 
     private FrameLayout whiteboardlayout;
 
@@ -62,15 +67,21 @@ public class WhiteboardActivity extends AppCompatActivity {
 
     private static final int TARGET_WIDTH = 1920;
 
+    private boolean isDrawingFrameMode = false;
+    boolean isHalftoneTemp;
+    int rhoTemp, laserPowerTemp;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
 
+        isDrawingFrameMode = false;
         setContentView(R.layout.activity_whiteboard);
         whiteBoardFragment = WhiteBoardFragment.newInstance();
 
         try {
+            //whiteBoardFragment.setCurBackgroundByUri(imageUri);
             whiteBoardFragment.setPhotoTextFile(createImageFile());
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -230,7 +241,8 @@ public class WhiteboardActivity extends AppCompatActivity {
         Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
         view.startAnimation(scaleIn);
 
-        showHalftoneDialog(this);
+        if(isDrawingFrameMode) imageEditActivityGCodeFrame(isHalftoneTemp,rhoTemp,laserPowerTemp);
+        else showHalftoneDialog(this);
         //bitmap = whiteBoardFragment.getResultBitmap();
 //        bitmap = resizeBitmapByWidth(whiteBoardFragment.getResultBitmap(), Constant.PlatformWidth);
 //        try {
@@ -263,6 +275,7 @@ public class WhiteboardActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    // 调用生成GCode方法及其重载
     public void imageEditActivityGCode(boolean isHalftone,int rho,int laserPower)
     {
         bitmap = whiteBoardFragment.getResultBitmap();
@@ -278,7 +291,7 @@ public class WhiteboardActivity extends AppCompatActivity {
 
             // 传递 URI 给下一个 Activity
             Intent intent = new Intent(this, ImageEditActivity.class);
-            intent.putExtra("GCodeimageUri", imageUri.toString());
+            intent.putExtra("GCodeImageUri", imageUri.toString());
             intent.putExtra("isHalftone",isHalftone);
             intent.putExtra("whiteboardAspectRatio", getPrinterAspectRatio());
             intent.putExtra("rho",rho);
@@ -292,6 +305,97 @@ public class WhiteboardActivity extends AppCompatActivity {
         }
     }
 
+    public void imageEditActivityGCodeFrameAuto(boolean isHalftone,int rho,int laserPower)
+    {
+        bitmap = whiteBoardFragment.getResultBitmap();
+        //bitmap = resizeBitmapByWidth(whiteBoardFragment.getResultBitmap(), TARGET_WIDTH);
+        try {
+            File tempFile = createImageFile(); // 创建临时文件
+            FileOutputStream out = new FileOutputStream(tempFile);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+            out.flush();
+            out.close();
+
+            imageUri = Uri.fromFile(tempFile);
+            frameUri = Uri.fromFile(tempFile);
+
+            // 传递 URI 给下一个 Activity
+            Intent intent = new Intent(this, ImageEditActivity.class);
+            intent.putExtra("GCodeImageUri", imageUri.toString());
+            intent.putExtra("GCodeFrameUri", frameUri.toString());
+            intent.putExtra("isHalftone",isHalftone);
+            intent.putExtra("whiteboardAspectRatio", getPrinterAspectRatio());
+            intent.putExtra("rho",rho);
+            intent.putExtra("laserPower",laserPower);
+            startActivity(intent);
+
+            //imageView.setImageBitmap(bitmap);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void onStartFrameDrawing(boolean isHalftone,int rho,int laserPower) {
+
+        // 1. 获取当前白板内容（作为主体图像）
+        Bitmap contentBitmap = whiteBoardFragment.getResultBitmap();
+
+        bitmap = whiteBoardFragment.getResultBitmap();
+        //bitmap = resizeBitmapByWidth(whiteBoardFragment.getResultBitmap(), TARGET_WIDTH);
+        try {
+            File tempFile = createImageFile(); // 创建临时文件
+            FileOutputStream out = new FileOutputStream(tempFile);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+            out.flush();
+            out.close();
+
+            imageUri = Uri.fromFile(tempFile);
+            isDrawingFrameMode = true;
+            isHalftoneTemp = isHalftone;
+            rhoTemp = rho;
+            laserPowerTemp = laserPower;
+
+            Toast.makeText(this, "进入边框绘制模式。请绘制边框，然后再次点击生成按钮。", Toast.LENGTH_LONG).show();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public void imageEditActivityGCodeFrame(boolean isHalftone,int rho,int laserPower)
+    {
+        bitmap = whiteBoardFragment.getResultBitmap();
+        //bitmap = resizeBitmapByWidth(whiteBoardFragment.getResultBitmap(), TARGET_WIDTH);
+        try {
+            File tempFile = createImageFile(); // 创建临时文件
+            FileOutputStream out = new FileOutputStream(tempFile);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+            out.flush();
+            out.close();
+
+            frameUri = Uri.fromFile(tempFile);
+
+            isDrawingFrameMode = false;
+
+            // 传递 URI 给下一个 Activity
+            Intent intent = new Intent(this, ImageEditActivity.class);
+            intent.putExtra("GCodeImageUri", imageUri.toString());
+            intent.putExtra("GCodeFrameUri", frameUri.toString());
+            intent.putExtra("isHalftone",isHalftone);
+            intent.putExtra("whiteboardAspectRatio", getPrinterAspectRatio());
+            intent.putExtra("rho",rho);
+            intent.putExtra("laserPower",laserPower);
+            startActivity(intent);
+
+            //imageView.setImageBitmap(bitmap);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
 
     public static Bitmap resizeBitmapByWidth(Bitmap originalBitmap, int targetWidth) {
         // 获取原始尺寸
@@ -358,6 +462,32 @@ public class WhiteboardActivity extends AppCompatActivity {
         laserPowerInput.setInputType(InputType.TYPE_CLASS_NUMBER);
         layout.addView(laserPowerInput);
 
+        // --- 新增：边框选项部分 ---
+        TextView frameOptionsLabel = new TextView(context);
+        frameOptionsLabel.setText("\n边框选项:");
+        frameOptionsLabel.setTextSize(16); // 字体稍大一些
+        layout.addView(frameOptionsLabel);
+
+        RadioGroup frameRadioGroup = new RadioGroup(context);
+        frameRadioGroup.setOrientation(LinearLayout.VERTICAL);
+
+        RadioButton noFrameRadio = new RadioButton(context);
+        noFrameRadio.setText("1. 不绘制边框");
+        noFrameRadio.setId(R.id.radio_no_frame); // 需要在 res/values/ids.xml 中定义ID
+        frameRadioGroup.addView(noFrameRadio);
+
+        RadioButton autoFrameRadio = new RadioButton(context);
+        autoFrameRadio.setText("2. 自动绘制边框");
+        autoFrameRadio.setId(R.id.radio_auto_frame); // 需要在 res/values/ids.xml 中定义ID
+        frameRadioGroup.addView(autoFrameRadio);
+
+        RadioButton manualFrameRadio = new RadioButton(context);
+        manualFrameRadio.setText("3. 手动绘制边框");
+        manualFrameRadio.setId(R.id.radio_manual_frame); // 需要在 res/values/ids.xml 中定义ID
+        frameRadioGroup.addView(manualFrameRadio);
+
+        frameRadioGroup.check(R.id.radio_no_frame); // 默认选中“不绘制边框”
+        layout.addView(frameRadioGroup);
 
         builder.setView(layout);
 
@@ -367,26 +497,53 @@ public class WhiteboardActivity extends AppCompatActivity {
                 Toast.makeText(this, "请先连接至NexCut官方设备", Toast.LENGTH_SHORT).show();
                 //dialog.dismiss();
             }
-            else {
-                boolean useHalftone = halftoneCheckbox.isChecked();
-                String lineDensityInputText = lineDensityInput.getText().toString().trim();
-                String laserPowerInputText = laserPowerInput.getText().toString().trim();
+            // 获取通用参数
+            boolean useHalftone = halftoneCheckbox.isChecked();
+            String lineDensityInputText = lineDensityInput.getText().toString().trim();
+            String laserPowerInputText = laserPowerInput.getText().toString().trim();
+            int lineDensity = (lineDensityInputText.isEmpty() || Integer.parseInt(lineDensityInputText) <= 0) ? 6 : Integer.parseInt(lineDensityInputText);
+            int laserPower = (laserPowerInputText.isEmpty() || Integer.parseInt(laserPowerInputText) <= 0) ? 20 : Integer.parseInt(laserPowerInputText);
 
-                int lineDensity = (lineDensityInputText.isEmpty() || Integer.parseInt(lineDensityInputText) <= 0) ? 6 : Integer.parseInt(lineDensityInputText); // 默认0，如果未输入
-                int laserPower = (laserPowerInputText.isEmpty() || Integer.parseInt(laserPowerInputText) <= 0) ? 20 : Integer.parseInt(laserPowerInputText);
-                //Toast.makeText(this, "rho , laserPower = " + lineDensity + " " + laserPower, Toast.LENGTH_SHORT).show();
+            // 根据选择的边框选项执行不同操作
+            int selectedId = frameRadioGroup.getCheckedRadioButtonId();
 
-                // 调用你的处理函数
+            if (selectedId == R.id.radio_no_frame) {
+                // 1. 不绘制边框 (原逻辑)
+                Toast.makeText(this, "开始生成内容GCode...", Toast.LENGTH_SHORT).show();
                 imageEditActivityGCode(useHalftone, lineDensity, laserPower);
+
+            } else if (selectedId == R.id.radio_auto_frame) {
+                // 2. 自动绘制边框
+                Toast.makeText(this, "开始生成内容和自动边框GCode...", Toast.LENGTH_SHORT).show();
+                // 先执行原始内容的GCode生成
+                imageEditActivityGCodeFrameAuto(useHalftone, lineDensity, laserPower);
+
+            } else if (selectedId == R.id.radio_manual_frame) {
+                // 3. 手动绘制边框
+                Toast.makeText(this, "正在准备手动边框绘制...", Toast.LENGTH_SHORT).show();
+
+                onStartFrameDrawing(useHalftone, lineDensity, laserPower);
+                dialog.dismiss();
             }
         });
+//            else {
+//                boolean useHalftone = halftoneCheckbox.isChecked();
+//                String lineDensityInputText = lineDensityInput.getText().toString().trim();
+//                String laserPowerInputText = laserPowerInput.getText().toString().trim();
+//
+//                int lineDensity = (lineDensityInputText.isEmpty() || Integer.parseInt(lineDensityInputText) <= 0) ? 6 : Integer.parseInt(lineDensityInputText); // 默认0，如果未输入
+//                int laserPower = (laserPowerInputText.isEmpty() || Integer.parseInt(laserPowerInputText) <= 0) ? 20 : Integer.parseInt(laserPowerInputText);
+//                //Toast.makeText(this, "rho , laserPower = " + lineDensity + " " + laserPower, Toast.LENGTH_SHORT).show();
+//
+//                // 调用你的处理函数
+//                imageEditActivityGCode(useHalftone, lineDensity, laserPower);
+//            }
+//        });
 
         builder.setNegativeButton("取消", (dialog, which) -> dialog.dismiss());
 
         builder.show();
     }
-
-
 
 }
 

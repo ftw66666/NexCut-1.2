@@ -78,6 +78,8 @@ public class  ImageEditActivity extends AppCompatActivity {
 
     private Uri imageUri;
 
+    private Uri frameUri;
+
     public Toolbar toolbar;
     private SeekBar brightnessSeekBar;
     private SeekBar contrastSeekBar;
@@ -718,7 +720,9 @@ public class  ImageEditActivity extends AppCompatActivity {
     }
 
     private void applyHalftone() {
-        Toast.makeText(this, "运算中", Toast.LENGTH_LONG).show();
+        runOnUiThread(() -> {
+            Toast.makeText(this, "运算中", Toast.LENGTH_LONG).show();
+        });
         if (selectedBitmap != null) {
             selectedBitmap = HalftoneDithering.applyHalftone(selectedBitmap);
             imageView.setImageBitmap(selectedBitmap);
@@ -757,73 +761,251 @@ public class  ImageEditActivity extends AppCompatActivity {
 
     }
 
-    private void graffitiToGCode() {
+//    private void graffitiToGCode() {
+//
+//        if (getIntent().getStringExtra("GCodeImageUri") == null) {
+//        }
+//        else {
+//            float whiteboardAspectRatio = getIntent().getFloatExtra("whiteboardAspectRatio",1f);
+//            try {
+//                imageUri = Uri.parse(getIntent().getStringExtra("GCodeImageUri"));
+//
+//                selectedBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
+//                originalBitmap = selectedBitmap.copy(selectedBitmap.getConfig(), true);
+//                GCode.saveBitmapToFile(originalBitmap, this, "original.png");
+//                Mat m = ImageProcessor.bitmapToMat(selectedBitmap);
+//                Mat createdMat = GCode.cropGCode(m, Constant.PrintWidth,Constant.PrintHeight,whiteboardAspectRatio);
+//                GCode.saveBitmapToFile(ImageProcessor.matToBitmap(createdMat), this, "created.png");
+//                selectedBitmap = ImageProcessor.matToBitmap(createdMat);
+////               Mat m = ImageProcessor.bitmapToMat(selectedBitmap);
+////                Mat createdMat = GCode.cropGCode(ImageProcessor.bitmapToMat(selectedBitmap), Constant.PlatformWidth,Constant.PlatformHeight);
+////                selectedBitmap = ImageProcessor.matToBitmap(GCode.cropGCode(ImageProcessor.bitmapToMat(selectedBitmap), Constant.PlatformWidth,Constant.PlatformHeight));
+//
+//                int rho = getIntent().getIntExtra("rho", 6);
+//                int laserPower = getIntent().getIntExtra("laserPower", 20);
+////                Toast.makeText(ImageEditActivity.this, rho+ " "+laserPower, Toast.LENGTH_SHORT).show();;
+//                if(getIntent().getBooleanExtra("isHalftone",false))
+//                {
+//                    applyHalftone();
+//                }
+//
+//                imageView.setImageBitmap(selectedBitmap);
+//
+//                createdMat = ImageProcessor.bitmapToMat(selectedBitmap);
+//
+//                // 异步生成 GCode + 显示保存框
+//                ProgressDialog progressDialog = ProgressDialog.show(
+//                        ImageEditActivity.this,
+//                        "生成中",
+//                        "正在生成 G 代码，请稍候……",
+//                        true
+//                );
+//
+////                ExecutorService executor = Executors.newSingleThreadExecutor();
+////                Handler handler = new Handler(Looper.getMainLooper());
+////
+////                Mat finalCreatedMat = createdMat;
+////                GCode.saveBitmapToFile(ImageProcessor.matToBitmap(finalCreatedMat), this, "final.png");
+////
+////                if(getIntent().getStringExtra("GCodeFrameUri") == null) {
+////                    executor.execute(() -> {
+////                        try {
+////                            String gcode = GCode.generateGCode0(finalCreatedMat, rho, Constant.PrintWidth, Constant.PrintHeight, Constant.PrintStartX, Constant.PrintStartY, laserPower);
+////
+////                            handler.post(() -> {
+////                                progressDialog.dismiss();
+////                                showSaveDialog(ImageEditActivity.this, gcode);
+////                            });
+////                        } catch (Exception e) {
+////                            handler.post(() -> {
+////                                progressDialog.dismiss();
+////                                Toast.makeText(ImageEditActivity.this, "G 代码生成失败：" + e.getMessage(), Toast.LENGTH_LONG).show();
+////                            });
+////                        }
+////                    });
+////                }
+////                else
+////                {
+////                    frameUri = Uri.parse(getIntent().getStringExtra("GCodeFrameUri"));
+////                    Mat frameMat = ImageProcessor.bitmapToMat(MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri));
+////                    Mat createdFrameMat = GCode.cropGCode(frameMat, Constant.PrintWidth,Constant.PrintHeight,whiteboardAspectRatio);
+////                    int cutPower = 100;
+////                    double simplifyEpsilonFactor = 0.0002;
+////                    boolean invertBinary = true;
+////                    executor.execute(() -> {
+////                        try {
+////                            String gcode = GCode.generateGCodeWithOutline(finalCreatedMat, createdFrameMat, rho, Constant.PrintWidth, Constant.PrintHeight, Constant.PrintStartX, Constant.PrintStartY, laserPower, cutPower, simplifyEpsilonFactor, invertBinary);
+////                            handler.post(() -> {
+////                                progressDialog.dismiss();
+////                                showSaveDialog(ImageEditActivity.this, gcode);
+////                            });
+////                        } catch (Exception e) {
+////                            handler.post(() -> {
+////                                progressDialog.dismiss();
+////                                Toast.makeText(ImageEditActivity.this, "G 代码生成失败：" + e.getMessage(), Toast.LENGTH_LONG).show();
+////                            });
+////                        }
+////                    });
+////                }
+//                ExecutorService executor = Executors.newSingleThreadExecutor();
+//                Handler handler = new Handler(Looper.getMainLooper());
+//
+//// 【修改点2】: 将 isHalftone 的检查和 applyHalftone() 调用移入后台线程
+//                executor.execute(() -> {
+//                    try {
+//                        // ---- 后台任务开始 ----
+//
+//                        // 步骤1: 检查是否需要半色调处理 (在后台线程)
+//                        if (getIntent().getBooleanExtra("isHalftone", false)) {
+//                            // 这是耗时操作，现在安全地在后台执行
+//                            applyHalftone();
+//
+//                            // 步骤2: 半色调处理完成后，通知UI线程更新ImageView
+//                            // selectedBitmap 已经被 applyHalftone() 修改
+//                            handler.post(() -> imageView.setImageBitmap(selectedBitmap));
+//                        }
+//
+//                        // 步骤3: 使用最终的图像数据（可能已半色调）创建Mat，用于生成G-code
+//                        Mat finalCreatedMat = ImageProcessor.bitmapToMat(selectedBitmap);
+//                        GCode.saveBitmapToFile(ImageProcessor.matToBitmap(finalCreatedMat), this, "final.png");
+//
+//                        // 步骤4: 根据是否有边框，生成相应的G-code (仍在后台线程)
+//                        String gcode;
+//                        if (getIntent().getStringExtra("GCodeFrameUri") == null) {
+//                            // 生成普通G-code
+//                            int rho1 = getIntent().getIntExtra("rho", 6);
+//                            int laserPower1 = getIntent().getIntExtra("laserPower", 20);
+//                            gcode = GCode.generateGCode0(finalCreatedMat, rho1, Constant.PrintWidth, Constant.PrintHeight, Constant.PrintStartX, Constant.PrintStartY, laserPower1);
+//                        }
+//                        else {
+//                            // 生成带边框的G-code
+//                            Uri frameUri = Uri.parse(getIntent().getStringExtra("GCodeFrameUri"));
+//                            // 注意：Bitmap加载也可能是耗时操作，放在后台是正确的
+//                            Mat frameMat = ImageProcessor.bitmapToMat(MediaStore.Images.Media.getBitmap(this.getContentResolver(), frameUri));
+//                            Mat createdFrameMat = GCode.cropGCode(frameMat, Constant.PrintWidth, Constant.PrintHeight, whiteboardAspectRatio);
+//
+//                            int rho1 = getIntent().getIntExtra("rho", 6);
+//                            int laserPower1 = getIntent().getIntExtra("laserPower", 20);
+//                            int cutPower = 100;
+//                            double simplifyEpsilonFactor = 0.002; // 使用一个更合理的值
+//                            boolean invertBinary = true;
+//
+//                            gcode = GCode.generateGCodeWithOutline(finalCreatedMat, createdFrameMat, rho1, Constant.PrintWidth, Constant.PrintHeight, Constant.PrintStartX, Constant.PrintStartY, laserPower1, cutPower, simplifyEpsilonFactor, invertBinary);
+//                        }
+//
+//                        // 步骤5: 所有后台工作完成，通知UI线程显示结果
+//                        handler.post(() -> {
+//                            progressDialog.dismiss();
+//                            showSaveDialog(ImageEditActivity.this, gcode);
+//                        });
+//
+//                    } catch (Exception e) {
+//                        // 异常处理
+//                        handler.post(() -> {
+//                            progressDialog.dismiss();
+//                            Toast.makeText(ImageEditActivity.this, "处理失败：" + e.getMessage(), Toast.LENGTH_LONG).show();
+//                            e.printStackTrace(); // 在logcat中打印详细错误
+//                        });
+//                    }
+//                });
+//
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//                Toast.makeText(this, "加载图像失败", Toast.LENGTH_SHORT).show();
+//            }
+//    }
+//    }
 
-        if (getIntent().getStringExtra("GCodeimageUri") == null) {
-        }
-        else {
-            float whiteboardAspectRatio = getIntent().getFloatExtra("whiteboardAspectRatio",1f);
-            try {
-                imageUri = Uri.parse(getIntent().getStringExtra("GCodeimageUri"));
-                selectedBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
-                originalBitmap = selectedBitmap.copy(selectedBitmap.getConfig(), true);
-                GCode.saveBitmapToFile(originalBitmap, this, "original.png");
-                Mat m = ImageProcessor.bitmapToMat(selectedBitmap);
-                Mat createdMat = GCode.cropGCode(m, Constant.PrintWidth,Constant.PrintHeight,whiteboardAspectRatio);
-                GCode.saveBitmapToFile(ImageProcessor.matToBitmap(createdMat), this, "created.png");
-                selectedBitmap = ImageProcessor.matToBitmap(createdMat);
-//               Mat m = ImageProcessor.bitmapToMat(selectedBitmap);
-//                Mat createdMat = GCode.cropGCode(ImageProcessor.bitmapToMat(selectedBitmap), Constant.PlatformWidth,Constant.PlatformHeight);
-//                selectedBitmap = ImageProcessor.matToBitmap(GCode.cropGCode(ImageProcessor.bitmapToMat(selectedBitmap), Constant.PlatformWidth,Constant.PlatformHeight));
+private void graffitiToGCode() {
 
-                int rho = getIntent().getIntExtra("rho", 6);
-                int laserPower = getIntent().getIntExtra("laserPower", 20);
-//                Toast.makeText(ImageEditActivity.this, rho+ " "+laserPower, Toast.LENGTH_SHORT).show();;
-                if(getIntent().getBooleanExtra("isHalftone",false))
-                {
-                    applyHalftone();
-                }
-                else imageView.setImageBitmap(selectedBitmap);
+    if(getIntent().getStringExtra("GCodeImageUri") == null) return;
 
-                createdMat = ImageProcessor.bitmapToMat(selectedBitmap);
+    // 【第1步】: 立即显示加载对话框。这是UI线程唯一要做的重活。
+    ProgressDialog progressDialog = ProgressDialog.show(
+            ImageEditActivity.this,
+            "处理中",
+            "正在加载图像并生成 G 代码，请稍候……",
+            true
+    );
+    // 【第2步】: 准备后台任务
+    ExecutorService executor = Executors.newSingleThreadExecutor();
+    Handler handler = new Handler(Looper.getMainLooper());
 
-                // 异步生成 GCode + 显示保存框
-                ProgressDialog progressDialog = ProgressDialog.show(
-                        ImageEditActivity.this,
-                        "生成中",
-                        "正在生成 G 代码，请稍候……",
-                        true
-                );
-
-                ExecutorService executor = Executors.newSingleThreadExecutor();
-                Handler handler = new Handler(Looper.getMainLooper());
-
-                Mat finalCreatedMat = createdMat;
-                GCode.saveBitmapToFile(ImageProcessor.matToBitmap(finalCreatedMat), this, "final.png");
-
-                executor.execute(() -> {
-                    try {
-                        String gcode = GCode.generateGCode0(finalCreatedMat, rho, Constant.PrintWidth, Constant.PrintHeight,Constant.PrintStartX,Constant.PrintStartY,laserPower);
-
-                        handler.post(() -> {
-                            progressDialog.dismiss();
-                            showSaveDialog(ImageEditActivity.this, gcode);
-                        });
-                    } catch (Exception e) {
-                        handler.post(() -> {
-                            progressDialog.dismiss();
-                            Toast.makeText(ImageEditActivity.this, "G 代码生成失败：" + e.getMessage(), Toast.LENGTH_LONG).show();
-                        });
-                    }
-                });
-
-            } catch (IOException e) {
-                e.printStackTrace();
-                Toast.makeText(this, "加载图像失败", Toast.LENGTH_SHORT).show();
+    executor.execute(() -> {
+        // --- 从这里开始，所有代码都在后台线程执行 ---
+        try {
+            // 【第3步】: 在后台加载和处理主图像
+            String imageUriString = getIntent().getStringExtra("GCodeImageUri");
+            if (imageUriString == null) {
+                throw new IOException("Image URI is missing.");
             }
-    }
-    }
+            Uri imageUri = Uri.parse(imageUriString);
+            float whiteboardAspectRatio = getIntent().getFloatExtra("whiteboardAspectRatio", 1f);
 
+            Bitmap initialBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
+            Mat initialMat = ImageProcessor.bitmapToMat(initialBitmap);
+            Mat croppedMat = GCode.cropGCode(initialMat, Constant.PrintWidth, Constant.PrintHeight, whiteboardAspectRatio);
+            Bitmap selectedBitmap = ImageProcessor.matToBitmap(croppedMat); // 这个selectedBitmap是我们的工作副本
+
+            // (可选，但推荐) 让用户能看到裁剪后的图，提升体验
+            Bitmap finalSelectedBitmap1 = selectedBitmap;
+            handler.post(() -> imageView.setImageBitmap(finalSelectedBitmap1));
+
+            // 【第4步】: 在后台执行半色调（如果需要）
+            if (getIntent().getBooleanExtra("isHalftone", false)) {
+                // applyHalftone() 应该修改的是成员变量 selectedBitmap
+                // 请确保 applyHalftone 是线程安全的，或者它操作的 Bitmap 是局部变量
+                // 为了安全，我们传递并返回Bitmap
+                applyHalftone(); // 修改applyHalftone以返回Bitmap
+
+                // 更新UI显示半色调后的图像
+                Bitmap finalSelectedBitmap2 = selectedBitmap;
+                handler.post(() -> imageView.setImageBitmap(finalSelectedBitmap2));
+            }
+
+            // 【第5步】: 在后台准备最终的Mat用于G-code生成
+            Mat finalCreatedMat = ImageProcessor.bitmapToMat(selectedBitmap);
+
+            // 【第6步】: 在后台生成G-code
+            final String gcode;
+            String frameUriString = getIntent().getStringExtra("GCodeFrameUri");
+            int rho = getIntent().getIntExtra("rho", 6);
+            int laserPower = getIntent().getIntExtra("laserPower", 20);
+
+            if (frameUriString == null) {
+                // 只生成灰度G-code
+                gcode = GCode.generateGCode0(finalCreatedMat, rho, Constant.PrintWidth, Constant.PrintHeight, Constant.PrintStartX, Constant.PrintStartY, laserPower);
+            } else {
+                // 生成灰度+轮廓G-code
+                // 在后台加载和处理边框图像
+                Uri frameUri = Uri.parse(frameUriString);
+                Bitmap frameBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), frameUri);
+                Mat frameMat = ImageProcessor.bitmapToMat(frameBitmap);
+                Mat createdFrameMat = GCode.cropGCode(frameMat, Constant.PrintWidth, Constant.PrintHeight, whiteboardAspectRatio);
+
+                int cutPower = 100;
+                double simplifyEpsilonFactor = 0.002;
+                boolean invertBinary = true;
+                gcode = GCode.generateGCodeWithOutline(finalCreatedMat, createdFrameMat, rho, Constant.PrintWidth, Constant.PrintHeight, Constant.PrintStartX, Constant.PrintStartY, laserPower, cutPower, simplifyEpsilonFactor, invertBinary);
+            }
+
+            // 【第7步】: 所有后台工作完成，回到UI线程显示结果
+            handler.post(() -> {
+                progressDialog.dismiss();
+                showSaveDialog(ImageEditActivity.this, gcode);
+            });
+
+        } catch (Exception e) {
+            // 【第8步】: 任何步骤出错，都回到UI线程显示错误信息
+            handler.post(() -> {
+                progressDialog.dismiss();
+                Toast.makeText(ImageEditActivity.this, "处理失败：" + e.getMessage(), Toast.LENGTH_LONG).show();
+                e.printStackTrace(); // 在logcat中打印详细错误，方便调试
+            });
+        }
+        // --- 后台线程执行结束 ---
+    });
+}
     public void graffiti() {
 
         try {

@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
@@ -56,6 +57,7 @@ import com.yinghe.whiteboardlib.view.SketchView;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -217,6 +219,36 @@ public class WhiteBoardFragment extends Fragment implements SketchView.OnDrawCha
     public void setCurBackgroundByPath(String imgPath) {
         showSketchView(true);
         mSketchView.setBackgroundByPath(imgPath);
+    }
+
+    /**
+     * uri 添加的背景图片文件uri
+     * @author ftw666
+     * create at 16/6/21 下午3:39
+     * show 设置当前白板的背景图片
+     */
+    public void setCurBackgroundByUri(Uri imageUri) {
+        showSketchView(true);
+        Context context = getContext();
+        if (context == null) {
+            return;
+        }
+        try (InputStream inputStream = context.getContentResolver().openInputStream(imageUri)) {
+            // 从输入流解码 Bitmap
+            Bitmap backgroundBitmap = BitmapFactory.decodeStream(inputStream);
+
+            if (backgroundBitmap != null) {
+                // 假设 mSketchView 有一个方法可以直接设置 Bitmap 背景
+                // 你需要根据你的 whiteboardlib 库的实际情况，替换下面这行代码
+                mSketchView.setBackgroundByBitmap(backgroundBitmap);
+            } else {
+                Toast.makeText(context, "无法解析图片", Toast.LENGTH_SHORT).show();
+            }
+
+        } catch (IOException | SecurityException e) {
+            e.printStackTrace();
+            Toast.makeText(context, "加载背景图片失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     /**

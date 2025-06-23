@@ -90,6 +90,7 @@ public class SettingActivity extends AppCompatActivity implements DragBoxView.Po
                     return;
                 }
 
+
                 dragBoxView.setSmallBoxSize(Math.min(width, dragBoxView.getSmallBoxWidth()), Math.min(height, dragBoxView.getSmallBoxHeight()));
                 dragBoxView.setBigBoxSize(width, height);
                 updateSizeDisplay();
