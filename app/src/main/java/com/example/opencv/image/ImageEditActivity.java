@@ -978,15 +978,15 @@ private void graffitiToGCode() {
             } else {
                 // 生成灰度+轮廓G-code
                 // 在后台加载和处理边框图像
-                Uri frameUri = Uri.parse(frameUriString);
-                Bitmap frameBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), frameUri);
-                Mat frameMat = ImageProcessor.bitmapToMat(frameBitmap);
-                Mat createdFrameMat = GCode.cropGCode(frameMat, Constant.PrintWidth, Constant.PrintHeight, whiteboardAspectRatio);
+//                Uri frameUri = Uri.parse(frameUriString);
+//                Bitmap frameBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), frameUri);
+//                Mat frameMat = ImageProcessor.bitmapToMat(frameBitmap);
+//                Mat createdFrameMat = GCode.cropGCode(frameMat, Constant.PrintWidth, Constant.PrintHeight, whiteboardAspectRatio);
 
                 int cutPower = 100;
-                double simplifyEpsilonFactor = 0.002;
+                double simplifyEpsilonFactor =0;
                 boolean invertBinary = true;
-                gcode = GCode.generateGCodeWithOutline(finalCreatedMat, createdFrameMat, rho, Constant.PrintWidth, Constant.PrintHeight, Constant.PrintStartX, Constant.PrintStartY, laserPower, cutPower, simplifyEpsilonFactor, invertBinary);
+                gcode = GCode.generateGCodeWithOutline(finalCreatedMat, finalCreatedMat, rho, Constant.PrintWidth, Constant.PrintHeight, Constant.PrintStartX, Constant.PrintStartY, laserPower, cutPower, simplifyEpsilonFactor, invertBinary);
             }
 
             // 【第7步】: 所有后台工作完成，回到UI线程显示结果

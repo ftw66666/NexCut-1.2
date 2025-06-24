@@ -611,18 +611,18 @@ public class MainActivity extends AppCompatActivity {
                 renderHeight = RESOLUTION;
             }
 
-                // 2. 创建一个高质量的Bitmap作为画布
-                bitmap = Bitmap.createBitmap((int)(RESOLUTION * aspectRatio), (int)RESOLUTION, Bitmap.Config.ARGB_8888);
-                Canvas canvas = new Canvas(bitmap);
-                // 3. (可选) 如果 SVG 有固定的尺寸，可以设置渲染的视口以正确缩放
-                if (svg.getDocumentWidth() != -1) {
-                    canvas.scale(
-                            (float) RESOLUTION / renderWidth,
-                            (float) RESOLUTION / renderHeight
-                    );
-                }
-                // 3. 使用计算好的 viewport 将SVG渲染到画布上
-                svg.renderToCanvas(canvas);
+            // 2. 创建一个高质量的Bitmap作为画布
+            bitmap = Bitmap.createBitmap((int)(RESOLUTION * aspectRatio), (int)RESOLUTION, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bitmap);
+            // 3. (可选) 如果 SVG 有固定的尺寸，可以设置渲染的视口以正确缩放
+            if (svg.getDocumentWidth() != -1) {
+                canvas.scale(
+                        (float) RESOLUTION / renderWidth,
+                        (float) RESOLUTION / renderHeight
+                );
+            }
+            // 3. 使用计算好的 viewport 将SVG渲染到画布上
+            svg.renderToCanvas(canvas);
 
         } catch (IOException | SVGParseException e) {
             Log.e(TAG, "Error processing SVG file", e);
