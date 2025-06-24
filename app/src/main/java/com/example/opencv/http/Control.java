@@ -6,10 +6,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.widget.Switch;
 import android.widget.Toast;
 
 import com.example.opencv.Utils.ProgressBar2Utils;
+import com.example.opencv.Utils.ProgressBarUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,64 +38,248 @@ public class Control {
         }
     }
 
+    public void Login(Context context, String username, String password) {
+        Handler handler = new Handler(Looper.getMainLooper());
+        try {
+            Response response = apiClient.login(username, password);
+            if (response.isSuccessful()) {
+                GenericResponse genericResponse = apiClient.gson.fromJson(response.body().string(), GenericResponse.class);
+                if (!genericResponse.isState()) {
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            new AlertDialog.Builder(context)
+                                    .setMessage("已有用户登录，是否强制退出所有用户登录?")
+                                    .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            Logout(context, true);
+                                        }
+                                    }).setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            dialog.dismiss();
+                                        }
+                                    })
+                                    .show();
+                        }
+                    });
+                } else {
+                    apiClient.uuid = genericResponse.getMessage();
+                    apiClient.isConnected.set(true);
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(context, "登录成功", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            } else {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(context, "登录失败", Toast.LENGTH_SHORT).show();
+
+                    }
+                });
+            }
+        } catch (IOException e) {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(context, "登录失败", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    }
+
+    public void Logout(Context context, boolean force) {
+        Handler handler = new Handler(Looper.getMainLooper());
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Response response = apiClient.logout(force);
+                    if (response.isSuccessful()) {
+                        apiClient.isConnected.set(false);
+                        Log.d("ExitMonitor", "注销成功");
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(context, "注销成功", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    } else {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(context, "注销失败", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                } catch (IOException e) {
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(context, "注销失败", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+        }).start();
+
+    }
+
+//    public void FileTransfer(File selectedFile, Context context) {
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                Handler handler = new Handler(Looper.getMainLooper());
+//                if (VailadContect(context)) {
+//                    ProgressBar2Utils progressBar2Utils = new ProgressBar2Utils();
+//                    try {
+//                        handler.post(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                progressBar2Utils.showProgressDialog(context, selectedFile.getName());
+//                            }
+//                        });
+//                        Response response = apiClient.uploadGCode(selectedFile);
+//                        handler.post(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                progressBar2Utils.dismissDialog();
+//                            }
+//                        });
+//                        if (!response.isSuccessful()) {
+//                            handler.post(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    Toast.makeText(context, "上传失败", Toast.LENGTH_SHORT).show();
+//                                }
+//                            });
+//                        } else {
+//                            handler.post(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
+//                                    builder.setMessage("是否加载" + selectedFile.getName() + "?");
+//                                    builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+//                                        @Override
+//                                        public void onClick(DialogInterface dialog, int which) {
+//                                            LoadFile(selectedFile.getName(), context);
+//                                        }
+//                                    });
+//                                    builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+//                                        @Override
+//                                        public void onClick(DialogInterface dialog, int which) {
+//                                            dialog.dismiss();
+//                                        }
+//                                    });
+//                                    builder.show();
+//                                }
+//                            });
+//                        }
+//                    } catch (IOException e) {
+//                        handler.post(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                progressBar2Utils.dismissDialog();
+//                            }
+//                        });
+//                        handler.post(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                Toast.makeText(context, "上传失败", Toast.LENGTH_SHORT).show();
+//                            }
+//                        });
+//                        throw new RuntimeException(e);
+//                    }
+//                }
+//            }
+//        }).start();
+//    }
+
     public void FileTransfer(File selectedFile, Context context) {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 Handler handler = new Handler(Looper.getMainLooper());
+                ProgressBarUtils progressBarUtils = new ProgressBarUtils();
                 if (VailadContect(context)) {
-                    ProgressBar2Utils progressBar2Utils = new ProgressBar2Utils();
                     try {
+                        ProgressRequestBody.ProgressListener listener = new ProgressRequestBody.ProgressListener() {
+                            @Override
+                            public void onProgress(long bytesRead, long contentLength) {
+                                handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        progressBarUtils.updateProgress((int) (bytesRead * 100 / contentLength));
+                                    }
+                                });
+                            }
+                        };
                         handler.post(new Runnable() {
                             @Override
                             public void run() {
-                                progressBar2Utils.showProgressDialog(context, selectedFile.getName());
+                                progressBarUtils.showProgressDialog(context);
                             }
                         });
-                        Response response = apiClient.uploadGCode(selectedFile);
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                progressBar2Utils.dismissDialog();
-                            }
-                        });
+
+                        Response response = apiClient.uploadGCode(selectedFile, listener);
                         if (!response.isSuccessful()) {
                             handler.post(new Runnable() {
                                 @Override
                                 public void run() {
+                                    handler.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            progressBarUtils.dismissDialog();
+                                        }
+                                    });
                                     Toast.makeText(context, "上传失败", Toast.LENGTH_SHORT).show();
                                 }
                             });
-                        }
-                        else{
+                        } else {
                             handler.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Toast.makeText(context, "上传成功", Toast.LENGTH_SHORT).show();
+                                    progressBarUtils.dismissDialog();
+                                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                                    builder.setMessage("是否加载" + selectedFile.getName() + "?");
+                                    builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            LoadFile(selectedFile.getName(), context);
+                                        }
+                                    });
+                                    builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            dialog.dismiss();
+                                        }
+                                    });
+                                    builder.show();
                                 }
                             });
                         }
+
                     } catch (IOException e) {
                         handler.post(new Runnable() {
                             @Override
                             public void run() {
-                                progressBar2Utils.dismissDialog();
-                            }
-                        });
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
+                                progressBarUtils.dismissDialog();
                                 Toast.makeText(context, "上传失败", Toast.LENGTH_SHORT).show();
                             }
                         });
-                        throw new RuntimeException(e);
                     }
                 }
             }
         }).start();
     }
 
-    public void GetMachineInfo() {
+    public void GetMachineInfo(Context context) {
+        Handler handler = new Handler(Looper.getMainLooper());
         if (apiClient.isConnected.get()) {
             try {
                 Response response = apiClient.getMachineInfo();
@@ -103,10 +289,22 @@ public class Control {
                     apiClient.machineInfo.updateFrom(machineInfoResponse);
                     apiClient.isInfo.set(true);
                 } else {
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(context, "连接已断开", Toast.LENGTH_SHORT).show();
+                        }
+                    });
                     apiClient.isConnected.set(false);
                     apiClient.isInfo.set(false);
                 }
             } catch (IOException e) {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(context, "连接已断开", Toast.LENGTH_SHORT).show();
+                    }
+                });
                 apiClient.isConnected.set(false);
                 apiClient.isInfo.set(false);
             }
@@ -230,6 +428,84 @@ public class Control {
         }).start();
     }
 
+    public void Border(Context context, int speed) {
+        Handler handler = new Handler(Looper.getMainLooper());
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (VailadContect(context)) {
+                    try {
+                        Response response = apiClient.border(speed);
+                        GenericResponse genericResponse = apiClient.gson.fromJson(response.body().string(), GenericResponse.class);
+                        if (response.isSuccessful()) {
+                            if (!genericResponse.isState()) {
+                                handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(context, "走边框失败." + genericResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
+                        } else {
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(context, "走边框失败", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    } catch (IOException e) {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(context, "走边框失败", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                }
+            }
+        }).start();
+    }
+
+    public void AxisStop(Context context) {
+        Handler handler = new Handler(Looper.getMainLooper());
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (VailadContect(context)) {
+                    try {
+                        Response response = apiClient.axisStop();
+                        GenericResponse genericResponse = apiClient.gson.fromJson(response.body().string(), GenericResponse.class);
+                        if (response.isSuccessful()) {
+                            if (!genericResponse.isState()) {
+                                handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(context, "单轴停止失败." + genericResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
+                        } else {
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(context, "单轴停止失败", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    } catch (IOException e) {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(context, "单轴停止失败", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                }
+            }
+        }).start();
+    }
+
     public FileListResponse GetLocalFileList(Context context) {
         Handler handler = new Handler(Looper.getMainLooper());
         if (VailadContect(context)) {
@@ -328,7 +604,8 @@ public class Control {
                                                                 }
                                                             });
                                                         }
-                                                    } catch (IOException e) {
+                                                    } catch (
+                                                            IOException e) {
                                                         handler.post(new Runnable() {
                                                             @Override
                                                             public void run() {
@@ -350,9 +627,54 @@ public class Control {
                                 // 显示第二个对话框
                                 secondDialogBuilder.show();
                             });
+                            builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            });
                             builder.show();
                         }
                     });
+                }
+            }
+        }).start();
+    }
+
+    public void LoadFile(String selectedFileName, Context context) {
+        Handler handler = new Handler(Looper.getMainLooper());
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (VailadContect(context)) {
+                    try {
+                        Response response = apiClient.loadFile(selectedFileName);
+                        GenericResponse genericResponse = apiClient.gson.fromJson(response.body().string(), GenericResponse.class);
+                        if (response.isSuccessful()) {
+                            if (!genericResponse.isState()) {
+                                handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(context, "加载失败." + genericResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
+                        } else {
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(context, "加载失败", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    } catch (IOException e) {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(context, "加载失败", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
                 }
             }
         }).start();
@@ -694,6 +1016,84 @@ public class Control {
                             @Override
                             public void run() {
                                 Toast.makeText(context, "FTC跟随失败", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                }
+            }
+        }).start();
+    }
+
+    public void FTCStop(Context context) {
+        Handler handler = new Handler(Looper.getMainLooper());
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (VailadContect(context)) {
+                    try {
+                        Response response = apiClient.FTCStop();
+                        GenericResponse genericResponse = apiClient.gson.fromJson(response.body().string(), GenericResponse.class);
+                        if (response.isSuccessful()) {
+                            if (!genericResponse.isState()) {
+                                handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(context, "FTC停止失败." + genericResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
+                        } else {
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(context, "FTC停止失败", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    } catch (IOException e) {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(context, "FTC停止失败", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                }
+            }
+        }).start();
+    }
+
+    public void FTCMove(Context context, int distance, int speed) {
+        Handler handler = new Handler(Looper.getMainLooper());
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (VailadContect(context)) {
+                    try {
+                        Response response = apiClient.FTCMove(distance, speed);
+                        GenericResponse genericResponse = apiClient.gson.fromJson(response.body().string(), GenericResponse.class);
+                        if (response.isSuccessful()) {
+                            if (!genericResponse.isState()) {
+                                handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(context, "FTC移动失败." + genericResponse.getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
+                        } else {
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(context, "FTC移动失败", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    } catch (IOException e) {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(context, "FTC移动失败", Toast.LENGTH_SHORT).show();
                             }
                         });
                     }

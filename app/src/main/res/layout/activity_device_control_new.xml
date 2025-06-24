@@ -192,7 +192,8 @@
                         android:layout_height="@dimen/command_button_height"
                         android:layout_columnWeight="1"
                         android:layout_margin="@dimen/command_button_margin"
-                        android:background="@drawable/btn_frame" />
+                        android:background="@drawable/btn_frame"
+                        android:onClick="workBroder" />
 
                     <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/command_6"

@@ -66,6 +66,14 @@ public class MachineInfoResponse {
         private int versions;
         @SerializedName("Warning")
         private boolean warning;
+        @SerializedName("PWM")
+        private int pwm;
+
+        @SerializedName("Freq")
+        private int freq;
+
+        @SerializedName("Limit")
+        private int[] limit;
 
         // 需要空构造器
         public MachineStatus() {
@@ -142,6 +150,30 @@ public class MachineInfoResponse {
 
         public void setWarning(boolean warning) {
             this.warning = warning;
+        }
+
+        public int getPwm() {
+            return pwm;
+        }
+
+        public void setPwm(int pwm) {
+            this.pwm = pwm;
+        }
+
+        public int getFreq() {
+            return freq;
+        }
+
+        public void setFreq(int freq) {
+            this.freq = freq;
+        }
+
+        public int[] getLimit() {
+            return limit;
+        }
+
+        public void setLimit(int[] limit) {
+            this.limit = limit;
         }
 
         public static class ProcessStatus {

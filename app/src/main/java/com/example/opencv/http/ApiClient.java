@@ -6,9 +6,11 @@ import com.google.gson.Gson;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
@@ -18,7 +20,7 @@ import okhttp3.Response;
 
 public class ApiClient {
     public StringBuffer BASE_URL = new StringBuffer();
-
+    public String uuid = "DebugWithSuperpermissions";
     public AtomicBoolean isConnected = new AtomicBoolean(false);
     public AtomicBoolean isInfo = new AtomicBoolean(false);
     private final OkHttpClient client = new OkHttpClient.Builder()
@@ -38,6 +40,37 @@ public class ApiClient {
         return Holder.INSTANCE;
     }
 
+
+    // region 登录接口
+    public Response login(String username, String password) throws IOException {
+        HttpUrl url = HttpUrl.parse(BASE_URL + "/Login")
+                .newBuilder()
+                .addQueryParameter("Name", username)
+                .addQueryParameter("Password", password).build();
+        MediaType mediaType = MediaType.parse("text/plain");
+        RequestBody body = RequestBody.create(mediaType, "");
+        Request request = new Request.Builder()
+                .url(url)
+                .method("POST", body)
+                .addHeader("Authorization", "DebugWithSuperpermissions")
+                .build();
+        return executeSync(request);
+    }
+
+    public Response logout(boolean force) throws IOException {
+        HttpUrl url = HttpUrl.parse(BASE_URL + "/Logout")
+                .newBuilder()
+                .addQueryParameter("Force", Boolean.toString(force)).build();
+        MediaType mediaType = MediaType.parse("text/plain");
+        RequestBody body = RequestBody.create(mediaType, "");
+        Request request = new Request.Builder()
+                .url(url)
+                .method("POST", body)
+                .addHeader("Authorization", "DebugWithSuperpermissions")
+                .build();
+        return executeSync(request);
+    }
+
     // region Axis 接口
     public Response moveAxis(int index, int distance, int speed) throws IOException {
         @SuppressLint("DefaultLocale") String json = String.format("{\"Index\":%d,\"Distance\":%d,\"Speed\":%d}",
@@ -53,6 +86,16 @@ public class ApiClient {
     public Response zeroReturn() throws IOException {
         return postRequest("/Axis/Zero", "");
     }
+
+    public Response border(int speed) throws IOException {
+        @SuppressLint("DefaultLocale") String json = String.format("{\"Speed\":%d}",
+                speed);
+        return postRequest("/Axis/Border", json);
+    }
+
+    public Response axisStop() throws IOException {
+        return postRequest("/Axis/Stop", "");
+    }
     // endregion
 
     // region File 接口
@@ -66,9 +109,29 @@ public class ApiClient {
         Request request = new Request.Builder()
                 .url(BASE_URL + "/File/UploadGCode")
                 .post(body)
+                .addHeader("Authorization", uuid)
                 .build();
 
         return executeSync(request);
+    }
+
+    public Response uploadGCode(File file, ProgressRequestBody.ProgressListener listener) throws IOException {
+        // 创建带进度的 RequestBody
+        RequestBody fileBody = RequestBody.create(file, MediaType.parse("application/octet-stream"));
+        ProgressRequestBody progressRequestBody = new ProgressRequestBody(fileBody, listener);
+
+        MultipartBody body = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("file", file.getName(), progressRequestBody)
+                .build();
+        Request request = new Request.Builder()
+                .url(BASE_URL + "/File/UploadGCode")
+                .post(body)
+                .addHeader("Authorization", uuid)
+                .build();
+
+        return executeSync(request);
+
     }
 
     public Response getLocalFiles() throws IOException {
@@ -130,6 +193,15 @@ public class ApiClient {
     public Response enableFollowing() throws IOException {
         return postRequest("/FTC/Follow", "");
     }
+
+    public Response FTCMove(int distance, int speed) throws IOException {
+        @SuppressLint("DefaultLocale") String json = String.format("{\"Distance\":%d,\"Speed\":%d}", distance, speed);
+        return postRequest("/FTC/Move", json);
+    }
+
+    public Response FTCStop() throws IOException {
+        return postRequest("/FTC/Stop", "");
+    }
     // endregion
 
     // region 通用请求方法
@@ -137,6 +209,7 @@ public class ApiClient {
         Request request = new Request.Builder()
                 .url(BASE_URL + path)
                 .get()
+                .addHeader("Authorization", uuid)
                 .build();
         return executeSync(request);
     }
@@ -149,11 +222,14 @@ public class ApiClient {
         Request request = new Request.Builder()
                 .url(BASE_URL + path)
                 .post(body)
+                .addHeader("Authorization", uuid)
                 .build();
         return executeSync(request);
     }
 
     public Response executeSync(Request request) throws IOException {
-        return client.newCall(request).execute();
+
+        Response tempResponse = client.newCall(request).execute();
+        return tempResponse;
     }
 }

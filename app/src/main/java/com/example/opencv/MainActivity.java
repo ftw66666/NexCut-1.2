@@ -6,11 +6,12 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.ContentValues;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
@@ -59,6 +60,7 @@ import com.example.opencv.device.InfoService;
 import com.example.opencv.device.device_Control;
 import com.example.opencv.http.ApiClient;
 import com.example.opencv.http.Control;
+import com.example.opencv.http.ProgressRequestBody;
 import com.example.opencv.image.GCodeFileAdapter;
 import com.example.opencv.image.GCodeRead;
 import com.example.opencv.image.ImageEditActivity;
@@ -76,21 +78,33 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+// 引入 android-svg 的相关类
+import com.caverock.androidsvg.SVG;
+import com.caverock.androidsvg.SVGImageView;
+import com.caverock.androidsvg.SVGParseException;
+import com.yalantis.ucrop.model.AspectRatio;
+
+// gcode path = /storage/emulated/0/Android/data/com.example.opencv/files/gcodes
+
 public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_CODE_OPEN_DOCUMENT = 1;
+    private static final int REQUEST_CODE_OPEN_VECTOR_FILE = 4;
     private String PIC_PATH = Environment.getDataDirectory() + File.separator + Environment.DIRECTORY_DCIM + File.separator;
     private static final int PICK_IMAGE = 1;
     public static final int CAPTURE_IMAGE = 2;
     private static final int EDIT_IMAGE = 3;
+    private static final int VECTOR_IMAGE = 4;
 
     public static Uri imageUri;
     public Uri photoUri;
@@ -108,6 +122,8 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding; // ViewBinding 绑定对象
 
     private AlertDialog currentDialog;
+
+    private SVG loadedSvg;
     ModbusTCPClient mtcp = ModbusTCPClient.getInstance();
 
     ApiClient apiClient = ApiClient.getInstance();
@@ -159,16 +175,6 @@ public class MainActivity extends AppCompatActivity {
 
 
         handleImportIntent(getIntent());
-        /*new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    mtcp.connect("10.84.164.63", 4002, 1, MainActivity.this);
-                } catch (NettyModbusTCPClient.ModbusException e) {
-                    Log.d("TCPtest", e.getMessage());
-                }
-            }
-        }).start();*/
 
         new Thread(new Runnable() {
             @Override
@@ -535,8 +541,140 @@ public class MainActivity extends AppCompatActivity {
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             startActivity(intent);
         }
+        else if (requestCode == VECTOR_IMAGE && resultCode == RESULT_OK)
+        {
+            convertSvgToPngAndUpdateUri(data.getData());
+            Intent intent = new Intent(MainActivity.this, ImageEditActivity.class);
+            intent.putExtra("imageUri", photoUri.toString());
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivity(intent);
+        }
     }
 
+//    private void convertSvgToPngAndUpdateUri(Uri svgUri) {
+//        try (InputStream inputStream = getContentResolver().openInputStream(svgUri)) {
+//            // 1. 使用androidsvg库解析SVG文件
+//            SVG svg = SVG.getFromInputStream(inputStream);
+//            Bitmap bitmap = Bitmap.createBitmap(1080, 1080, Bitmap.Config.ARGB_8888);
+//            Canvas canvas = new Canvas(bitmap);
+//            svg.renderToCanvas(canvas);
+//            File SVGPng = createImageFile();
+//            try (FileOutputStream fos = new FileOutputStream(SVGPng)) {
+//                bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
+//                fos.close();
+//            }
+//            photoUri = FileProvider.getUriForFile(this, "com.example.opencv", SVGPng);
+//
+//            Log.d("svg", "SVG converted and saved as PNG. New photoUri: " + photoUri);
+//            Toast.makeText(this, "SVG loaded successfully!", Toast.LENGTH_SHORT).show();
+//        }
+//        catch (IOException | SVGParseException e) {
+//            Log.e("svg", "Error converting SVG to PNG", e);
+//            Toast.makeText(this, "Error processing SVG file: " + e.getMessage(), Toast.LENGTH_LONG).show();
+//        }
+//    }
+
+    /**
+     * 【已更新】
+     * 核心函数：将给定的SVG Uri转换为Bitmap，并使用MediaStore保存在公共的Pictures目录中，
+     * 最后更新 photoUri，使其行为与相机拍照完全一致。
+     *
+     * @param svgUri 用户选择的SVG文件的Uri
+     */
+    private void convertSvgToPngAndUpdateUri(Uri svgUri) {
+        int RESOLUTION = 1080;
+        String TAG = "svg";
+        Bitmap bitmap = null;
+        try (InputStream inputStream = getContentResolver().openInputStream(svgUri)) {
+            // 1. 使用androidsvg库解析SVG文件
+            SVG svg = SVG.getFromInputStream(inputStream);
+
+            float renderWidth, renderHeight;
+            float aspectRatio = 1.0f;
+            // 2. 检查SVG是否包含明确的尺寸信息
+            if (svg.getDocumentWidth() != -1) {
+                // 2a. SVG有明确尺寸，直接使用
+                renderWidth = svg.getDocumentWidth();
+                renderHeight = svg.getDocumentHeight();
+            }
+            else {
+                // 2b. SVG没有明确尺寸，使用宽高比来计算
+                aspectRatio = svg.getDocumentAspectRatio();
+
+                // 安全检查：如果连宽高比都没有，则假定为1:1的正方形
+                if (aspectRatio <= 0) {
+                    Log.w(TAG, "SVG has no width/height and no aspect ratio. Assuming 1:1.");
+                    aspectRatio = 1.0f;
+                }
+
+                renderWidth = RESOLUTION * aspectRatio;
+                renderHeight = RESOLUTION;
+            }
+
+                // 2. 创建一个高质量的Bitmap作为画布
+                bitmap = Bitmap.createBitmap((int)(RESOLUTION * aspectRatio), (int)RESOLUTION, Bitmap.Config.ARGB_8888);
+                Canvas canvas = new Canvas(bitmap);
+                // 3. (可选) 如果 SVG 有固定的尺寸，可以设置渲染的视口以正确缩放
+                if (svg.getDocumentWidth() != -1) {
+                    canvas.scale(
+                            (float) RESOLUTION / renderWidth,
+                            (float) RESOLUTION / renderHeight
+                    );
+                }
+                // 3. 使用计算好的 viewport 将SVG渲染到画布上
+                svg.renderToCanvas(canvas);
+
+        } catch (IOException | SVGParseException e) {
+            Log.e(TAG, "Error processing SVG file", e);
+            Toast.makeText(this, "Error processing SVG file: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            return; // 如果解析或渲染失败，则提前退出
+        }
+
+        // 如果bitmap成功生成，则保存它
+        if (bitmap != null) {
+            // 3. 使用 MediaStore API 将 Bitmap 保存为 PNG
+            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Images.Media.DISPLAY_NAME, "SVG_" + timeStamp + ".png");
+            values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
+            // 保持与相机照片一致的存储路径
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES);
+                values.put(MediaStore.Images.Media.IS_PENDING, 1); // 设置为待处理状态
+            }
+
+            // 插入新的图片记录并获取其URI
+            Uri newImageUri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+
+            if (newImageUri != null) {
+                try (OutputStream out = getContentResolver().openOutputStream(newImageUri)) {
+                    // 4. 将Bitmap数据写入输出流
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+
+                    // 5. 更新 photoUri 为新创建的图片的URI
+                    this.photoUri = newImageUri;
+
+                    Log.d(TAG, "SVG converted and saved to MediaStore. New photoUri: " + this.photoUri);
+                    Toast.makeText(this, "SVG loaded successfully!", Toast.LENGTH_SHORT).show();
+
+                } catch (IOException e) {
+                    Log.e(TAG, "Failed to save bitmap to MediaStore", e);
+                    Toast.makeText(this, "Failed to save image", Toast.LENGTH_SHORT).show();
+                    // 如果保存失败，最好删除之前创建的空记录
+                    getContentResolver().delete(newImageUri, null, null);
+                } finally {
+                    // 6. （仅限Android 10+）将图片状态从待处理更新为最终状态
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        values.clear();
+                        values.put(MediaStore.Images.Media.IS_PENDING, 0);
+                        getContentResolver().update(newImageUri, values, null, null);
+                    }
+                }
+            } else {
+                Toast.makeText(this, "Failed to create new image entry in MediaStore", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
     // 创建临时图片文件
     private File createImageFile() throws IOException {
         String imageFileName = "PNG_" + System.currentTimeMillis() + "_";
@@ -555,7 +693,6 @@ public class MainActivity extends AppCompatActivity {
         requestPermissions(new String[]{
                 Manifest.permission.CAMERA
         }, 101);
-
         // Permission request logic
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             //requestPermissions.launch(arrayOf(READ_MEDIA_IMAGES, READ_MEDIA_VIDEO, READ_MEDIA_VISUAL_USER_SELECTED))
@@ -625,10 +762,10 @@ public class MainActivity extends AppCompatActivity {
         //预设
         //版本
         button = findViewById(R.id.button4);
-        drawable = getResources().getDrawable(R.drawable.about_icon);
+        drawable = getResources().getDrawable(R.drawable.vector_icon);
         drawable.setBounds(0, 0, 180, 180); // 设置大小
         imageSpan = new CenteredImageSpan(drawable);
-        spannable = new SpannableString(" " + "关于");
+        spannable = new SpannableString(" " + "矢量图");
         spannable.setSpan(imageSpan, 0, 1, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
         button.setText(spannable);
     }
@@ -672,7 +809,7 @@ public class MainActivity extends AppCompatActivity {
         button.setText(spannable);
     }
 
-
+    /// Buttons OnClick
     // 通过XML绑定的点击方法
     public void onClickOpenBrowser(View view) {
         String url = "https://www.au3tech.com/page168"; // 替换成你想跳转的网址
@@ -705,6 +842,49 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(MainActivity.this, AboutActivity.class);
         startActivity(intent);
     }
+
+    /**
+     * 将一个 SVG 对象渲染到一个指定宽高的 Bitmap 上。
+     * 这是一个辅助函数，放在你的 Activity 类中即可。
+     *
+     * @param svg    已经加载的 SVG 对象
+     * @param width  目标 Bitmap 的宽度（像素）
+     * @param height 目标 Bitmap 的高度（像素）
+     * @return 渲染好的 Bitmap 对象，如果 SVG 为 null 则返回 null
+     */
+    private Bitmap convertSvgToBitmap(SVG svg, int width, int height) {
+        if (svg == null || width <= 0 || height <= 0) {
+            return null;
+        }
+        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+
+        // 确保SVG内容能完整地缩放并填充到Bitmap中
+        svg.setDocumentWidth(width);
+        svg.setDocumentHeight(height);
+
+        svg.renderToCanvas(canvas);
+        return bitmap;
+    }
+
+    /**
+     * 按钮点击事件，用于打开文件选择器
+     * @param view 触发事件的视图
+     */
+    public void openVectorFile(View view) {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+
+        // 设置 MIME 类型。 "image/svg+xml" 是标准的SVG类型。
+        // 使用 "*/*" 并通过 EXTRA_MIME_TYPES 限定是一种更兼容的方式。
+        intent.setType("*/*");
+        String[] mimeTypes = {"image/svg+xml"};
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+
+        // 使用 startActivityForResult 启动 Activity，并传入请求码
+        startActivityForResult(intent, VECTOR_IMAGE);
+    }
+
 
     private void handleImportIntent(Intent intent) {
         String fileName = intent.getStringExtra("imported_file_name");
@@ -804,9 +984,9 @@ public class MainActivity extends AppCompatActivity {
     }
     @Override
     protected void onDestroy() {
+        control.Logout(MainActivity.this,false);
         super.onDestroy();
         // 执行你需要的方法
-        Log.d("ExitMonitor", "111App 被关闭了，执行清理任务！");
     }
 }
 // add 多线程其他函数的

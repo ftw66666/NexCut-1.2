@@ -8,6 +8,7 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -45,9 +46,12 @@ public class device_Control extends AppCompatActivity {
     public static final int AXIS_Y = 0;
     public static final int AXIS_X = 1;
     public static final int AXIS_Z = 3;
-    public static final int DEFAULT_SPEED = 50;  //mm/s
-    public static final int DEFAULT_DISTANCE = 1; // mm
-    // public static final int LONG_PRESS_DELAY = 10;  // 长按触发延迟(ms)
+    public static final int DEFAULT_SPEED = 100;  //mm/s
+    public static final int DEFAULT_Border_SPEED = 200;  //mm/s
+    public static final int DEFAULT_DISTANCE = 1000; // mm
+
+    public static final int DEFAULT_Z_SPEED = 100;  //mm/s
+    public static final int DEFAULT_Z_DISTANCE = 1000000; // mm
     ModbusTCPClient mtcp = ModbusTCPClient.getInstance();
 
     ApiClient apiClient = ApiClient.getInstance();
@@ -101,8 +105,8 @@ public class device_Control extends AppCompatActivity {
         btnMoveControl(button_down, AXIS_X, DEFAULT_SPEED, DEFAULT_DISTANCE * (-1));
         btnMoveControl(button_left, AXIS_Y, DEFAULT_SPEED, DEFAULT_DISTANCE * (-1));
         btnMoveControl(button_right, AXIS_Y, DEFAULT_SPEED, DEFAULT_DISTANCE);
-        btnMoveControl(button_Zup, AXIS_Z, DEFAULT_SPEED, DEFAULT_DISTANCE);
-        btnMoveControl(button_Zdown, AXIS_Z, DEFAULT_SPEED, DEFAULT_DISTANCE * (-1));
+        FTCbtnMoveControl(button_Zup, DEFAULT_Z_SPEED, DEFAULT_Z_DISTANCE * (-1));
+        FTCbtnMoveControl(button_Zdown, DEFAULT_Z_SPEED, DEFAULT_Z_DISTANCE);
         button_stop = findViewById(R.id.command_2);
 
 
@@ -243,41 +247,75 @@ public class device_Control extends AppCompatActivity {
     @SuppressLint("ClickableViewAccessibility")
     private void btnMoveControl(Button button, int axis, int speed, int distance) {
 
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                moveAxis(axis, speed, distance);
-            }
-        });
-//        button.setOnTouchListener(new View.OnTouchListener() {
-//            private Handler handler = new Handler();
-//            private Runnable longPressRunnable = new Runnable() {
-//                @Override
-//                public void run() {
-//                    moveAxis(axis, speed, distance);
-//                }
-//            };
-//
-//            public boolean onTouch(View v, MotionEvent event) {
-//                switch (event.getAction()) {
-//                    case MotionEvent.ACTION_DOWN:
-//                        handler.post(longPressRunnable);
-//                        return true;
-//                    case MotionEvent.ACTION_UP:
-//                        //button_stop.performClick();
-//                        Stop(v);
-//                        return true;
-//                }
-//                return false;
+//        button.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                moveAxis(axis, speed, distance);
 //            }
-//
-//    });
+//        });
+        button.setOnTouchListener(new View.OnTouchListener() {
+            private Handler handler = new Handler();
+            private Runnable longPressRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    moveAxis(axis, speed, distance);
+                }
+            };
+
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        handler.post(longPressRunnable);
+                        return true;
+                    case MotionEvent.ACTION_UP:
+                        //button_stop.performClick();
+                        AxisStop();
+                        return true;
+                }
+                return false;
+            }
+
+        });
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private void FTCbtnMoveControl(Button button, int speed, int distance) {
+
+        button.setOnTouchListener(new View.OnTouchListener() {
+            private Handler handler = new Handler();
+            private Runnable longPressRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    moveFTC(distance, speed);
+                }
+            };
+
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        handler.post(longPressRunnable);
+                        return true;
+                    case MotionEvent.ACTION_UP:
+                        //button_stop.performClick();
+                        FTCStop(v);
+                        return true;
+                }
+                return false;
+            }
+
+        });
     }
 
     private void moveAxis(int axis, int speed, int distance) {
         // 在这里实现你的轴移动逻辑
         // 参数：axis (0-3), speed (mm/s), distance (mm)，均为整数
         control.MoveAxis(axis, distance, speed, this);
+    }
+
+    private void moveFTC(int distance, int speed) {
+        // 在这里实现你的轴移动逻辑
+        // 参数：axis (0-3), speed (mm/s), distance (mm），均为整数
+        control.FTCMove(this, distance, speed);
     }
 
     // 控制DO开关
@@ -315,6 +353,14 @@ public class device_Control extends AppCompatActivity {
         control.Stop(this);
     }
 
+    public void AxisStop() {
+        control.AxisStop(this);
+    }
+
+    public void FTCStop(View view) {
+        control.FTCStop(this);
+    }
+
     public void Pause(View view) {
         control.Pause(this);
     }
@@ -336,24 +382,7 @@ public class device_Control extends AppCompatActivity {
     }
 
     public void workBroder(View view) {
-//        new Thread(new Runnable() {
-//            Handler handler = new Handler(Looper.getMainLooper());
-//
-//            @Override
-//            public void run() {
-//                try {
-//                    mtcp.ControlWorkBroder();
-//                } catch (ModbusTCPClient.ModbusException e) {
-//                    handler.post(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            mtcp.onWriteFailed(device_Control.this, e.getMessage());
-//                        }
-//                    });
-//                    Log.d("TCPTest", e.getMessage());
-//                }
-//            }
-//        }).start();
+        control.Border(this, DEFAULT_Border_SPEED);
     }
 
     public void LoadFile(View view) {

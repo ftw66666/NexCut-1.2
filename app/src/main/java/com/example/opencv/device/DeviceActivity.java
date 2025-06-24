@@ -33,6 +33,7 @@ import com.example.opencv.Constant;
 import com.example.opencv.MainActivity;
 import com.example.opencv.R;
 import com.example.opencv.http.ApiClient;
+import com.example.opencv.http.Control;
 import com.example.opencv.modbus.ModbusTCPClient;
 import com.example.opencv.whiteboard.SettingActivity;
 import com.example.opencv.whiteboard.WhiteboardActivity;
@@ -47,10 +48,10 @@ import java.util.concurrent.Executors;
 
 public class DeviceActivity extends AppCompatActivity implements UdpReceiver.OnDeviceReceivedListener {
     ModbusTCPClient mtcp = ModbusTCPClient.getInstance();
-
+    Control control = new Control();
     ApiClient apiClient = ApiClient.getInstance();
     private static final String TAG = "UdpListener";
-    private static final long DEVICE_EXPIRATION_MS = 20 * 1000; // 10秒超时
+    private static final long DEVICE_EXPIRATION_MS = 10 * 1000; // 10秒超时
     private Set<Device> deviceSet;
     private UdpReceiver udpReceiver;
     private DeviceTableAdapter deviceTableAdapter;
@@ -99,27 +100,8 @@ public class DeviceActivity extends AppCompatActivity implements UdpReceiver.OnD
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
-//                                try {
-//                                    mtcp.connect(device.getIp(), device.getPort(), 1);
-//                                    mtcp.ConnectDeviceId = device.getDeviceId();
-//                                    handler.post(new Runnable() {
-//                                        @Override
-//                                        public void run() {
-//                                            mtcp.onConnected(DeviceActivity.this, device.getDeviceId());
-//                                            findViewById(R.id.button8).setClickable(true);
-//                                        }
-//                                    });
-//                                } catch (ModbusTCPClient.ModbusException e) {
-//                                    handler.post(new Runnable() {
-//                                        @Override
-//                                        public void run() {
-//                                            mtcp.onConnectionFailed(DeviceActivity.this, device.getDeviceId());
-//                                        }
-//                                    });
-//                                    Log.d("UdpListener", e.getMessage());
-//                                }
                                 apiClient.BASE_URL.replace(0, apiClient.BASE_URL.length(), "http://" + device.getIp() + ":" + "8080/NexCut");
-                                apiClient.isConnected.set(true);
+                                control.Login(DeviceActivity.this, "NexCut", "12345678");
                                 Constant.IsOfficial = true;
                                 apiClient.ConnectDeviceId = device.getDeviceId();
                             }

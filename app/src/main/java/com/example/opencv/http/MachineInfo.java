@@ -122,6 +122,10 @@ public class MachineInfo {
         private int run;
         private int versions;
         private boolean warning;
+        // 新增字段
+        private int pwm;
+        private int freq;
+        private int[] limit;
 
         // 深拷贝构造器
         public MachineStatus(MachineStatus origin) {
@@ -136,6 +140,9 @@ public class MachineInfo {
                 this.run = origin.getRun();
                 this.versions = origin.getVersions();
                 this.warning = origin.isWarning();
+                this.pwm = origin.getPwm();
+                this.freq = origin.getFreq();
+                this.limit = Arrays.copyOf(origin.getLimit(), origin.getLimit().length);
             } finally {
                 lock.writeLock().unlock();
             }
@@ -156,6 +163,9 @@ public class MachineInfo {
                 this.run = mc.getRun();
                 this.versions = mc.getVersions();
                 this.warning = mc.isWarning();
+                this.pwm = mc.getPwm();
+                this.freq = mc.getFreq();
+                this.limit = Arrays.copyOf(mc.getLimit(), mc.getLimit().length);
             } finally {
                 lock.writeLock().unlock();
             }
@@ -386,6 +396,60 @@ public class MachineInfo {
             lock.writeLock().lock();
             try {
                 this.warning = warning;
+            } finally {
+                lock.writeLock().unlock();
+            }
+        }
+
+        public int getPwm() {
+            lock.readLock().lock();
+            try {
+                return pwm;
+            } finally {
+                lock.readLock().unlock();
+            }
+        }
+
+        public void setPwm(int pwm) {
+            lock.writeLock().lock();
+            try {
+                this.pwm = pwm;
+            } finally {
+                lock.writeLock().unlock();
+            }
+        }
+
+        public int getFreq() {
+            lock.readLock().lock();
+            try {
+                return freq;
+            } finally {
+                lock.readLock().unlock();
+            }
+        }
+
+        public void setFreq(int freq) {
+            lock.writeLock().lock();
+            try {
+                this.freq = freq;
+            } finally {
+                lock.writeLock().unlock();
+            }
+        }
+
+        public int[] getLimit() {
+            lock.readLock().lock();
+            try {
+                return limit != null ? Arrays.copyOf(limit, limit.length) : new int[0];
+            } finally {
+                lock.readLock().unlock();
+            }
+        }
+
+        public void setLimit(int[] limit) {
+            lock.writeLock().lock();
+            try {
+                this.limit = limit != null ? Arrays.copyOf(limit, limit.length) : new int[0];
             } finally {
                 lock.writeLock().unlock();
             }

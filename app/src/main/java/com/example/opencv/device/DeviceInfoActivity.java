@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -293,7 +294,9 @@ public class DeviceInfoActivity extends AppCompatActivity {
             }
         }
         dataItems.add(new DeviceDataItem("DO", Integer.toUnsignedString(DOState)));
-
+        dataItems.add(new DeviceDataItem("Freq", Integer.toUnsignedString(machineStatus.getFreq())));
+        dataItems.add(new DeviceDataItem("PWM", Integer.toUnsignedString(machineStatus.getPwm())));
+        dataItems.add(new DeviceDataItem("Limit", Arrays.toString(machineStatus.getLimit())));
         MachineInfo.MachineStatus.ProcessStatus processStatus = machineStatus.getProcess();
         dataItems.add(new DeviceDataItem("文件", processStatus.getFile()));
         dataItems.add(new DeviceDataItem("进度", processStatus.getSchedule() + "%"));

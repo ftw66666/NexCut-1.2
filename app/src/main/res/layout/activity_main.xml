@@ -47,6 +47,7 @@
                     android:contentDescription="@string/company_name"
                     android:scaleType="fitCenter"
                     android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="false"
                     android:src="@drawable/banner" />
 
                 <androidx.appcompat.widget.AppCompatButton
@@ -197,7 +198,7 @@
                             android:backgroundTint="@color/white"
                             android:backgroundTintMode="screen"
                             android:minHeight="100dp"
-                            android:onClick="appAbout"
+                            android:onClick="openVectorFile"
                             android:stateListAnimator="@anim/anim_scale_in"
                             android:text="@string/File"
                             android:textColorLink="@color/light_black"

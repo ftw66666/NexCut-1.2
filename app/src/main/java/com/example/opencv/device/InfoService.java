@@ -15,11 +15,11 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
+import com.example.opencv.Constant;
 import com.example.opencv.R;
 import com.example.opencv.http.ApiClient;
 import com.example.opencv.http.Control;
 import com.example.opencv.modbus.ModbusTCPClient;
-import com.example.opencv.whiteboard.SettingActivity;
 
 import java.util.List;
 
@@ -59,10 +59,9 @@ public class InfoService extends Service {
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }
-                    control.GetMachineInfo();
+                    control.GetMachineInfo(getApplicationContext());
                 }
             }
-
         }).start();
         return START_STICKY;
     }
