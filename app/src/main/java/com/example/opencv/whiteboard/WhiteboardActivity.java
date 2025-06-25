@@ -276,6 +276,7 @@ public class WhiteboardActivity extends AppCompatActivity {
     }
 
     // 调用生成GCode方法及其重载
+    // huitu
     public void imageEditActivityGCode(boolean isHalftone,int rho,int laserPower)
     {
         bitmap = whiteBoardFragment.getResultBitmap();
@@ -296,6 +297,7 @@ public class WhiteboardActivity extends AppCompatActivity {
             intent.putExtra("whiteboardAspectRatio", getPrinterAspectRatio());
             intent.putExtra("rho",rho);
             intent.putExtra("laserPower",laserPower);
+            intent.putExtra("isCurved",0);
             startActivity(intent);
 
             //imageView.setImageBitmap(bitmap);
@@ -305,6 +307,7 @@ public class WhiteboardActivity extends AppCompatActivity {
         }
     }
 
+    // auto
     public void imageEditActivityGCodeFrameAuto(boolean isHalftone,int rho,int laserPower)
     {
         bitmap = whiteBoardFragment.getResultBitmap();
@@ -327,6 +330,7 @@ public class WhiteboardActivity extends AppCompatActivity {
             intent.putExtra("whiteboardAspectRatio", getPrinterAspectRatio());
             intent.putExtra("rho",rho);
             intent.putExtra("laserPower",laserPower);
+            intent.putExtra("isCurved",2);
             startActivity(intent);
 
             //imageView.setImageBitmap(bitmap);
@@ -336,6 +340,7 @@ public class WhiteboardActivity extends AppCompatActivity {
         }
     }
 
+    // shouhuibiankuang
     public void onStartFrameDrawing(boolean isHalftone,int rho,int laserPower) {
 
         // 1. 获取当前白板内容（作为主体图像）
@@ -364,6 +369,7 @@ public class WhiteboardActivity extends AppCompatActivity {
     }
 
 
+    // frame step2
     public void imageEditActivityGCodeFrame(boolean isHalftone,int rho,int laserPower)
     {
         bitmap = whiteBoardFragment.getResultBitmap();
@@ -387,6 +393,41 @@ public class WhiteboardActivity extends AppCompatActivity {
             intent.putExtra("whiteboardAspectRatio", getPrinterAspectRatio());
             intent.putExtra("rho",rho);
             intent.putExtra("laserPower",laserPower);
+            startActivity(intent);
+
+            //imageView.setImageBitmap(bitmap);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    //curve
+    public void imageEditActivityGCodeCurve(boolean isHalftone,int rho,int laserPower)
+    {
+        bitmap = whiteBoardFragment.getResultBitmap();
+        //bitmap = resizeBitmapByWidth(whiteBoardFragment.getResultBitmap(), TARGET_WIDTH);
+        try {
+            File tempFile = createImageFile(); // 创建临时文件
+            FileOutputStream out = new FileOutputStream(tempFile);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+            out.flush();
+            out.close();
+
+            frameUri = Uri.fromFile(tempFile);
+
+            isDrawingFrameMode = false;
+
+            // 传递 URI 给下一个 Activity
+            Intent intent = new Intent(this, ImageEditActivity.class);
+            //intent.putExtra("GCodeImageUri", imageUri.toString());
+            intent.putExtra("GCodeImageUri", frameUri.toString());
+            intent.putExtra("isHalftone",isHalftone);
+            intent.putExtra("whiteboardAspectRatio", getPrinterAspectRatio());
+            intent.putExtra("rho",rho);
+            intent.putExtra("laserPower",laserPower);
+            intent.putExtra("isCurved",1);
             startActivity(intent);
 
             //imageView.setImageBitmap(bitmap);
@@ -426,124 +467,135 @@ public class WhiteboardActivity extends AppCompatActivity {
 
 
     public void showHalftoneDialog(Context context) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("GCode选项");
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle("GCode选项");
 
-        // 创建一个垂直方向的 LinearLayout 作为容器
-        LinearLayout layout = new LinearLayout(context);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        int padding = (int) (context.getResources().getDisplayMetrics().density * 20); // 20dp padding
-        layout.setPadding(padding, padding, padding, padding);
+            // 创建一个垂直方向的 LinearLayout 作为容器
+            LinearLayout layout = new LinearLayout(context);
+            layout.setOrientation(LinearLayout.VERTICAL);
+            int padding = (int) (context.getResources().getDisplayMetrics().density * 20); // 20dp padding
+            layout.setPadding(padding, padding, padding, padding);
 
-        // 创建 CheckBox
-        CheckBox halftoneCheckbox = new CheckBox(context);
-        halftoneCheckbox.setText("启用半调网屏");
-        layout.addView(halftoneCheckbox);
+            // 创建 CheckBox
+            final CheckBox halftoneCheckbox = new CheckBox(context); // 声明为 final 以便在监听器中访问
+            halftoneCheckbox.setText("启用半调网屏");
+            layout.addView(halftoneCheckbox);
 
-        // 添加 "线密度大小：" 标签
-        TextView lineDensityLabel = new TextView(context);
-        lineDensityLabel.setText("线密度大小(>0)：");
-        layout.addView(lineDensityLabel);
+            // 添加 "线密度大小：" 标签
+            TextView lineDensityLabel = new TextView(context);
+            lineDensityLabel.setText("线密度大小(>0)：");
+            layout.addView(lineDensityLabel);
 
-        // 创建 EditText 用于输入线密度
-        EditText lineDensityInput = new EditText(context);
-        lineDensityInput.setHint("6");
-        lineDensityInput.setInputType(InputType.TYPE_CLASS_NUMBER);
-        layout.addView(lineDensityInput);
+            // 创建 EditText 用于输入线密度
+            EditText lineDensityInput = new EditText(context);
+            lineDensityInput.setHint("6");
+            lineDensityInput.setInputType(InputType.TYPE_CLASS_NUMBER);
+            layout.addView(lineDensityInput);
 
-        // 添加 "激光功率大小：" 标签
-        TextView laserPowerLabel = new TextView(context);
-        laserPowerLabel.setText("激光功率大小(>0)：");
-        layout.addView(laserPowerLabel);
+            // 添加 "激光功率大小：" 标签
+            TextView laserPowerLabel = new TextView(context);
+            laserPowerLabel.setText("激光功率大小(>0)：");
+            layout.addView(laserPowerLabel);
 
-        // 创建 EditText 用于输入线密度
-        EditText laserPowerInput = new EditText(context);
-        laserPowerInput.setHint("20");
-        laserPowerInput.setInputType(InputType.TYPE_CLASS_NUMBER);
-        layout.addView(laserPowerInput);
+            // 创建 EditText 用于输入线密度
+            EditText laserPowerInput = new EditText(context);
+            laserPowerInput.setHint("20");
+            laserPowerInput.setInputType(InputType.TYPE_CLASS_NUMBER);
+            layout.addView(laserPowerInput);
 
-        // --- 新增：边框选项部分 ---
-        TextView frameOptionsLabel = new TextView(context);
-        frameOptionsLabel.setText("\n边框选项:");
-        frameOptionsLabel.setTextSize(16); // 字体稍大一些
-        layout.addView(frameOptionsLabel);
+            // --- 新增：边框选项部分 ---
+            TextView frameOptionsLabel = new TextView(context);
+            frameOptionsLabel.setText("\n边框选项:");
+            frameOptionsLabel.setTextSize(16); // 字体稍大一些
+            layout.addView(frameOptionsLabel);
 
-        RadioGroup frameRadioGroup = new RadioGroup(context);
-        frameRadioGroup.setOrientation(LinearLayout.VERTICAL);
+            RadioGroup frameRadioGroup = new RadioGroup(context);
+            frameRadioGroup.setOrientation(LinearLayout.VERTICAL);
 
-        RadioButton noFrameRadio = new RadioButton(context);
-        noFrameRadio.setText("1. 不绘制边框");
-        noFrameRadio.setId(R.id.radio_no_frame); // 需要在 res/values/ids.xml 中定义ID
-        frameRadioGroup.addView(noFrameRadio);
+            RadioButton noFrameRadio = new RadioButton(context);
+            noFrameRadio.setText("1. 绘图");
+            noFrameRadio.setId(R.id.radio_no_frame); // 需要在 res/values/ids.xml 中定义ID
+            frameRadioGroup.addView(noFrameRadio);
 
-        RadioButton autoFrameRadio = new RadioButton(context);
-        autoFrameRadio.setText("2. 自动绘制边框");
-        autoFrameRadio.setId(R.id.radio_auto_frame); // 需要在 res/values/ids.xml 中定义ID
-        frameRadioGroup.addView(autoFrameRadio);
+            RadioButton autoFrameRadio = new RadioButton(context);
+            autoFrameRadio.setText("2. 切割");
+            autoFrameRadio.setId(R.id.radio_auto_frame); // 需要在 res/values/ids.xml 中定义ID
+            frameRadioGroup.addView(autoFrameRadio);
 
-        RadioButton manualFrameRadio = new RadioButton(context);
-        manualFrameRadio.setText("3. 手动绘制边框");
-        manualFrameRadio.setId(R.id.radio_manual_frame); // 需要在 res/values/ids.xml 中定义ID
-        frameRadioGroup.addView(manualFrameRadio);
+            RadioButton manualFrameRadio = new RadioButton(context);
+            manualFrameRadio.setText("3. 绘图并切割");
+            manualFrameRadio.setId(R.id.radio_manual_frame); // 需要在 res/values/ids.xml 中定义ID
+            frameRadioGroup.addView(manualFrameRadio);
 
-        frameRadioGroup.check(R.id.radio_no_frame); // 默认选中“不绘制边框”
-        layout.addView(frameRadioGroup);
+            frameRadioGroup.check(R.id.radio_no_frame); // 默认选中“绘图”
+            // 初始化时，因为“绘图”被选中，半调网屏应该是启用的
+            halftoneCheckbox.setEnabled(true);
 
-        builder.setView(layout);
+            // 给 RadioGroup 添加监听器
+            frameRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(RadioGroup group, int checkedId) {
+                    if (checkedId == R.id.radio_no_frame) {
+                        // 1. 绘图 - 启用半调网屏
+                        halftoneCheckbox.setEnabled(true);
+                    } else if (checkedId == R.id.radio_auto_frame) {
+                        // 2. 切割 - 禁用半调网屏
+                        halftoneCheckbox.setEnabled(false);
+                        halftoneCheckbox.setChecked(false); // 同时取消选中状态
+                    } else if (checkedId == R.id.radio_manual_frame) {
+                        // 3. 绘图并切割 - 禁用半调网屏
+                        halftoneCheckbox.setEnabled(false);
+                        halftoneCheckbox.setChecked(false); // 同时取消选中状态
+                    }
+                }
+            });
 
-        builder.setPositiveButton("确认", (dialog, which) -> {
-            if(!Constant.IsOfficial)
-            {
-                Toast.makeText(this, "请先连接至NexCut官方设备", Toast.LENGTH_SHORT).show();
-                //dialog.dismiss();
-            }
-            // 获取通用参数
-            boolean useHalftone = halftoneCheckbox.isChecked();
-            String lineDensityInputText = lineDensityInput.getText().toString().trim();
-            String laserPowerInputText = laserPowerInput.getText().toString().trim();
-            int lineDensity = (lineDensityInputText.isEmpty() || Integer.parseInt(lineDensityInputText) <= 0) ? 6 : Integer.parseInt(lineDensityInputText);
-            int laserPower = (laserPowerInputText.isEmpty() || Integer.parseInt(laserPowerInputText) <= 0) ? 20 : Integer.parseInt(laserPowerInputText);
+            layout.addView(frameRadioGroup);
+            builder.setView(layout);
 
-            // 根据选择的边框选项执行不同操作
-            int selectedId = frameRadioGroup.getCheckedRadioButtonId();
+            builder.setPositiveButton("确认", (dialog, which) -> {
+                if(!Constant.IsOfficial)
+                {
+                    Toast.makeText(this, "请先连接至NexCut官方设备", Toast.LENGTH_SHORT).show();
+                    // dialog.dismiss(); // 根据你的流程考虑是否关闭对话框
+                    return; // 如果不是官方设备，阻止后续处理
+                }
+                // 获取通用参数
+                // 仅当复选框启用时，才认为其选中状态有效
+                boolean useHalftone = halftoneCheckbox.isChecked() && halftoneCheckbox.isEnabled();
+                String lineDensityInputText = lineDensityInput.getText().toString().trim();
+                String laserPowerInputText = laserPowerInput.getText().toString().trim();
+                int lineDensity = (lineDensityInputText.isEmpty() || Integer.parseInt(lineDensityInputText) <= 0) ? 6 : Integer.parseInt(lineDensityInputText);
+                int laserPower = (laserPowerInputText.isEmpty() || Integer.parseInt(laserPowerInputText) <= 0) ? 20 : Integer.parseInt(laserPowerInputText);
 
-            if (selectedId == R.id.radio_no_frame) {
-                // 1. 不绘制边框 (原逻辑)
-                Toast.makeText(this, "开始生成内容GCode...", Toast.LENGTH_SHORT).show();
-                imageEditActivityGCode(useHalftone, lineDensity, laserPower);
+                // 根据选择的边框选项执行不同操作
+                int selectedId = frameRadioGroup.getCheckedRadioButtonId();
 
-            } else if (selectedId == R.id.radio_auto_frame) {
-                // 2. 自动绘制边框
-                Toast.makeText(this, "开始生成内容和自动边框GCode...", Toast.LENGTH_SHORT).show();
-                // 先执行原始内容的GCode生成
-                imageEditActivityGCodeFrameAuto(useHalftone, lineDensity, laserPower);
+                if (selectedId == R.id.radio_no_frame) {
+                    // 1. 开始绘图
+                    Toast.makeText(this, "开始绘图", Toast.LENGTH_SHORT).show();
+                    imageEditActivityGCode(useHalftone, lineDensity, laserPower);
 
-            } else if (selectedId == R.id.radio_manual_frame) {
-                // 3. 手动绘制边框
-                Toast.makeText(this, "正在准备手动边框绘制...", Toast.LENGTH_SHORT).show();
+                } else if (selectedId == R.id.radio_auto_frame) {
+                    // 2. 开始切割
+                    Toast.makeText(this, "开始切割.", Toast.LENGTH_SHORT).show();
+                    // 对于切割，通常不使用半调网屏，所以直接传递 false
+                    imageEditActivityGCodeCurve(false, lineDensity, laserPower);
 
-                onStartFrameDrawing(useHalftone, lineDensity, laserPower);
-                dialog.dismiss();
-            }
-        });
-//            else {
-//                boolean useHalftone = halftoneCheckbox.isChecked();
-//                String lineDensityInputText = lineDensityInput.getText().toString().trim();
-//                String laserPowerInputText = laserPowerInput.getText().toString().trim();
-//
-//                int lineDensity = (lineDensityInputText.isEmpty() || Integer.parseInt(lineDensityInputText) <= 0) ? 6 : Integer.parseInt(lineDensityInputText); // 默认0，如果未输入
-//                int laserPower = (laserPowerInputText.isEmpty() || Integer.parseInt(laserPowerInputText) <= 0) ? 20 : Integer.parseInt(laserPowerInputText);
-//                //Toast.makeText(this, "rho , laserPower = " + lineDensity + " " + laserPower, Toast.LENGTH_SHORT).show();
-//
-//                // 调用你的处理函数
-//                imageEditActivityGCode(useHalftone, lineDensity, laserPower);
-//            }
-//        });
+                } else if (selectedId == R.id.radio_manual_frame) {
+                    // 3. 绘图并切割
+                    Toast.makeText(this, "开始绘图并切割", Toast.LENGTH_SHORT).show();
+                    // 对于“绘图并切割”，如果复选框被禁用，useHalftone 将为 false。
+                    // 如果你的 imageEditActivityGCodeFrameAuto 需要区分绘图部分是否用半调，
+                    // 而切割部分不用，那么该方法可能需要更复杂的逻辑。
+                    // 根据当前逻辑，如果选择了 manualFrameRadio，useHalftone 会是 false。
+                    imageEditActivityGCodeFrameAuto(useHalftone, lineDensity, laserPower);
+                }
+            });
 
-        builder.setNegativeButton("取消", (dialog, which) -> dialog.dismiss());
-
-        builder.show();
-    }
+            builder.setNegativeButton("取消", (dialog, which) -> dialog.dismiss());
+            builder.show();
+        }
 
 }
 

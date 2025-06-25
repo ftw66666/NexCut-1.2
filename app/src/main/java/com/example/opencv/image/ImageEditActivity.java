@@ -55,13 +55,17 @@ import com.yalantis.ucrop.UCrop;
 
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -160,7 +164,7 @@ public class  ImageEditActivity extends AppCompatActivity {
         Button btnBinary = findViewById(R.id.btnBinary);
         Button btnInvert = findViewById(R.id.btnInvert);
         Button btnBlur = findViewById(R.id.btnBlur);
-//        Button btnEdge = findViewById(R.id.btnEdge);
+        Button btnEdge = findViewById(R.id.btnEdge);
         Button btnRotate = findViewById(R.id.btnRotate);
         Button btnHalftone = findViewById(R.id.btnHalftone);
         Button btnCrop = findViewById(R.id.btnCrop);
@@ -193,7 +197,7 @@ public class  ImageEditActivity extends AppCompatActivity {
         btnInvert.setOnClickListener(v -> applyInvert());
         btnGrayscale.setOnClickListener(v -> applyGrayscale());
         btnBlur.setOnClickListener(v -> applyBlur());
-//        btnEdge.setOnClickListener(v -> applyEdgeDetection());
+        btnEdge.setOnClickListener(v -> applyEdgeDetection());
         btnRotate.setOnClickListener(v -> applyRotation());
         btnHalftone.setOnClickListener(v -> applyHalftone());
         btnCrop.setOnClickListener(v -> applyCrop());
@@ -401,12 +405,87 @@ public class  ImageEditActivity extends AppCompatActivity {
      * 应用 Canny 边缘检测
      */
     private void applyEdgeDetection() {
-        if (selectedBitmap != null) {
-            selectedBitmap = ImageProcessor.applyCannyEdgeDetection(selectedBitmap, 107, 250);
-            imageView.setImageBitmap(selectedBitmap);
+        if (selectedBitmap == null) {
+            Log.e("ContourError", "selectedBitmap is null before processing.");
+            return;
         }
-        updateFilterBase();
 
+        Bitmap cannyEdgesBitmap = ImageProcessor.applyCannyEdgeDetection(selectedBitmap, 107, 250);
+
+        if (cannyEdgesBitmap == null) {
+            Log.e("ContourError", "Canny edge detection returned null bitmap.");
+            return;
+        }
+
+        Mat edgesMat = new Mat();
+        Utils.bitmapToMat(cannyEdgesBitmap, edgesMat);
+
+        // --- 确保 edgesMat 是 CV_8UC1 ---
+        if (edgesMat.type() != CvType.CV_8UC1) {
+            Log.d("ContourDebug", "edgesMat initial type: " + CvType.typeToString(edgesMat.type()) + ", channels: " + edgesMat.channels());
+            if (edgesMat.channels() == 4) {
+                Imgproc.cvtColor(edgesMat, edgesMat, Imgproc.COLOR_RGBA2GRAY);
+            } else if (edgesMat.channels() == 3) {
+                Imgproc.cvtColor(edgesMat, edgesMat, Imgproc.COLOR_RGB2GRAY);
+            }
+            Log.d("ContourDebug", "edgesMat converted type: " + CvType.typeToString(edgesMat.type()) + ", channels: " + edgesMat.channels());
+        }
+        // --- 修复结束 ---
+
+        List<MatOfPoint> contours = new ArrayList<>();
+        Mat hierarchy = new Mat();
+        try {
+            Imgproc.findContours(edgesMat, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+        } catch (Exception e) {
+            Log.e("ContourError", "Error in findContours: " + e.getMessage());
+            edgesMat.release();
+            hierarchy.release();
+            return;
+        }
+
+        // 4. 创建一个用于绘制轮廓的输出Mat (白底黑线)
+        // 背景将是白色，轮廓是黑色。尺寸与Canny边缘图一致。
+        // Mat.ones() 创建一个所有像素值为1的Mat，乘以255得到白色。
+        Mat wireframeMat = new Mat(edgesMat.size(), CvType.CV_8UC3, new Scalar(255, 255, 255)); // 白色背景, 3通道彩色图
+        // 或者:
+        // Mat wireframeMat = new Mat(edgesMat.size(), CvType.CV_8UC3);
+        // wireframeMat.setTo(new Scalar(255, 255, 255)); // 设置为白色
+
+
+        // 5. 绘制轮廓
+        if (!contours.isEmpty()) {
+            Scalar contourColor = new Scalar(0, 0, 0); // 黑色轮廓 (BGR)
+            int contourThickness = 1; // 线框通常用较细的线
+
+            for (int i = 0; i < contours.size(); i++) {
+                Imgproc.drawContours(wireframeMat, contours, i, contourColor, contourThickness);
+            }
+        } else {
+            Log.d("ContourDebug", "No contours found to draw.");
+        }
+
+        // 6. 将绘制了轮廓的Mat转换回Bitmap
+        Bitmap wireframeBitmap = Bitmap.createBitmap(wireframeMat.cols(), wireframeMat.rows(), Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(wireframeMat, wireframeBitmap);
+
+
+        // 7. 在ImageView中显示线框图
+        if (imageView != null) {
+            imageView.setImageBitmap(wireframeBitmap);
+        }
+//         如果需要更新 selectedBitmap 为线框图:
+         selectedBitmap = wireframeBitmap;
+
+
+        // 8. 释放OpenCV的Mat资源
+        edgesMat.release();
+        hierarchy.release();
+        wireframeMat.release();
+        for (MatOfPoint contour : contours) {
+            contour.release();
+        }
+
+        updateFilterBase();
     }
 
     /**
@@ -972,21 +1051,34 @@ private void graffitiToGCode() {
             int rho = getIntent().getIntExtra("rho", 6);
             int laserPower = getIntent().getIntExtra("laserPower", 20);
 
+            int cutPower = 100;
+            double simplifyEpsilonFactor =0;
+            boolean invertBinary = true;
+
+            int isCurved = getIntent().getIntExtra("isCurved", 0);
+
             if (frameUriString == null) {
                 // 只生成灰度G-code
-                gcode = GCode.generateGCode0(finalCreatedMat, rho, Constant.PrintWidth, Constant.PrintHeight, Constant.PrintStartX, Constant.PrintStartY, laserPower);
+                if(isCurved==1)
+                    gcode = GCode.generateGCodeFromEdges(finalCreatedMat,  Constant.PrintWidth, Constant.PrintHeight, Constant.PrintStartX, Constant.PrintStartY, cutPower,invertBinary,simplifyEpsilonFactor);
+                else if(isCurved==0)
+                    gcode = GCode.generateGCode0(finalCreatedMat, rho, Constant.PrintWidth, Constant.PrintHeight, Constant.PrintStartX, Constant.PrintStartY, laserPower);
+                else if(isCurved==2)
+                    gcode = GCode.generateGCodeWithOutline(finalCreatedMat, rho, Constant.PrintWidth, Constant.PrintHeight, Constant.PrintStartX, Constant.PrintStartY, laserPower,cutPower,simplifyEpsilonFactor, invertBinary);
+                else {
+                    gcode = "";
+                    //fuapex
+                }
             } else {
                 // 生成灰度+轮廓G-code
                 // 在后台加载和处理边框图像
-//                Uri frameUri = Uri.parse(frameUriString);
-//                Bitmap frameBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), frameUri);
-//                Mat frameMat = ImageProcessor.bitmapToMat(frameBitmap);
-//                Mat createdFrameMat = GCode.cropGCode(frameMat, Constant.PrintWidth, Constant.PrintHeight, whiteboardAspectRatio);
+                Uri frameUri = Uri.parse(frameUriString);
+                Bitmap frameBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), frameUri);
+                Mat frameMat = ImageProcessor.bitmapToMat(frameBitmap);
+                Mat createdFrameMat = GCode.cropGCode(frameMat, Constant.PrintWidth, Constant.PrintHeight, whiteboardAspectRatio);
 
-                int cutPower = 100;
-                double simplifyEpsilonFactor =0;
-                boolean invertBinary = true;
-                gcode = GCode.generateGCodeWithOutline(finalCreatedMat, finalCreatedMat, rho, Constant.PrintWidth, Constant.PrintHeight, Constant.PrintStartX, Constant.PrintStartY, laserPower, cutPower, simplifyEpsilonFactor, invertBinary);
+                //gcode = GCode.generateGCodeWithOutline(finalCreatedMat, rho, Constant.PrintWidth, Constant.PrintHeight, Constant.PrintStartX, Constant.PrintStartY, laserPower,cutPower,simplifyEpsilonFactor, invertBinary);
+                gcode = GCode.generateGCodeWithOutline(finalCreatedMat,createdFrameMat,rho, Constant.PrintWidth, Constant.PrintHeight, Constant.PrintStartX, Constant.PrintStartY, laserPower,cutPower, simplifyEpsilonFactor, invertBinary);
             }
 
             // 【第7步】: 所有后台工作完成，回到UI线程显示结果
