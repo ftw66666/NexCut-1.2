@@ -140,7 +140,7 @@ public class GCode {
      *                    对于来自findContours的轮廓，通常应为true。
      * @return 一个新的平滑点列表。
      */
-    private static List<Point> chaikinSmooth(List<Point> inputPoints, int iterations, double ratio, boolean isClosed) {
+    public static List<Point> chaikinSmooth(List<Point> inputPoints, int iterations, double ratio, boolean isClosed) {
         if (inputPoints == null || inputPoints.size() < (isClosed ? 2 : 2)) { // 一个线段至少需要2个点
             return new ArrayList<>(inputPoints); // 如果点数不足，则返回原始副本
         }

@@ -58,6 +58,7 @@ import org.opencv.android.Utils;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
+import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
@@ -66,6 +67,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -77,6 +79,7 @@ public class  ImageEditActivity extends AppCompatActivity {
     private ImageView imageView;
     private Bitmap selectedBitmap;
     private Bitmap originalBitmap;
+    private Bitmap originalBitmap1;
     private Bitmap filterBaseBitmap; // 亮度/对比度操作的起点图像
     private PhotoSelector photoSelector;
 
@@ -404,13 +407,34 @@ public class  ImageEditActivity extends AppCompatActivity {
     /**
      * 应用 Canny 边缘检测
      */
-    private void applyEdgeDetection() {
+    private  void applyEdgeDetection() {
         if (selectedBitmap == null) {
             Log.e("ContourError", "selectedBitmap is null before processing.");
             return;
         }
 
+        originalBitmap1 = selectedBitmap;
+
+        // --- 参数控制 ---
+        boolean applyChaikin = true; // 是否应用Chaikin平滑
+        int chaikinIterations = 2;   // Chaikin迭代次数 (1-3次效果较好)
+        double chaikinRatio = 0.25;  // Chaikin标准比率
+
+        // 可选：在Canny之前进行高斯模糊，有助于从源头减少噪点，可能使Canny边缘更平滑
+        boolean applyGaussianBlurToSource = false; // 如果Canny边缘本身就很粗糙，可以尝试开启
+        // Mat sourceForCannyMat = new Mat();
+        // Utils.bitmapToMat(selectedBitmap, sourceForCannyMat);
+        // if (applyGaussianBlurToSource) {
+        //     Imgproc.GaussianBlur(sourceForCannyMat, sourceForCannyMat, new Size(3,3), 0);
+        // }
+        // Bitmap bitmapForCanny = Bitmap.createBitmap(sourceForCannyMat.cols(), sourceForCannyMat.rows(), Bitmap.Config.ARGB_8888);
+        // Utils.matToBitmap(sourceForCannyMat, bitmapForCanny);
+        // sourceForCannyMat.release();
+        // Bitmap cannyEdgesBitmap = ImageProcessor.applyCannyEdgeDetection(bitmapForCanny, 107, 250);
+        // if (applyGaussianBlurToSource && bitmapForCanny != selectedBitmap) bitmapForCanny.recycle();
+
         Bitmap cannyEdgesBitmap = ImageProcessor.applyCannyEdgeDetection(selectedBitmap, 107, 250);
+
 
         if (cannyEdgesBitmap == null) {
             Log.e("ContourError", "Canny edge detection returned null bitmap.");
@@ -420,42 +444,51 @@ public class  ImageEditActivity extends AppCompatActivity {
         Mat edgesMat = new Mat();
         Utils.bitmapToMat(cannyEdgesBitmap, edgesMat);
 
-        // --- 确保 edgesMat 是 CV_8UC1 ---
         if (edgesMat.type() != CvType.CV_8UC1) {
-            Log.d("ContourDebug", "edgesMat initial type: " + CvType.typeToString(edgesMat.type()) + ", channels: " + edgesMat.channels());
-            if (edgesMat.channels() == 4) {
-                Imgproc.cvtColor(edgesMat, edgesMat, Imgproc.COLOR_RGBA2GRAY);
-            } else if (edgesMat.channels() == 3) {
-                Imgproc.cvtColor(edgesMat, edgesMat, Imgproc.COLOR_RGB2GRAY);
+            if (edgesMat.channels() > 1) {
+                Imgproc.cvtColor(edgesMat, edgesMat, Imgproc.COLOR_RGBA2GRAY); // 或其他适当的转换
             }
-            Log.d("ContourDebug", "edgesMat converted type: " + CvType.typeToString(edgesMat.type()) + ", channels: " + edgesMat.channels());
         }
-        // --- 修复结束 ---
 
         List<MatOfPoint> contours = new ArrayList<>();
         Mat hierarchy = new Mat();
         try {
-            Imgproc.findContours(edgesMat, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+            // 使用 CHAIN_APPROX_NONE 获取更多原始点，为平滑提供基础
+            Imgproc.findContours(edgesMat, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
         } catch (Exception e) {
             Log.e("ContourError", "Error in findContours: " + e.getMessage());
-            edgesMat.release();
-            hierarchy.release();
-            return;
+            edgesMat.release(); hierarchy.release(); return;
         }
 
-        // 4. 创建一个用于绘制轮廓的输出Mat (白底黑线)
-        // 背景将是白色，轮廓是黑色。尺寸与Canny边缘图一致。
-        // Mat.ones() 创建一个所有像素值为1的Mat，乘以255得到白色。
-        Mat wireframeMat = new Mat(edgesMat.size(), CvType.CV_8UC3, new Scalar(255, 255, 255)); // 白色背景, 3通道彩色图
-        // 或者:
-        // Mat wireframeMat = new Mat(edgesMat.size(), CvType.CV_8UC3);
-        // wireframeMat.setTo(new Scalar(255, 255, 255)); // 设置为白色
+        // --- 轮廓平滑处理 ---
+        List<MatOfPoint> smoothedContours = new ArrayList<>();
+        if (applyChaikin) {
+            for (MatOfPoint contour : contours) {
+                Point[] pointsArray = contour.toArray();
+                if (pointsArray.length >= 2) {
+                    // Chaikin通常用于闭合轮廓 (findContours的结果)
+                    List<Point> smoothedList = GCode.chaikinSmooth(Arrays.asList(pointsArray), chaikinIterations, chaikinRatio, true);
+                    if (!smoothedList.isEmpty()) {
+                        smoothedContours.add(new MatOfPoint(smoothedList.toArray(new Point[0])));
+                    } else {
+                        smoothedContours.add(contour); // 平滑失败则使用原始轮廓
+                    }
+                } else {
+                    smoothedContours.add(contour); // 点太少，无法平滑
+                }
+                contour.release(); // 释放原始轮廓MatOfPoint
+            }
+            contours.clear(); // 清空原始轮廓列表
+            contours.addAll(smoothedContours); // 用平滑后的轮廓替换
+        }
+        // --- 平滑处理结束 ---
 
 
-        // 5. 绘制轮廓
+        Mat wireframeMat = new Mat(edgesMat.size(), CvType.CV_8UC3, new Scalar(255, 255, 255)); // 白色背景
+
         if (!contours.isEmpty()) {
-            Scalar contourColor = new Scalar(0, 0, 0); // 黑色轮廓 (BGR)
-            int contourThickness = 1; // 线框通常用较细的线
+            Scalar contourColor = new Scalar(0, 0, 0); // 黑色轮廓
+            int contourThickness = 1;
 
             for (int i = 0; i < contours.size(); i++) {
                 Imgproc.drawContours(wireframeMat, contours, i, contourColor, contourThickness);
@@ -464,26 +497,22 @@ public class  ImageEditActivity extends AppCompatActivity {
             Log.d("ContourDebug", "No contours found to draw.");
         }
 
-        // 6. 将绘制了轮廓的Mat转换回Bitmap
         Bitmap wireframeBitmap = Bitmap.createBitmap(wireframeMat.cols(), wireframeMat.rows(), Bitmap.Config.ARGB_8888);
         Utils.matToBitmap(wireframeMat, wireframeBitmap);
 
-
-        // 7. 在ImageView中显示线框图
         if (imageView != null) {
             imageView.setImageBitmap(wireframeBitmap);
         }
-//         如果需要更新 selectedBitmap 为线框图:
-         selectedBitmap = wireframeBitmap;
 
+        selectedBitmap = wireframeBitmap;
 
-        // 8. 释放OpenCV的Mat资源
         edgesMat.release();
         hierarchy.release();
         wireframeMat.release();
-        for (MatOfPoint contour : contours) {
+        for (MatOfPoint contour : contours) { // 释放平滑后的轮廓（或原始轮廓如果未平滑）
             contour.release();
         }
+        // if (cannyEdgesBitmap != null && !cannyEdgesBitmap.isRecycled()) cannyEdgesBitmap.recycle();
 
         updateFilterBase();
     }
@@ -1025,6 +1054,7 @@ private void graffitiToGCode() {
             Mat initialMat = ImageProcessor.bitmapToMat(initialBitmap);
             Mat croppedMat = GCode.cropGCode(initialMat, Constant.PrintWidth, Constant.PrintHeight, whiteboardAspectRatio);
             Bitmap selectedBitmap = ImageProcessor.matToBitmap(croppedMat); // 这个selectedBitmap是我们的工作副本
+            Mat origianalmat = ImageProcessor.bitmapToMat(originalBitmap1);
 
             // (可选，但推荐) 让用户能看到裁剪后的图，提升体验
             Bitmap finalSelectedBitmap1 = selectedBitmap;
@@ -1060,7 +1090,7 @@ private void graffitiToGCode() {
             if (frameUriString == null) {
                 // 只生成灰度G-code
                 if(isCurved==1)
-                    gcode = GCode.generateGCodeFromEdges(finalCreatedMat,  Constant.PrintWidth, Constant.PrintHeight, Constant.PrintStartX, Constant.PrintStartY, cutPower,invertBinary,simplifyEpsilonFactor);
+                    gcode = GCode.generateGCodeFromEdges(origianalmat,  Constant.PrintWidth, Constant.PrintHeight, Constant.PrintStartX, Constant.PrintStartY, cutPower,invertBinary,simplifyEpsilonFactor);
                 else if(isCurved==0)
                     gcode = GCode.generateGCode0(finalCreatedMat, rho, Constant.PrintWidth, Constant.PrintHeight, Constant.PrintStartX, Constant.PrintStartY, laserPower);
                 else if(isCurved==2)
