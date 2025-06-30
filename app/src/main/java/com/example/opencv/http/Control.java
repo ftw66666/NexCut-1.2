@@ -99,6 +99,10 @@ public class Control {
             @Override
             public void run() {
                 try {
+                    // 如果BASE_URL为空，什么也不做
+                    if (apiClient.BASE_URL.length() == 0 || apiClient.BASE_URL.toString().trim().isEmpty()) {
+                        return;
+                    }
                     Response response = apiClient.logout(force);
                     if (response.isSuccessful()) {
                         apiClient.isConnected.set(false);
