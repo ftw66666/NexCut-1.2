@@ -13,9 +13,7 @@ import org.opencv.imgproc.Imgproc;
 
 public class ImageProcessor {
 
-    static {
-        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-    }
+
 
     /**
      * 将 Bitmap 转换为 Mat 对象。

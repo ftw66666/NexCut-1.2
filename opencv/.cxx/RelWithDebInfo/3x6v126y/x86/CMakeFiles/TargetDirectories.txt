@@ -1,3 +1,0 @@
-E:/Android/NexCut04/opencv/.cxx/RelWithDebInfo/3x6v126y/x86/CMakeFiles/opencv_jni_shared.dir
-E:/Android/NexCut04/opencv/.cxx/RelWithDebInfo/3x6v126y/x86/CMakeFiles/edit_cache.dir
-E:/Android/NexCut04/opencv/.cxx/RelWithDebInfo/3x6v126y/x86/CMakeFiles/rebuild_cache.dir
