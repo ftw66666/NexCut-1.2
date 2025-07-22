@@ -65,7 +65,7 @@ public class Constant {
 
     public static final int WorkBroder = 13;
 
-    public static int PlatformWidth = 400;
+    public static int PlatformWidth = 500;
 
     public static int PlatformHeight = 400;
 

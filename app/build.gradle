@@ -64,6 +64,8 @@ dependencies {
     implementation libs.junit
     implementation project(':app:whiteboardlib')
     implementation 'com.quickbirdstudios:opencv-contrib:4.5.3.0'
+    implementation libs.cardview
+    implementation libs.recyclerview
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
     implementation 'com.github.yalantis:ucrop:2.2.10'

@@ -49,7 +49,8 @@ import com.example.opencv.MainActivity;
 import com.example.opencv.R;
 import com.example.opencv.modbus.ModbusTCPClient;
 import com.example.opencv.whiteboard.SettingActivity;
-import com.example.opencv.whiteboard.WhiteboardActivity;
+import com.example.opencv.webwhiteboard.WebWhiteBoardActivity;
+// import com.example.opencv.whiteboard.WhiteboardActivity; // 已注释，被WebWhiteBoardActivity替代
 import com.squareup.picasso.Picasso;
 import com.yalantis.ucrop.UCrop;
 
@@ -58,11 +59,16 @@ import org.opencv.android.Utils;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -103,6 +109,93 @@ public class  ImageEditActivity extends AppCompatActivity {
             Log.d("OpenCV", "OpenCV loaded Successfully!");
     }
 
+    // 新增：图层信息类
+    public static class LayerInfo {
+        public String filePath;
+        public String printingMethod;
+        public LayerInfo(String filePath, String printingMethod) {
+            this.filePath = filePath;
+            this.printingMethod = printingMethod;
+        }
+    }
+    private List<LayerInfo> layerList = new ArrayList<>();
+    // 多图层G代码生成
+    public void multiLayerGCode() {
+        if (layerList == null || layerList.isEmpty()) {
+            Toast.makeText(this, "没有图层数据", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        ProgressDialog progressDialog = ProgressDialog.show(
+                ImageEditActivity.this,
+                "处理中",
+                "正在生成多图层 G 代码，请稍候……",
+                true
+        );
+
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+
+        executor.execute(() -> {
+            try {
+                StringBuilder allGCode = new StringBuilder();
+                for (LayerInfo layer : layerList) {
+                    Bitmap bitmap = BitmapFactory.decodeFile(layer.filePath);
+                    if (bitmap == null) continue;
+
+                    Mat mat = ImageProcessor.bitmapToMat(bitmap);
+                    String gcode;
+                    // 根据 printingMethod 选择不同的G代码生成方式
+                    if ("SCAN".equalsIgnoreCase(layer.printingMethod)) {
+                        gcode = GCode.generateGCode0(
+                                mat,
+                                6, // rho
+                                Constant.PrintWidth,
+                                Constant.PrintHeight,
+                                Constant.PrintStartX,
+                                Constant.PrintStartY,
+                                20 // laserPower
+                        );
+                    } else if ("VECTOR".equalsIgnoreCase(layer.printingMethod)) {
+                        gcode = GCode.generateGCodeFollowBlackPixels(
+                                mat,
+                                Constant.PrintWidth,
+                                Constant.PrintHeight,
+                                Constant.PrintStartX,
+                                Constant.PrintStartY,
+                                100, // cutPower
+                                true,
+                                true
+                        );
+                    } else {
+                        // 默认用光栅扫描
+                        gcode = GCode.generateGCode0(
+                                mat,
+                                6,
+                                Constant.PrintWidth,
+                                Constant.PrintHeight,
+                                Constant.PrintStartX,
+                                Constant.PrintStartY,
+                                20
+                        );
+                    }
+                    allGCode.append("; 图层: ").append(layer.printingMethod).append("\n");
+                    allGCode.append(gcode).append("\n");
+                }
+
+                handler.post(() -> {
+                    progressDialog.dismiss();
+                    showSaveDialog(ImageEditActivity.this, allGCode.toString());
+                });
+            } catch (Exception e) {
+                handler.post(() -> {
+                    progressDialog.dismiss();
+                    Toast.makeText(ImageEditActivity.this, "处理失败：" + e.getMessage(), Toast.LENGTH_LONG).show();
+                    e.printStackTrace();
+                });
+            }
+        });
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -223,6 +316,26 @@ public class  ImageEditActivity extends AppCompatActivity {
 
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        String layerDataJson = getIntent().getStringExtra("layerData");
+        if (layerDataJson != null) {
+            try {
+                JSONArray arr2d = new JSONArray(layerDataJson);
+                for (int i = 0; i < arr2d.length(); i++) {
+                    JSONArray item = arr2d.getJSONArray(i);
+                    String filePath = item.getString(0);
+                    String printingMethod = item.getString(1);
+                    layerList.add(new LayerInfo(filePath, printingMethod));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        // 自动处理多图层G代码
+        if (!layerList.isEmpty()) {
+            multiLayerGCode();
+        }
+        // 你可以在后续代码中遍历 layerList，按顺序处理每个图层
     }
 
     // 加载 Toolbar 菜单
@@ -415,115 +528,192 @@ public class  ImageEditActivity extends AppCompatActivity {
     /**
      * 应用 Canny 边缘检测
      */
-    private  void applyEdgeDetection() {
+    private void applyEdgeDetection() {
         if (selectedBitmap == null) {
             Log.e("ContourError", "selectedBitmap is null before processing.");
             return;
         }
 
-        originalBitmap1 = selectedBitmap;
+        // 1. 将 Bitmap 转换为 Mat
+        Mat originalMat = new Mat();
+        Utils.bitmapToMat(selectedBitmap, originalMat);
 
-        // --- 参数控制 ---
-        boolean applyChaikin = true; // 是否应用Chaikin平滑
-        int chaikinIterations = 2;   // Chaikin迭代次数 (1-3次效果较好)
-        double chaikinRatio = 0.25;  // Chaikin标准比率
+        // 2. 放大图像（例如放大 2 倍）
+        int targetWidth = originalMat.cols() * 2;
+        int targetHeight = originalMat.rows() * 2;
+        Mat resizedMat = new Mat();
+        Imgproc.resize(originalMat, resizedMat, new Size(targetWidth, targetHeight), 0, 0, Imgproc.INTER_LINEAR);
 
-        // 可选：在Canny之前进行高斯模糊，有助于从源头减少噪点，可能使Canny边缘更平滑
-        boolean applyGaussianBlurToSource = false; // 如果Canny边缘本身就很粗糙，可以尝试开启
-        // Mat sourceForCannyMat = new Mat();
-        // Utils.bitmapToMat(selectedBitmap, sourceForCannyMat);
-        // if (applyGaussianBlurToSource) {
-        //     Imgproc.GaussianBlur(sourceForCannyMat, sourceForCannyMat, new Size(3,3), 0);
-        // }
-        // Bitmap bitmapForCanny = Bitmap.createBitmap(sourceForCannyMat.cols(), sourceForCannyMat.rows(), Bitmap.Config.ARGB_8888);
-        // Utils.matToBitmap(sourceForCannyMat, bitmapForCanny);
-        // sourceForCannyMat.release();
-        // Bitmap cannyEdgesBitmap = ImageProcessor.applyCannyEdgeDetection(bitmapForCanny, 107, 250);
-        // if (applyGaussianBlurToSource && bitmapForCanny != selectedBitmap) bitmapForCanny.recycle();
+        // 3. 转换为灰度图
+        Mat grayMat = new Mat();
+        Imgproc.cvtColor(resizedMat, grayMat, Imgproc.COLOR_RGBA2GRAY);
 
-        Bitmap cannyEdgesBitmap = ImageProcessor.applyCannyEdgeDetection(selectedBitmap, 107, 250);
-
-
-        if (cannyEdgesBitmap == null) {
-            Log.e("ContourError", "Canny edge detection returned null bitmap.");
-            return;
-        }
-
+        // 4. Canny 边缘检测
         Mat edgesMat = new Mat();
-        Utils.bitmapToMat(cannyEdgesBitmap, edgesMat);
+        Imgproc.Canny(grayMat, edgesMat, 125, 250);
 
-        if (edgesMat.type() != CvType.CV_8UC1) {
-            if (edgesMat.channels() > 1) {
-                Imgproc.cvtColor(edgesMat, edgesMat, Imgproc.COLOR_RGBA2GRAY); // 或其他适当的转换
-            }
-        }
-
+        // 5. 查找轮廓
         List<MatOfPoint> contours = new ArrayList<>();
         Mat hierarchy = new Mat();
-        try {
-            // 使用 CHAIN_APPROX_NONE 获取更多原始点，为平滑提供基础
-            Imgproc.findContours(edgesMat, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
-        } catch (Exception e) {
-            Log.e("ContourError", "Error in findContours: " + e.getMessage());
-            edgesMat.release(); hierarchy.release(); return;
+        Imgproc.findContours(edgesMat, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+
+        // 6. 使用 approxPolyDP 对每个轮廓进行逼近平滑
+        List<MatOfPoint> approxContours = new ArrayList<>();
+        for (MatOfPoint contour : contours) {
+            MatOfPoint2f contour2f = new MatOfPoint2f(contour.toArray());
+            MatOfPoint2f approxCurve = new MatOfPoint2f();
+            double epsilon = 0.01 ;
+            Imgproc.approxPolyDP(contour2f, approxCurve, epsilon, true);
+            approxContours.add(new MatOfPoint(approxCurve.toArray()));
+            contour2f.release();
+            approxCurve.release();
+            contour.release();
         }
 
-        // --- 轮廓平滑处理 ---
-        List<MatOfPoint> smoothedContours = new ArrayList<>();
-        if (applyChaikin) {
-            for (MatOfPoint contour : contours) {
-                Point[] pointsArray = contour.toArray();
-                if (pointsArray.length >= 2) {
-                    // Chaikin通常用于闭合轮廓 (findContours的结果)
-                    List<Point> smoothedList = GCode.chaikinSmooth(Arrays.asList(pointsArray), chaikinIterations, chaikinRatio, true);
-                    if (!smoothedList.isEmpty()) {
-                        smoothedContours.add(new MatOfPoint(smoothedList.toArray(new Point[0])));
-                    } else {
-                        smoothedContours.add(contour); // 平滑失败则使用原始轮廓
-                    }
-                } else {
-                    smoothedContours.add(contour); // 点太少，无法平滑
-                }
-                contour.release(); // 释放原始轮廓MatOfPoint
-            }
-            contours.clear(); // 清空原始轮廓列表
-            contours.addAll(smoothedContours); // 用平滑后的轮廓替换
-        }
-        // --- 平滑处理结束 ---
+        // 7. 创建白色背景图像用于绘制轮廓
+        Mat wireframeMat = new Mat(edgesMat.size(), CvType.CV_8UC3, new Scalar(255, 255, 255));
+        Scalar contourColor = new Scalar(0, 0, 0); // 黑色
+        int contourThickness = 2; // 线宽为 2 像素
 
-
-        Mat wireframeMat = new Mat(edgesMat.size(), CvType.CV_8UC3, new Scalar(255, 255, 255)); // 白色背景
-
-        if (!contours.isEmpty()) {
-            Scalar contourColor = new Scalar(0, 0, 0); // 黑色轮廓
-            int contourThickness = 2;
-
-            for (int i = 0; i < contours.size(); i++) {
-                Imgproc.drawContours(wireframeMat, contours, i, contourColor, contourThickness,Imgproc.LINE_AA);
-            }
-        } else {
-            Log.d("ContourDebug", "No contours found to draw.");
+        // 8. 绘制轮廓
+        for (int i = 0; i < approxContours.size(); i++) {
+            Imgproc.drawContours(wireframeMat, approxContours, i, contourColor, contourThickness, Imgproc.LINE_AA);
         }
 
+        // 9. 转换回 Bitmap 显示
         Bitmap wireframeBitmap = Bitmap.createBitmap(wireframeMat.cols(), wireframeMat.rows(), Bitmap.Config.ARGB_8888);
         Utils.matToBitmap(wireframeMat, wireframeBitmap);
 
+        // 10. 显示到 ImageView
         if (imageView != null) {
             imageView.setImageBitmap(wireframeBitmap);
         }
 
+        // 11. 更新 selectedBitmap
         selectedBitmap = wireframeBitmap;
 
+        // 12. 释放资源
+        originalMat.release();
+        resizedMat.release();
+        grayMat.release();
         edgesMat.release();
         hierarchy.release();
         wireframeMat.release();
-        for (MatOfPoint contour : contours) { // 释放平滑后的轮廓（或原始轮廓如果未平滑）
+        for (MatOfPoint contour : approxContours) {
             contour.release();
         }
-        // if (cannyEdgesBitmap != null && !cannyEdgesBitmap.isRecycled()) cannyEdgesBitmap.recycle();
-
-        updateFilterBase();
     }
+//    private  void applyEdgeDetection() {
+//        if (selectedBitmap == null) {
+//            Log.e("ContourError", "selectedBitmap is null before processing.");
+//            return;
+//        }
+//
+//        originalBitmap1 = selectedBitmap;
+//
+//        // --- 参数控制 ---
+//        boolean applyChaikin = true; // 是否应用Chaikin平滑
+//        int chaikinIterations = 3;   // Chaikin迭代次数 (1-3次效果较好)
+//        double chaikinRatio = 0.25;  // Chaikin标准比率
+//
+//        // 可选：在Canny之前进行高斯模糊，有助于从源头减少噪点，可能使Canny边缘更平滑
+//        boolean applyGaussianBlurToSource = false; // 如果Canny边缘本身就很粗糙，可以尝试开启
+//        // Mat sourceForCannyMat = new Mat();
+//        // Utils.bitmapToMat(selectedBitmap, sourceForCannyMat);
+//        // if (applyGaussianBlurToSource) {
+//        //     Imgproc.GaussianBlur(sourceForCannyMat, sourceForCannyMat, new Size(3,3), 0);
+//        // }
+//        // Bitmap bitmapForCanny = Bitmap.createBitmap(sourceForCannyMat.cols(), sourceForCannyMat.rows(), Bitmap.Config.ARGB_8888);
+//        // Utils.matToBitmap(sourceForCannyMat, bitmapForCanny);
+//        // sourceForCannyMat.release();
+//        // Bitmap cannyEdgesBitmap = ImageProcessor.applyCannyEdgeDetection(bitmapForCanny, 107, 250);
+//        // if (applyGaussianBlurToSource && bitmapForCanny != selectedBitmap) bitmapForCanny.recycle();
+//
+//        Bitmap cannyEdgesBitmap = ImageProcessor.applyCannyEdgeDetection(selectedBitmap, 100, 200);
+//
+//
+//        if (cannyEdgesBitmap == null) {
+//            Log.e("ContourError", "Canny edge detection returned null bitmap.");
+//            return;
+//        }
+//
+//        Mat edgesMat = new Mat();
+//        Utils.bitmapToMat(cannyEdgesBitmap, edgesMat);
+//
+//        if (edgesMat.type() != CvType.CV_8UC1) {
+//            if (edgesMat.channels() > 1) {
+//                Imgproc.cvtColor(edgesMat, edgesMat, Imgproc.COLOR_RGBA2GRAY); // 或其他适当的转换
+//            }
+//        }
+//
+//        List<MatOfPoint> contours = new ArrayList<>();
+//        Mat hierarchy = new Mat();
+//        try {
+//            // 使用 CHAIN_APPROX_NONE 获取更多原始点，为平滑提供基础
+//            Imgproc.findContours(edgesMat, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_NONE);
+//        } catch (Exception e) {
+//            Log.e("ContourError", "Error in findContours: " + e.getMessage());
+//            edgesMat.release(); hierarchy.release(); return;
+//        }
+//
+//// --- 轮廓平滑处理 ---
+//        List<MatOfPoint> smoothedContours = new ArrayList<>();
+//
+//        for (MatOfPoint contour : contours) {
+//            // 将 MatOfPoint 转换为 MatOfPoint2f（approxPolyDP 需要浮点坐标）
+//            MatOfPoint2f contour2f = new MatOfPoint2f(contour.toArray());
+//            MatOfPoint2f approxCurve = new MatOfPoint2f();
+//
+//            // 设置逼近精度（值越小越接近原始轮廓，建议 1~5 之间）
+//            double epsilon = 1; // 可调参数
+//            Imgproc.approxPolyDP(contour2f, approxCurve, epsilon, true);
+//
+//            // 将结果转回 MatOfPoint
+//            MatOfPoint approxContour = new MatOfPoint(approxCurve.toArray());
+//            smoothedContours.add(approxContour);
+//
+//            // 释放资源
+//            contour2f.release();
+//            approxCurve.release();
+//            contour.release(); // 释放原始轮廓
+//        }
+//
+//        contours.clear(); // 清空原始轮廓列表
+//        contours.addAll(smoothedContours); // 用逼近后的轮廓替换
+//
+//
+//        Mat wireframeMat = new Mat(edgesMat.size(), CvType.CV_8UC3, new Scalar(255, 255, 255)); // 白色背景
+//
+//        if (!contours.isEmpty()) {
+//            Scalar contourColor = new Scalar(0, 0, 0); // 黑色轮廓
+//            int contourThickness = 1;
+//
+//            for (int i = 0; i < contours.size(); i++) {
+//                Imgproc.drawContours(wireframeMat, contours, i, contourColor, contourThickness,Imgproc.LINE_8);
+//            }
+//        } else {
+//            Log.d("ContourDebug", "No contours found to draw.");
+//        }
+//
+//        Bitmap wireframeBitmap = Bitmap.createBitmap(wireframeMat.cols(), wireframeMat.rows(), Bitmap.Config.ARGB_8888);
+//        Utils.matToBitmap(wireframeMat, wireframeBitmap);
+//
+//        if (imageView != null) {
+//            imageView.setImageBitmap(wireframeBitmap);
+//        }
+//
+//        selectedBitmap = wireframeBitmap;
+//
+//        edgesMat.release();
+//        hierarchy.release();
+//        wireframeMat.release();
+//        for (MatOfPoint contour : contours) { // 释放平滑后的轮廓（或原始轮廓如果未平滑）
+//            contour.release();
+//        }
+//        // if (cannyEdgesBitmap != null && !cannyEdgesBitmap.isRecycled()) cannyEdgesBitmap.recycle();
+//
+//        updateFilterBase();
+//    }
 
     /**
      * 旋转图像 90 度
@@ -1194,7 +1384,7 @@ private void graffitiToGCode() {
             int rho = getIntent().getIntExtra("rho", 6);
             int laserPower = getIntent().getIntExtra("laserPower", 20);
             int cutPower = 100;
-            double simplifyEpsilonFactor = 0.002; // [优化] 使用一个比0更合理的小值作为默认值
+            double simplifyEpsilonFactor = 0.2; // [优化] 使用一个比0更合理的小值作为默认值
             boolean invertBinary = true;
             int isCurved = getIntent().getIntExtra("isCurved", 0);
 
@@ -1203,7 +1393,7 @@ private void graffitiToGCode() {
                 switch (isCurved) {
                     case 1: // 基于边缘生成（矢量路径）
                         // [修复] 使用 initialMat (原始未处理的图像) 来提取边缘，而不是使用会崩溃的 originalBitmap1
-                        gcode = GCode.generateGCodeFromSkeleton(initialMat, Constant.PrintWidth, Constant.PrintHeight, Constant.PrintStartX, Constant.PrintStartY, cutPower, invertBinary, simplifyEpsilonFactor);
+                        gcode = GCode.generateGCodeFollowBlackPixels(initialMat, Constant.PrintWidth, Constant.PrintHeight, Constant.PrintStartX, Constant.PrintStartY, cutPower,  invertBinary,true);
                         break;
                     case 2: // 灰度图 + 轮廓
                         gcode = GCode.generateGCodeWithOutline(finalCreatedMat, rho, Constant.PrintWidth, Constant.PrintHeight, Constant.PrintStartX, Constant.PrintStartY, laserPower, cutPower, simplifyEpsilonFactor, invertBinary);
@@ -1239,9 +1429,9 @@ private void graffitiToGCode() {
     });
 }
     public void graffiti() {
-
+        // 推荐方案：通过文件路径传递图片，避免TransactionTooLargeException
         try {
-            Intent intent = new Intent(ImageEditActivity.this, WhiteboardActivity.class);
+            Intent intent = new Intent(ImageEditActivity.this, WebWhiteBoardActivity.class);
             if(selectedBitmap != null) {
                 File tempFile = createImageFile(); // 创建临时文件
                 FileOutputStream out = new FileOutputStream(tempFile);
@@ -1250,15 +1440,33 @@ private void graffitiToGCode() {
                 out.close();
 
                 imageUri = Uri.fromFile(tempFile);
-                // 传递 URI 给下一个 Activity
-                intent.putExtra("imageUri", imageUri.toString());
+                // 传递文件路径给WebWhiteBoardActivity
+                intent.putExtra("imagePath", tempFile.getAbsolutePath());
             }
             startActivity(intent);
-
         } catch (IOException e) {
             e.printStackTrace();
+            Toast.makeText(this, "图片处理失败", Toast.LENGTH_SHORT).show();
         }
 
+        // 旧方案：通过base64传递图片（已注释，因大图会报TransactionTooLargeException）
+        /*
+        try {
+            Intent intent = new Intent(ImageEditActivity.this, WebWhiteBoardActivity.class);
+            if(selectedBitmap != null) {
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                selectedBitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
+                byte[] byteArray = byteArrayOutputStream.toByteArray();
+                String base64Image = android.util.Base64.encodeToString(byteArray, android.util.Base64.DEFAULT);
+                String dataUrl = "data:image/png;base64," + base64Image;
+                intent.putExtra("imageBase64", dataUrl);
+            }
+            startActivity(intent);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "图片处理失败", Toast.LENGTH_SHORT).show();
+        }
+        */
     }
 
     public void mainPage(View view)

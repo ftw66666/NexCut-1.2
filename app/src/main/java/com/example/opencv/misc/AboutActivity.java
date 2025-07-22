@@ -46,7 +46,7 @@ import com.example.opencv.device.device_Control;
 import com.example.opencv.http.ApiClient;
 import com.example.opencv.modbus.ModbusTCPClient;
 import com.example.opencv.whiteboard.SettingActivity;
-import com.example.opencv.whiteboard.WhiteboardActivity;
+import com.example.opencv.webwhiteboard.WebWhiteBoardActivity;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -127,7 +127,7 @@ public class AboutActivity extends AppCompatActivity {
         Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
         view.startAnimation(scaleIn);
 
-        Intent intent = new Intent(this, WhiteboardActivity.class);
+        Intent intent = new Intent(this, WebWhiteBoardActivity.class);
         startActivity(intent);
     }
 

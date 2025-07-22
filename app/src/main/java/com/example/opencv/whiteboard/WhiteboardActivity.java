@@ -1,3 +1,4 @@
+// 注意：本类已被WebWhiteBoardActivity替代，当前项目实际不再调用此Activity，代码仅供参考和备份。
 package com.example.opencv.whiteboard;
 
 

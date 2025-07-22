@@ -10,6 +10,10 @@ constraintlayout = "2.2.1"
 gridlayout = "1.0.0"
 firebaseCrashlyticsBuildtools = "3.0.3"
 picasso = "2.8"
+opencv = "4.9.0-0"
+opencvContrib = "4.5.3"
+cardview = "1.0.0"
+recyclerview = "1.4.0"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -22,6 +26,10 @@ constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayo
 gridlayout = { group = "androidx.gridlayout", name = "gridlayout", version.ref = "gridlayout" }
 firebase-crashlytics-buildtools = { group = "com.google.firebase", name = "firebase-crashlytics-buildtools", version.ref = "firebaseCrashlyticsBuildtools" }
 picasso = { module = "com.squareup.picasso:picasso", version.ref = "picasso" }
+opencv = { group = "org.openpnp", name = "opencv", version.ref = "opencv" }
+opencv-contrib = { group = "com.quickbirdstudios", name = "opencv-contrib", version.ref = "opencvContrib" }
+cardview = { group = "androidx.cardview", name = "cardview", version.ref = "cardview" }
+recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

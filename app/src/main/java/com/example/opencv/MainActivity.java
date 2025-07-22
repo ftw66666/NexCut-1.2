@@ -69,7 +69,7 @@ import com.example.opencv.misc.ExitMonitorService;
 import com.example.opencv.modbus.ModbusTCPClient;
 import com.example.opencv.databinding.ActivityMainBinding;
 import com.example.opencv.whiteboard.SettingActivity;
-import com.example.opencv.whiteboard.WhiteboardActivity;
+import com.example.opencv.webwhiteboard.WebWhiteBoardActivity;
 import com.squareup.picasso.Picasso;
 
 import androidx.appcompat.app.AppCompatDelegate;
@@ -247,7 +247,7 @@ public class MainActivity extends AppCompatActivity {
         Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
         view.startAnimation(scaleIn);
 
-        Intent intent = new Intent(MainActivity.this, WhiteboardActivity.class);
+        Intent intent = new Intent(MainActivity.this, WebWhiteBoardActivity.class);
         startActivity(intent);
     }
 
