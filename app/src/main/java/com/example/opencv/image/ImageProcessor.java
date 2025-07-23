@@ -16,9 +16,23 @@ public class ImageProcessor {
 
 
     /**
+     * 将 Bitmap 的透明像素填充为白色
+     */
+    public static Bitmap alphaToWhiteBg(Bitmap src) {
+        if (src == null) return null;
+        Bitmap newBitmap = Bitmap.createBitmap(src.getWidth(), src.getHeight(), Bitmap.Config.ARGB_8888);
+        android.graphics.Canvas canvas = new android.graphics.Canvas(newBitmap);
+        canvas.drawColor(android.graphics.Color.WHITE); // 填充白色
+        canvas.drawBitmap(src, 0, 0, null); // 画原图
+        return newBitmap;
+    }
+
+    /**
      * 将 Bitmap 转换为 Mat 对象。
      */
     public static Mat bitmapToMat(Bitmap bitmap) {
+        // 先把透明像素转为白色
+        bitmap = alphaToWhiteBg(bitmap);
         Mat mat = new Mat(bitmap.getHeight(), bitmap.getWidth(), CvType.CV_8UC4);
         Utils.bitmapToMat(bitmap, mat);
         return mat;

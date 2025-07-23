@@ -22,6 +22,7 @@ import com.example.opencv.image.GCode;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.opencv.core.Mat;
+import org.opencv.android.OpenCVLoader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +53,15 @@ public class LayerPreviewActivity extends AppCompatActivity {
 
         recyclerView = findViewById(R.id.recyclerView);
         btnGenerate = findViewById(R.id.btnGenerate);
+        btnGenerate.setEnabled(false); // 先禁用按钮，防止so未加载时被点击
+
+        // OpenCV同步加载
+        if (!OpenCVLoader.initDebug()) {
+            Toast.makeText(this, "OpenCV 加载失败", Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
+        btnGenerate.setEnabled(true); // so加载成功后再允许点击
 
         // 解析layerData
         String layerDataJson = getIntent().getStringExtra("layerData");
@@ -96,20 +106,19 @@ public class LayerPreviewActivity extends AppCompatActivity {
                             mat = com.example.opencv.image.ImageProcessor.bitmapToMat(bitmap);
                         }
                         gcode = GCode.generateGCode0(
-                                mat, layer.rho, Constant.PrintWidth, Constant.PrintHeight,
+                                mat, layer.rho, Constant.PlatformWidth, Constant.PlatformHeight,
                                 Constant.PrintStartX, Constant.PrintStartY, layer.laserPower
                         );
-                    } else if ("VECTOR".equalsIgnoreCase(layer.printingMethod)) {
-                        gcode = GCode.generateGCodeFollowBlackPixels(
-                                mat, Constant.PrintWidth, Constant.PrintHeight,
+                    } else if ("VECTOR".equalsIgnoreCase(layer.printingMethod) ||
+                            "ENGRAVE".equalsIgnoreCase(layer.printingMethod) ||
+                            "雕刻".equals(layer.printingMethod)) {
+                        gcode = GCode.generateGCodeFromSkeleton(
+                                mat, Constant.PlatformWidth, Constant.PlatformHeight,
                                 Constant.PrintStartX, Constant.PrintStartY, layer.laserPower,
-                                true, true
+                                true, 1
                         );
                     } else {
-                        gcode = GCode.generateGCode0(
-                                mat, 6, Constant.PrintWidth, Constant.PrintHeight,
-                                Constant.PrintStartX, Constant.PrintStartY, 20
-                        );
+                        gcode = null;
                     }
                     allGCode.append("; 图层: ").append(layer.printingMethod).append("\n");
                     allGCode.append(gcode).append("\n");

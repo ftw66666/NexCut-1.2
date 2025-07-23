@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 
 import android.os.Environment;
 
@@ -46,7 +47,122 @@ public class GCode {
     private static final int MAX_POWER = 255;
     public static String generateGCode0(Mat image, int rho, int targetWidth, int targetHeight, double startX, double startY, int laserPower) {
         // 调用新的、功能更全的内部版本，并传入一个固定的默认阈值
-        return generateGCode0(image, rho, targetWidth, targetHeight, startX, startY, laserPower, 127);
+        return generateGCodeForPlatform(image, rho, targetWidth, targetHeight, laserPower, 127);
+    }
+
+    /**
+     * 根据代表整个工作平台的图像生成优化的灰度G代码。
+     * 雕刻区域从工作坐标系的原点 (0,0) 开始。
+     * 该方法会合并一行中功率相同的连续像素，以减小文件大小。
+     *
+     * @param image        输入的OpenCV Mat图像，代表整个平台
+     * @param rho          分辨率 (每毫米的点数/线数)
+     * @param targetWidth  目标雕刻宽度 (毫米)，即平台的宽度
+     * @param targetHeight 目标雕刻高度 (毫米)，即平台的高度
+     * @param laserPower   最大激光功率 (对应纯黑色)
+     * @param grayThreshold 灰度阈值 (0-255)，高于此值的像素将被忽略 (视为白色)
+     * @return 生成的优化G代码字符串
+     */
+    public static String generateGCodeForPlatform(Mat image, int rho, int targetWidth, int targetHeight,
+                                                  int laserPower, int grayThreshold) {
+        if (image == null || image.empty()) {
+            return "; Error: Input image is empty.\n";
+        }
+
+        StringBuilder gcode = new StringBuilder();
+
+        // 标准G代码头部，确保机器状态正确
+        gcode.append("G21\n"); // 设置单位为毫米
+        gcode.append("G90\n"); // 设置为绝对坐标模式
+        gcode.append("M4 S0\n"); // 使用动态激光功率模式，初始功率为0
+
+        Mat grayImage = new Mat();
+        Mat resized = new Mat();
+
+        try {
+            // 1. 确保图像是灰度图
+            if (image.channels() > 1) {
+                Imgproc.cvtColor(image, grayImage, Imgproc.COLOR_BGR2GRAY);
+            } else {
+                image.copyTo(grayImage);
+            }
+
+            // 2. 缩放图像以匹配物理尺寸和分辨率
+            int cols = targetWidth * rho;
+            int rows = targetHeight * rho;
+            Imgproc.resize(grayImage, resized, new Size(cols, rows), 0, 0, Imgproc.INTER_AREA);
+
+            // 3. 生成GCode
+            double pixelWidth = 1.0 / rho;
+
+            for (int y = 0; y < rows; y++) {
+                // Y坐标计算：从平台的顶部 (targetHeight) 向下移动
+                double realY = targetHeight - (y * pixelWidth);
+
+                // Z字形扫描方向
+                int startCol = (y % 2 == 0) ? 0 : cols - 1;
+                int endCol = (y % 2 == 0) ? cols : -1;
+                int step = (y % 2 == 0) ? 1 : -1;
+
+                // 计算并移动到当前行的起始X坐标
+                double lineStartX = startCol * pixelWidth;
+                gcode.append(String.format(Locale.US, "G0 X%.3f Y%.3f\n", lineStartX, realY));
+
+                if (cols == 0) continue;
+
+                // 初始化第一个区段
+                int lastPower = calculatePower(resized.get(y, startCol)[0], laserPower, grayThreshold);
+
+                for (int x = startCol + step; x != endCol; x += step) {
+                    int currentPower = calculatePower(resized.get(y, x)[0], laserPower, grayThreshold);
+
+                    if (currentPower != lastPower) {
+                        // 区段结束，生成GCode
+                        // 上个区段的终点X坐标
+                        double segmentEndX = (x - step) * pixelWidth;
+
+                        // 只在功率大于0时才设置功率和移动，对于功率为0的区段可以优化
+                        if (lastPower > 0) {
+                            gcode.append(String.format(Locale.US, "S%d\n", lastPower));
+                            gcode.append(String.format(Locale.US, "G1 X%.3f\n", segmentEndX));
+                        } else {
+                            // 如果上一段是空白（功率为0），我们只需要快速移动到新段的起点
+                            // 新段起点就是当前像素位置
+                            double newSegmentStartX = x * pixelWidth;
+                            gcode.append(String.format(Locale.US, "G0 X%.3f\n", newSegmentStartX));
+                        }
+
+                        lastPower = currentPower;
+                    }
+                }
+
+                // 处理并生成行尾的最后一个区段
+                if (lastPower > 0) {
+                    double finalSegmentEndX = (endCol - step) * pixelWidth;
+                    gcode.append(String.format(Locale.US, "S%d\n", lastPower));
+                    gcode.append(String.format(Locale.US, "G1 X%.3f\n", finalSegmentEndX));
+                }
+            }
+        } finally {
+            grayImage.release();
+            resized.release();
+        }
+
+        gcode.append("M5\n"); // 雕刻结束，彻底关闭激光
+        gcode.append("G0 X0 Y0\n"); // 可选：任务结束后返回工作区原点
+        return gcode.toString();
+    }
+
+    /**
+     * 根据灰度值计算激光功率的辅助函数
+     */
+    private static int calculatePower(double grayValue, int maxPower, int threshold) {
+        if (grayValue >= threshold) {
+            return 0;
+        }
+        double powerRatio = 1.0 - (grayValue / (double) threshold);
+        int power = (int) (maxPower * powerRatio);
+        return Math.max(0, Math.min(power, maxPower));
     }
     /**
      * 【新的内部实现版本】
@@ -465,61 +581,59 @@ public class GCode {
         }
     }
 
+
     /**
-     * 构建G代码字符串。
+     * [最终版] 构建G代码字符串。
+     * 该版本执行纯粹的坐标映射，将图像像素位置直接转换为平台的绝对物理坐标，
+     * 忽略任何额外的偏移量 (startX, startY 被视为 0)。
      */
     private static String buildGCode(List<List<Point>> paths, Size imageSize,
                                      double targetWidth, double targetHeight,
-                                     double startX, double startY,
+                                     double startX, double startY, // 参数保留以兼容主函数，但内部不使用
                                      int laserPower) {
         StringBuilder gcode = new StringBuilder();
-        gcode.append("M4 S0 ; Use dynamic laser mode, power off\n");
-        gcode.append("\n");
+        // G代码标准头部
+        gcode.append("G21 ; Set units to millimeters\n");
+        gcode.append("G90 ; Use absolute coordinates\n");
+        gcode.append("M4 S0 ; Use dynamic laser mode, power off\n\n");
 
-        // --- 保持宽高比的坐标变换 ---
-        double imageWidth = imageSize.width;
-        double imageHeight = imageSize.height;
-
-        double scale = Math.min(targetWidth / imageWidth, targetHeight / imageHeight);
-
-        double scaledWidth = imageWidth * scale;
-        double scaledHeight = imageHeight * scale;
-
-        double offsetX = startX + (targetWidth - scaledWidth) / 2.0;
-        double offsetY = startY + (targetHeight - scaledHeight) / 2.0;
-        // --- 变换结束 ---
+        // --- [核心修改] 纯粹的坐标系映射 ---
+        // 计算X和Y方向各自的缩放比例
+        double scaleX = targetWidth / imageSize.width;
+        double scaleY = targetHeight / imageSize.height;
+        // --- 映射关系确定 ---
 
         for (List<Point> path : paths) {
             Point startPointImg = path.get(0);
-            double machineStartX = offsetX + (startPointImg.x * scale);
-            double machineStartY = offsetY + ((imageHeight - 1 - startPointImg.y) * scale);
+
+            // 将图像坐标(左上角为0,0)直接转换为机器的绝对坐标(左下角为0,0)
+            double machineStartX = startPointImg.x * scaleX;
+            double machineStartY = targetHeight - (startPointImg.y * scaleY); // Y轴反转
 
             // 快速移动到路径起点
             gcode.append(String.format(Locale.US, "G0 X%.3f Y%.3f\n", machineStartX, machineStartY));
 
-            // 开始雕刻
-            for (int i = 0; i < path.size(); i++) {
-                Point pImg = path.get(i);
-                double machineX = offsetX + (pImg.x * scale);
-                double machineY = offsetY + ((imageHeight - 1 - pImg.y) * scale);
+            // 设置功率，然后开始雕刻
+            gcode.append(String.format(Locale.US, "S%d\n", laserPower));
+            gcode.append(String.format(Locale.US, "G1 X%.3f Y%.3f\n", machineStartX, machineStartY)); // 移动到同一位置以启动M4
 
-                if (i == 0) {
-                    // 在路径的第一个点打开激光
-                    gcode.append(String.format(Locale.US, "G1 X%.3f Y%.3f S%d\n", machineX, machineY, laserPower));
-                } else {
-                    gcode.append(String.format(Locale.US, "G1 X%.3f Y%.3f\n", machineX, machineY));
-                }
+            // 沿着路径移动
+            for (int i = 1; i < path.size(); i++) {
+                Point pImg = path.get(i);
+                double machineX = pImg.x * scaleX;
+                double machineY = targetHeight - (pImg.y * scaleY);
+                gcode.append(String.format(Locale.US, "G1 X%.3f Y%.3f\n", machineX, machineY));
             }
-            // 在路径末端关闭激光
-            gcode.append("G1 S0\n\n");
+            // 路径结束，关闭激光
+            gcode.append("S0\n\n");
         }
 
+        // G代码标准尾部
         gcode.append("M5 ; Turn off laser module\n");
-        gcode.append(String.format(Locale.US, "G0 X%.3f Y%.3f\n", startX, startY)); // 返回全局原点
+        gcode.append("G0 X0 Y0 ; Return to work origin (0,0)\n"); // 任务结束后返回物理原点
 
         return gcode.toString();
     }
-
     /**
      * [优化] 使用最近邻算法优化路径顺序，减少空载移动。
      */
@@ -663,382 +777,166 @@ public class GCode {
             return neighbors;
         }
     }
-    // 优化后的 generateGCodeFromEdges (改动很小)
-//    public static String generateGCodeFromEdges(Mat image,
-//                                                double targetWidth, double targetHeight,
-//                                                double startX, double startY,
-//                                                int laserPower,
-//                                                boolean invertBinary,
-//                                                double simplifyEpsilonFactor) {
-//
-//        if (image == null || image.empty()) {
-//            return "; Error: Input image for outline is empty.\n";
-//        }
-//
-//        // 资源将在 finally 块中释放
-//        Mat grayMat = new Mat();
-//        Mat binaryMat = new Mat();
-//        Mat hierarchy = new Mat();
-//        List<MatOfPoint> contours = new ArrayList<>();
-//        List<MatOfPoint> processedContours = new ArrayList<>();
-//
-//        try {
-//            // 1. 预处理：灰度化和二值化
-//            if (image.channels() > 1) {
-//                Imgproc.cvtColor(image, grayMat, Imgproc.COLOR_BGR2GRAY);
-//            } else {
-//                grayMat = image.clone();
-//            }
-//
-//            int thresholdType = invertBinary ? Imgproc.THRESH_BINARY_INV : Imgproc.THRESH_BINARY;
-//            Imgproc.threshold(grayMat, binaryMat, 200, 255, thresholdType | Imgproc.THRESH_OTSU);
-//
-//
-//            // 2. 查找并简化轮廓
-//            Imgproc.findContours(binaryMat, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_NONE);
-//
-//            if (simplifyEpsilonFactor > 0) {
-//                for (MatOfPoint contour : contours) {
-//                    MatOfPoint2f contour2f = new MatOfPoint2f(contour.toArray());
-//                    double perimeter = Imgproc.arcLength(contour2f, true);
-//                    double epsilon = simplifyEpsilonFactor * perimeter;
-//                    MatOfPoint2f approxContour2f = new MatOfPoint2f();
-//                    Imgproc.approxPolyDP(contour2f, approxContour2f, epsilon, true);
-//                    if (approxContour2f.toArray().length > 1) {
-//                        processedContours.add(new MatOfPoint(approxContour2f.toArray()));
-//                    }
-//                }
-//            } else {
-//                processedContours.addAll(contours);
-//            }
-//
-//            if (processedContours.isEmpty()) {
-//                return "; Info: No contours found in image.\n";
-//            }
-//
-//            // 3. 遍历轮廓并生成G代码
-//            StringBuilder gcode = new StringBuilder();
-//            gcode.append("M4 S0\n"); // 启动动态激光模式，功率为0
-//
-//            double scaleX = targetWidth / binaryMat.width();
-//            double scaleY = targetHeight / binaryMat.height();
-//
-//            for (MatOfPoint contour : processedContours) {
-//                Point[] points = contour.toArray();
-//                if (points.length < 2) continue;
-//
-//                Point startPointImg = points[0];
-//                double machineStartX = startX + (startPointImg.x * scaleX);
-//                double machineStartY = startY + ((binaryMat.height() - 1 - startPointImg.y) * scaleY);
-//
-//                gcode.append(String.format(Locale.US, "G0 X%.3f Y%.3f\n", machineStartX, machineStartY)); // S0是默认值，可省略
-//                gcode.append(String.format(Locale.US, "G1 S%d\n", laserPower)); // 开激光
-//
-//                for (int i = 1; i < points.length; i++) {
-//                    Point pImg = points[i];
-//                    double machineX = startX + (pImg.x * scaleX);
-//                    double machineY = startY + ((binaryMat.height() - 1 - pImg.y) * scaleY);
-//                    gcode.append(String.format(Locale.US, "G1 X%.3f Y%.3f\n", machineX, machineY));
-//                }
-//                // 闭合路径
-//                gcode.append(String.format(Locale.US, "G1 X%.3f Y%.3f\n", machineStartX, machineStartY));
-//                gcode.append("G1 S0\n"); // 关激光
-//            }
-//
-//            // 4. 结束指令
-//            gcode.append("M5\n");
-//            gcode.append(String.format(Locale.US, "G0 X%.3f Y%.3f\n", 0.0, 0.0));
-//
-//            return gcode.toString();
-//
-//        } finally {
-//            // 确保所有 Mat 对象都被释放
-//            grayMat.release();
-//            binaryMat.release();
-//            hierarchy.release();
-//            for (MatOfPoint contour : contours) contour.release();
-//            // processedContours 中的 MatOfPoint 是从 contours 移动或创建的，也需要考虑释放
-//            // 但由于它们是局部变量，Java的GC会处理MatOfPoint对象本身，其内部的Mat数据在 findContours 后由 contours 列表管理并已释放
-//        }
-//    }
-//    /**
-//     * [已修改] 从模糊的线框图生成G代码。
-//     * 该方法使用骨架提取来找到粗线条的中心路径，并使用智能路径追踪算法重建路径。
-//     *
-//     * @param image               输入的线框图 (可以是灰度或BGR)
-//     * @param targetWidth         G代码坐标系中的目标宽度 (mm)
-//     * @param targetHeight        G代码坐标系中的目标高度 (mm)
-//     * @param startX              G代码坐标系中的全局起始X偏移 (mm)
-//     * @param startY              G代码坐标系中的全局起始Y偏移 (mm)
-//     * @param laserPower          激光工作功率 (S值)
-//     * @param invertBinary        是否反转二值化阈值 (true: 白底黑线, false: 黑底白线)
-//     * @param simplifyEpsilonFactor Douglas-Peucker简化因子 (0到1之间, 0表示不简化)
-//     * @return 生成的G代码字符串
-//     */
-//    public static String generateGCodeFromSkeleton(Mat image,
-//                                                   double targetWidth, double targetHeight,
-//                                                   double startX, double startY,
-//                                                   int laserPower,
-//                                                   boolean invertBinary,
-//                                                   double simplifyEpsilonFactor) {
-//
-//        // --- 参数配置 ---
-//        boolean applyChaikinSmoothing = true;
-//        int chaikinIterations = 2;
-//        double chaikinRatio = 0.25;
-//
-//        if (image == null || image.empty()) {
-//            return "; Error: 输入的图像为空。\n";
-//        }
-//
-//        Mat grayMat = new Mat();
-//        Mat binaryMat = new Mat();
-//        Mat skeletonMat = new Mat();
-//
-//        try {
-//            // 1. 预处理：灰度化和二值化
-//            if (image.channels() > 1) {
-//                Imgproc.cvtColor(image, grayMat, Imgproc.COLOR_BGR2GRAY);
-//            } else {
-//                grayMat = image.clone();
-//            }
-//
-//            // 对于模糊的线条，可以先进行一次高斯模糊平滑噪点，再二值化
-//            // Imgproc.GaussianBlur(grayMat, grayMat, new Size(3, 3), 0);
-//
-//            int thresholdType = invertBinary ? Imgproc.THRESH_BINARY_INV : Imgproc.THRESH_BINARY;
-//            Imgproc.threshold(grayMat, binaryMat, 0, 255, thresholdType | Imgproc.THRESH_OTSU);
-//
-//            // 2. 骨架提取
-//            Ximgproc.thinning(binaryMat, skeletonMat, Ximgproc.THINNING_ZHANGSUEN);
-//
-//            // 3. 【核心修改】从骨架像素重建有序路径
-//            List<List<Point>> paths = tracePathsFromSkeleton(skeletonMat);
-//            if (paths.isEmpty()) {
-//                return "; Info: 未能从骨架中重建任何路径。\n";
-//            }
-//
-//            // (可选) 路径排序优化，减少激光头空跑距离
-//            paths = sortPaths(paths, new Point(0, 0));
-//
-//
-//            // 4. 路径后处理与G代码生成
-//            StringBuilder gcode = new StringBuilder();
-//            gcode.append("M4 S0\n"); // 启用激光动态功率模式，初始功率为0
-//
-//            double scaleX = targetWidth / skeletonMat.width();
-//            double scaleY = targetHeight / skeletonMat.height();
-//
-//            for (List<Point> path : paths) {
-//                if (path.size() < 2) continue;
-//
-//                // (可选) 应用Chaikin平滑
-//                List<Point> finalPath = path;
-//                if (applyChaikinSmoothing && chaikinIterations > 0) {
-//                    finalPath = chaikinSmooth(path, chaikinIterations, chaikinRatio, false); // 路径是开放的
-//                }
-//
-//                // (可选) 应用Douglas-Peucker简化
-//                if (simplifyEpsilonFactor > 0 && finalPath.size() > 2) {
-//                    MatOfPoint2f path2f = new MatOfPoint2f(finalPath.toArray(new Point[0]));
-//                    MatOfPoint2f approxPath2f = new MatOfPoint2f();
-//                    double perimeter = Imgproc.arcLength(path2f, false);
-//                    double epsilon = simplifyEpsilonFactor * perimeter;
-//                    Imgproc.approxPolyDP(path2f, approxPath2f, epsilon, false);
-//                    finalPath = new ArrayList<>(Arrays.asList(approxPath2f.toArray()));
-//                    approxPath2f.release();
-//                    path2f.release();
-//                }
-//
-//                if (finalPath.size() < 2) continue;
-//
-//                // --- G代码生成逻辑 ---
-//                Point startPointImg = finalPath.get(0);
-//                double machineStartX = startX + (startPointImg.x * scaleX);
-//                double machineStartY = startY + ((skeletonMat.height() - 1 - startPointImg.y) * scaleY);
-//
-//                gcode.append(String.format(Locale.US, "G0 X%.3f Y%.3f\n", machineStartX, machineStartY));
-//                gcode.append(String.format(Locale.US, "G1 S%d\n", laserPower));
-//
-//                for (int i = 1; i < finalPath.size(); i++) {
-//                    Point pImg = finalPath.get(i);
-//                    double machineX = startX + (pImg.x * scaleX);
-//                    double machineY = startY + ((skeletonMat.height() - 1 - pImg.y) * scaleY);
-//                    gcode.append(String.format(Locale.US, "G1 X%.3f Y%.3f\n", machineX, machineY));
-//                }
-//                gcode.append("G1 S0\n");
-//            }
-//
-//            gcode.append("M5\n");
-//            gcode.append(String.format(Locale.US, "G0 X%.3f Y%.3f\n", startX, startY));
-//
-//            return gcode.toString();
-//
-//        } finally {
-//            grayMat.release();
-//            binaryMat.release();
-//            skeletonMat.release();
-//        }
-//    }
-//
-//    /**
-//     * [全新辅助方法] 从骨架图中追踪出所有连续路径。
-//     *
-//     * @param skeletonMat 单像素宽的骨架二值图 (白色为路径)
-//     * @return 一个包含多个路径的列表，每个路径是一个有序的点列表。
-//     */
-//    private static List<List<Point>> tracePathsFromSkeleton(Mat skeletonMat) {
-//        List<List<Point>> allPaths = new ArrayList<>();
-//        Mat visited = Mat.zeros(skeletonMat.size(), CvType.CV_8U); // 用于标记已访问的像素
-//
-//        for (int y = 0; y < skeletonMat.rows(); y++) {
-//            for (int x = 0; x < skeletonMat.cols(); x++) {
-//                // 只处理未访问过的骨架点
-//                if (skeletonMat.get(y, x)[0] == 255 && visited.get(y, x)[0] == 0) {
-//                    int neighbors = countNeighbors(skeletonMat, x, y);
-//
-//                    // 从端点(neighbor=1)或孤立点(neighbor=0)开始追踪新路径
-//                    // 同时也处理闭环中的任意一点（neighbor=2）
-//                    if (neighbors != 2) {
-//                        List<Point> path = new ArrayList<>();
-//                        Point startPoint = new Point(x, y);
-//                        trace(startPoint, skeletonMat, visited, path);
-//                        if (!path.isEmpty()) {
-//                            allPaths.add(path);
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//
-//        // 再次遍历，确保所有闭环路径都被找到
-//        for (int y = 0; y < skeletonMat.rows(); y++) {
-//            for (int x = 0; x < skeletonMat.cols(); x++) {
-//                if (skeletonMat.get(y, x)[0] == 255 && visited.get(y, x)[0] == 0) {
-//                    List<Point> path = new ArrayList<>();
-//                    Point startPoint = new Point(x, y);
-//                    trace(startPoint, skeletonMat, visited, path);
-//                    if (!path.isEmpty()) {
-//                        allPaths.add(path);
-//                    }
-//                }
-//            }
-//        }
-//
-//        visited.release();
-//        return allPaths;
-//    }
-//
-//    /**
-//     * 递归或迭代地追踪路径
-//     */
-//    private static void trace(Point startPoint, Mat skeleton, Mat visited, List<Point> path) {
-//        Stack<Point> stack = new Stack<>();
-//        stack.push(startPoint);
-//
-//        while (!stack.isEmpty()) {
-//            Point currentPoint = stack.pop();
-//            int x = (int) currentPoint.x;
-//            int y = (int) currentPoint.y;
-//
-//            if (visited.get(y, x)[0] == 255) {
-//                continue;
-//            }
-//
-//            visited.put(y, x, (byte) 255);
-//            path.add(currentPoint);
-//
-//            int neighborsCount = countNeighbors(skeleton, x, y);
-//            // 在分叉点处停止当前路径段的追踪
-//            if (neighborsCount > 2 && path.size() > 1) {
-//                // 将分叉点本身作为路径的终点，然后从其邻居重新开始新路径
-//                // (由外层循环处理)
-//                return;
-//            }
-//
-//            // 寻找下一个未访问的邻居
-//            for (int i = -1; i <= 1; i++) {
-//                for (int j = -1; j <= 1; j++) {
-//                    if (i == 0 && j == 0) continue;
-//                    int nx = x + j;
-//                    int ny = y + i;
-//
-//                    if (nx >= 0 && nx < skeleton.cols() && ny >= 0 && ny < skeleton.rows() &&
-//                            skeleton.get(ny, nx)[0] == 255 && visited.get(ny, nx)[0] == 0) {
-//                        stack.push(new Point(nx, ny));
-//                    }
-//                }
-//            }
-//        }
-//    }
-//
-//    /**
-//     * 计算一个点在骨架上的8邻域内的邻居数量
-//     */
-//    private static int countNeighbors(Mat skeleton, int x, int y) {
-//        int count = 0;
-//        for (int i = -1; i <= 1; i++) {
-//            for (int j = -1; j <= 1; j++) {
-//                if (i == 0 && j == 0) continue;
-//                int nx = x + j;
-//                int ny = y + i;
-//                if (nx >= 0 && nx < skeleton.cols() && ny >= 0 && ny < skeleton.rows() &&
-//                        skeleton.get(ny, nx)[0] == 255) {
-//                    count++;
-//                }
-//            }
-//        }
-//        return count;
-//    }
-//
-//    /**
-//     * [可选优化] 对路径进行排序，以减少激光头的空跑行程。
-//     * 使用简单的最近邻方法对整个路径列表进行排序。
-//     */
-//    private static List<List<Point>> sortPaths(List<List<Point>> paths, Point startFrom) {
-//        if (paths.isEmpty()) {
-//            return paths;
-//        }
-//        List<List<Point>> sorted = new ArrayList<>();
-//        List<List<Point>> remaining = new ArrayList<>(paths);
-//        Point currentLocation = startFrom;
-//
-//        while (!remaining.isEmpty()) {
-//            int bestIndex = -1;
-//            double minDistance = Double.MAX_VALUE;
-//
-//            for (int i = 0; i < remaining.size(); i++) {
-//                List<Point> path = remaining.get(i);
-//                Point pathStart = path.get(0);
-//                Point pathEnd = path.get(path.size() - 1);
-//
-//                double distToStart = Math.hypot(currentLocation.x - pathStart.x, currentLocation.y - pathStart.y);
-//                double distToEnd = Math.hypot(currentLocation.x - pathEnd.x, currentLocation.y - pathEnd.y);
-//
-//                if (distToStart < minDistance) {
-//                    minDistance = distToStart;
-//                    bestIndex = i;
-//                }
-//                if (distToEnd < minDistance) {
-//                    minDistance = distToEnd;
-//                    bestIndex = i;
-//                }
-//            }
-//
-//            List<Point> bestPath = remaining.remove(bestIndex);
-//            Point pathStart = bestPath.get(0);
-//            double distToStart = Math.hypot(currentLocation.x - pathStart.x, currentLocation.y - pathStart.y);
-//            double distToEnd = Math.hypot(currentLocation.x - bestPath.get(bestPath.size() - 1).x, currentLocation.y - bestPath.get(bestPath.size() - 1).y);
-//
-//            if (distToEnd < distToStart) {
-//                Collections.reverse(bestPath);
-//            }
-//
-//            sorted.add(bestPath);
-//            currentLocation = bestPath.get(bestPath.size() - 1);
-//        }
-//        return sorted;
-//    }
+
+
+    /**
+     * [全新辅助方法] 从骨架图中追踪出所有连续路径。
+     *
+     * @param skeletonMat 单像素宽的骨架二值图 (白色为路径)
+     * @return 一个包含多个路径的列表，每个路径是一个有序的点列表。
+     */
+    private static List<List<Point>> tracePathsFromSkeleton(Mat skeletonMat) {
+        List<List<Point>> allPaths = new ArrayList<>();
+        Mat visited = Mat.zeros(skeletonMat.size(), CvType.CV_8U); // 用于标记已访问的像素
+
+        for (int y = 0; y < skeletonMat.rows(); y++) {
+            for (int x = 0; x < skeletonMat.cols(); x++) {
+                // 只处理未访问过的骨架点
+                if (skeletonMat.get(y, x)[0] == 255 && visited.get(y, x)[0] == 0) {
+                    int neighbors = countNeighbors(skeletonMat, x, y);
+
+                    // 从端点(neighbor=1)或孤立点(neighbor=0)开始追踪新路径
+                    // 同时也处理闭环中的任意一点（neighbor=2）
+                    if (neighbors != 2) {
+                        List<Point> path = new ArrayList<>();
+                        Point startPoint = new Point(x, y);
+                        trace(startPoint, skeletonMat, visited, path);
+                        if (!path.isEmpty()) {
+                            allPaths.add(path);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 再次遍历，确保所有闭环路径都被找到
+        for (int y = 0; y < skeletonMat.rows(); y++) {
+            for (int x = 0; x < skeletonMat.cols(); x++) {
+                if (skeletonMat.get(y, x)[0] == 255 && visited.get(y, x)[0] == 0) {
+                    List<Point> path = new ArrayList<>();
+                    Point startPoint = new Point(x, y);
+                    trace(startPoint, skeletonMat, visited, path);
+                    if (!path.isEmpty()) {
+                        allPaths.add(path);
+                    }
+                }
+            }
+        }
+
+        visited.release();
+        return allPaths;
+    }
+
+    /**
+     * 递归或迭代地追踪路径
+     */
+    private static void trace(Point startPoint, Mat skeleton, Mat visited, List<Point> path) {
+        Stack<Point> stack = new Stack<>();
+        stack.push(startPoint);
+
+        while (!stack.isEmpty()) {
+            Point currentPoint = stack.pop();
+            int x = (int) currentPoint.x;
+            int y = (int) currentPoint.y;
+
+            if (visited.get(y, x)[0] == 255) {
+                continue;
+            }
+
+            visited.put(y, x, (byte) 255);
+            path.add(currentPoint);
+
+            int neighborsCount = countNeighbors(skeleton, x, y);
+            // 在分叉点处停止当前路径段的追踪
+            if (neighborsCount > 2 && path.size() > 1) {
+                // 将分叉点本身作为路径的终点，然后从其邻居重新开始新路径
+                // (由外层循环处理)
+                return;
+            }
+
+            // 寻找下一个未访问的邻居
+            for (int i = -1; i <= 1; i++) {
+                for (int j = -1; j <= 1; j++) {
+                    if (i == 0 && j == 0) continue;
+                    int nx = x + j;
+                    int ny = y + i;
+
+                    if (nx >= 0 && nx < skeleton.cols() && ny >= 0 && ny < skeleton.rows() &&
+                            skeleton.get(ny, nx)[0] == 255 && visited.get(ny, nx)[0] == 0) {
+                        stack.push(new Point(nx, ny));
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 计算一个点在骨架上的8邻域内的邻居数量
+     */
+    private static int countNeighbors(Mat skeleton, int x, int y) {
+        int count = 0;
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
+                if (i == 0 && j == 0) continue;
+                int nx = x + j;
+                int ny = y + i;
+                if (nx >= 0 && nx < skeleton.cols() && ny >= 0 && ny < skeleton.rows() &&
+                        skeleton.get(ny, nx)[0] == 255) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    /**
+     * [可选优化] 对路径进行排序，以减少激光头的空跑行程。
+     * 使用简单的最近邻方法对整个路径列表进行排序。
+     */
+    private static List<List<Point>> sortPaths(List<List<Point>> paths, Point startFrom) {
+        if (paths.isEmpty()) {
+            return paths;
+        }
+        List<List<Point>> sorted = new ArrayList<>();
+        List<List<Point>> remaining = new ArrayList<>(paths);
+        Point currentLocation = startFrom;
+
+        while (!remaining.isEmpty()) {
+            int bestIndex = -1;
+            double minDistance = Double.MAX_VALUE;
+
+            for (int i = 0; i < remaining.size(); i++) {
+                List<Point> path = remaining.get(i);
+                Point pathStart = path.get(0);
+                Point pathEnd = path.get(path.size() - 1);
+
+                double distToStart = Math.hypot(currentLocation.x - pathStart.x, currentLocation.y - pathStart.y);
+                double distToEnd = Math.hypot(currentLocation.x - pathEnd.x, currentLocation.y - pathEnd.y);
+
+                if (distToStart < minDistance) {
+                    minDistance = distToStart;
+                    bestIndex = i;
+                }
+                if (distToEnd < minDistance) {
+                    minDistance = distToEnd;
+                    bestIndex = i;
+                }
+            }
+
+            List<Point> bestPath = remaining.remove(bestIndex);
+            Point pathStart = bestPath.get(0);
+            double distToStart = Math.hypot(currentLocation.x - pathStart.x, currentLocation.y - pathStart.y);
+            double distToEnd = Math.hypot(currentLocation.x - bestPath.get(bestPath.size() - 1).x, currentLocation.y - bestPath.get(bestPath.size() - 1).y);
+
+            if (distToEnd < distToStart) {
+                Collections.reverse(bestPath);
+            }
+
+            sorted.add(bestPath);
+            currentLocation = bestPath.get(bestPath.size() - 1);
+        }
+        return sorted;
+    }
 
     /**
      * 生成包含灰度雕刻和外部轮廓切割的G-code。
