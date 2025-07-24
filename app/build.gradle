@@ -72,5 +72,5 @@ dependencies {
     implementation 'com.squareup.picasso:picasso:2.8'
     implementation 'io.fotoapparat:fotoapparat:2.7.0'
     implementation 'com.caverock:androidsvg:1.4'
-
+    implementation 'org.nanohttpd:nanohttpd:2.3.1'
 }
