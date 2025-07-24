@@ -7,17 +7,11 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AppCompatDelegate;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -55,35 +49,7 @@ public class LayerPreviewActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // 1. 启用 EdgeToEdge 模式
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_layer_preview);
-
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-
-        // 隐藏导航栏和状态栏
-        View decorView = getWindow().getDecorView();
-        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-        decorView.setSystemUiVisibility(uiOptions);
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            // 获取系统栏（状态栏、导航栏）的 Insets
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            // 获取键盘（IME）的 Insets
-            Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
-
-            // 计算底部的 padding
-            // 当键盘弹出时，ime.bottom 是键盘高度，通常大于 systemBars.bottom
-            // 当键盘收起时，ime.bottom 是 0，我们取 systemBars.bottom 作为导航栏的间距
-            int bottomPadding = Math.max(systemBars.bottom, ime.bottom);
-
-            // 为根布局设置新的 padding
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, bottomPadding);
-
-            // 返回原始 insets，让系统继续处理
-            return insets;
-        });
 
         recyclerView = findViewById(R.id.recyclerView);
         btnGenerate = findViewById(R.id.btnGenerate);

@@ -1,7 +1,5 @@
 package com.example.opencv.webwhiteboard;
 
-import android.annotation.SuppressLint;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.view.View;
 import android.webkit.WebSettings;
@@ -19,49 +17,29 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.example.opencv.Constant;
 import com.example.opencv.R;
-import com.example.opencv.server.LocalFileServer;
 
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.InputStream;
 
 public class WebWhiteBoardActivity extends AppCompatActivity {
     private WebView webView;
     private ValueCallback<Uri[]> uploadMessage;
-
-    private LocalFileServer localFileServer;
-
-    private Uri imageUri;
     private final static int FILE_CHOOSER_RESULT_CODE = 10000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-//        // 启动本地文件服务器
-//        try {
-//            // 使用一个不易冲突的端口，比如 8080 或 8686
-//            localFileServer = new LocalFileServer(this, 8686);
-//            localFileServer.start();
-//            android.util.Log.d("LocalServer", "本地服务器已启动在端口: " + localFileServer.getListeningPort());
-//        } catch (java.io.IOException e) {
-//            e.printStackTrace();
-//            android.util.Log.e("LocalServer", "启动本地服务器失败!");
-//        }
-
         // 1. 启用 EdgeToEdge 模式
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_webwhiteboard);
 
-        // 实例化 WebView 并设置为内容视图 (只执行一次)
-        webView = findViewById(R.id.webView);
+
 
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 
@@ -87,6 +65,10 @@ public class WebWhiteBoardActivity extends AppCompatActivity {
             // 返回原始 insets，让系统继续处理
             return insets;
         });
+        // 实例化 WebView 并设置为内容视图 (只执行一次)
+        webView = findViewById(R.id.webView);
+//        webView = new WebView(this);
+//        setContentView(webView);
 
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
@@ -139,36 +121,10 @@ public class WebWhiteBoardActivity extends AppCompatActivity {
                 }
             }
             // 新增：前端主动请求画布大小
-            @SuppressLint("DefaultLocale")
             @JavascriptInterface
             public String getPlatformSize() {
-                return String.format("{\"width\":%d,\"height\":%d}", Constant.PrintWidth, Constant.PrintHeight);
+                return String.format("{\"width\":%d,\"height\":%d}", Constant.PlatformWidth, Constant.PlatformHeight);
             }
-
-//            @JavascriptInterface
-//            public String getImageUri() {
-//                // 7.24
-//                if (getIntent().getStringExtra("imageUri") == null) ;
-//                else {
-//                    imageUri = Uri.parse(getIntent().getStringExtra("imageUri"));
-//                    // 【关键逻辑开始】
-//                    // 1. 检查服务器是否正在运行
-//                    if (localFileServer != null && localFileServer.isAlive()) {
-//
-//
-//                        // 3. 使用服务器为 Uri 授权，并获取一个本地 URL
-//                        String localUrl = localFileServer.authorizeUri(imageUri);
-//
-//                        android.util.Log.d("JS_EXEC", "传送uri");
-//
-//                    } else {
-//                        android.util.Log.e("JS_EXEC", "本地服务器未运行，无法处理文件。");
-//                    }
-//                }
-//                return "";
-//            }
-
-
         }, "Android");
 
         // 设置WebViewClient来处理页面加载完成后的操作
@@ -176,107 +132,60 @@ public class WebWhiteBoardActivity extends AppCompatActivity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                
+
                 // 传递画布尺寸
-                @SuppressLint("DefaultLocale") String canvasSizeJs = String.format(
-                    "window.setCanvasSize(%d, %d);", 
-                    Constant.PrintWidth,
-                    Constant.PrintHeight
+                String canvasSizeJs = String.format(
+                    "window.setCanvasSize(%d, %d);",
+                    Constant.PlatformWidth,
+                    Constant.PlatformHeight
                 );
                 webView.evaluateJavascript(canvasSizeJs, null);
-                
-//                // 处理图片传递
-//                String imagePath = getIntent().getStringExtra("imagePath");
-//                if (imagePath != null && !imagePath.isEmpty()) {
-//                    try {
-//                        File file = new File(imagePath);
-//                        if (file.exists()) {
-//                            FileInputStream fis = new FileInputStream(file);
-//                            byte[] bytes = new byte[(int) file.length()];
-//                            fis.read(bytes);
-//                            fis.close();
-//                            String base64 = android.util.Base64.encodeToString(bytes, android.util.Base64.DEFAULT);
-//
-//                            // 根据文件扩展名确定MIME类型
-//                            String mimeType = "image/png";
-//                            String fileName = file.getName().toLowerCase();
-//                            if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
-//                                mimeType = "image/jpeg";
-//                            } else if (fileName.endsWith(".gif")) {
-//                                mimeType = "image/gif";
-//                            } else if (fileName.endsWith(".webp")) {
-//                                mimeType = "image/webp";
-//                            }
-//
-//                            String dataUrl = "data:" + mimeType + ";base64," + base64;
-//                            String jsCode = "window.setWhiteboardImage('" + dataUrl + "');";
-//                            webView.evaluateJavascript(jsCode, null);
-//                        }
-//                    } catch (Exception e) {
-//                        e.printStackTrace();
-//                    }
-//                } else {
-//                    // 旧方案：通过base64参数传递（已注释，保留作为备份）
-//                    /*
-//                    String imageBase64 = getIntent().getStringExtra("imageBase64");
-//                    if (imageBase64 != null && !imageBase64.isEmpty()) {
-//                        String jsCode = "window.setWhiteboardImage('" + imageBase64 + "');";
-//                        webView.evaluateJavascript(jsCode, null);
-//                    }
-//                    */
-//                }
-                // 7.24
-                if (getIntent().getStringExtra("imageUri") == null) ;
-                else {
-                    imageUri = Uri.parse(getIntent().getStringExtra("imageUri"));
-                    // 【关键逻辑开始】
-                    // 1. 检查服务器是否正在运行
-                    if (localFileServer != null && localFileServer.isAlive()) {
 
+                // 处理图片传递
+                String imagePath = getIntent().getStringExtra("imagePath");
+                if (imagePath != null && !imagePath.isEmpty()) {
+                    try {
+                        File file = new File(imagePath);
+                        if (file.exists()) {
+                            FileInputStream fis = new FileInputStream(file);
+                            byte[] bytes = new byte[(int) file.length()];
+                            fis.read(bytes);
+                            fis.close();
+                            String base64 = android.util.Base64.encodeToString(bytes, android.util.Base64.DEFAULT);
 
-                            // 3. 使用服务器为 Uri 授权，并获取一个本地 URL
-                            String localUrl = localFileServer.authorizeUri(imageUri);
+                            // 根据文件扩展名确定MIME类型
+                            String mimeType = "image/png";
+                            String fileName = file.getName().toLowerCase();
+                            if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
+                                mimeType = "image/jpeg";
+                            } else if (fileName.endsWith(".gif")) {
+                                mimeType = "image/gif";
+                            } else if (fileName.endsWith(".webp")) {
+                                mimeType = "image/webp";
+                            }
 
-                            // 4. 构造将要执行的 JavaScript 语句
-                            @SuppressLint("DefaultLocale") String jsCode = String.format(
-                                    "window.addImageToCanvas('%s', %d, %d);",
-                                    localUrl,
-                                    Constant.PlatformWidth,
-                                    Constant.PlatformHeight
-                            );
-
-                            // 5. 执行 JavaScript
+                            String dataUrl = "data:" + mimeType + ";base64," + base64;
+                            String safeJsArg = JSONObject.quote(dataUrl);
+                            String jsCode = "window.setWhiteboardImage(" + safeJsArg + ");";
                             webView.evaluateJavascript(jsCode, null);
-
-                            android.util.Log.d("JS_EXEC", "执行JS: " + jsCode);
-
-                    } else {
-                        android.util.Log.e("JS_EXEC", "本地服务器未运行，无法处理文件。");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
+                } else {
+                    // 旧方案：通过base64参数传递（已注释，保留作为备份）
+                    /*
+                    String imageBase64 = getIntent().getStringExtra("imageBase64");
+                    if (imageBase64 != null && !imageBase64.isEmpty()) {
+                        String jsCode = "window.setWhiteboardImage('" + imageBase64 + "');";
+                        webView.evaluateJavascript(jsCode, null);
+                    }
+                    */
                 }
             }
         });
-        
+
         webView.loadUrl("file:///android_asset/whiteboard/index.html");
-    }
-
-    /**
-     * 辅助函数：从 Uri 获取图片尺寸，而无需将整个图片加载到内存中。
-     * @param uri 图片的 Uri
-     * @return 一个包含 [width, height] 的 int 数组
-     */
-    private int[] getImageDimensions(Uri uri) {
-        if (uri == null) return new int[]{0, 0};
-
-        try (InputStream inputStream = getContentResolver().openInputStream(uri)) {
-            BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inJustDecodeBounds = true; // 只解码边界信息
-            BitmapFactory.decodeStream(inputStream, null, options);
-            return new int[]{options.outWidth, options.outHeight};
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new int[]{0, 0};
-        }
     }
 
     @Override
@@ -294,15 +203,5 @@ public class WebWhiteBoardActivity extends AppCompatActivity {
             uploadMessage.onReceiveValue(results);
             uploadMessage = null;
         }
-    }
-
-    // 在 onDestroy 方法中，关闭服务器以释放资源
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-//        if (localFileServer != null) {
-//            localFileServer.stop();
-//            android.util.Log.d("LocalServer", "本地服务器已关闭。");
-//        }
     }
 }
