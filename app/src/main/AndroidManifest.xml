@@ -101,12 +101,28 @@
         <activity
             android:name=".image.ImageEditActivity"
             android:exported="true" />
+        <activity 
+            android:name=".image.LayerPreviewActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize"
+            />
+        <!-- 已注释，被WebWhiteBoardActivity替代
         <activity
             android:name=".whiteboard.WhiteboardActivity"
             android:exported="true" />
+        -->
         <activity
             android:name=".whiteboard.SettingActivity"
             android:exported="true" />
+        <activity
+            android:name=".webwhiteboard.WebWhiteBoardActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize|stateHidden"/>
+        <!--
+        <activity
+            android:name=".whiteboard.WhiteboardActivity"
+            android:exported="true" />
+        -->
         <activity
             android:name=".MainActivity"
             android:exported="true">

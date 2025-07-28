@@ -25,6 +25,7 @@ import com.example.opencv.Constant;
 import com.example.opencv.MainActivity;
 import com.example.opencv.R;
 import com.example.opencv.http.ApiClient;
+import com.example.opencv.webwhiteboard.WebWhiteBoardActivity;
 
 
 public class SettingActivity extends AppCompatActivity implements DragBoxView.PositionListener {
@@ -296,7 +297,7 @@ public class SettingActivity extends AppCompatActivity implements DragBoxView.Po
         Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
         view.startAnimation(scaleIn);
 
-        Intent intent = new Intent(this, WhiteboardActivity.class);
+        Intent intent = new Intent(this, WebWhiteBoardActivity.class);
         startActivity(intent);
     }
 

@@ -26,7 +26,7 @@ import com.example.opencv.R;
 import com.example.opencv.device.DeviceInfoActivity;
 import com.example.opencv.device.device_Control;
 import com.example.opencv.whiteboard.SettingActivity;
-import com.example.opencv.whiteboard.WhiteboardActivity;
+import com.example.opencv.webwhiteboard.WebWhiteBoardActivity;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -247,7 +247,7 @@ public class NCActivity extends AppCompatActivity {
         Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
         view.startAnimation(scaleIn);
 
-        Intent intent = new Intent(this, WhiteboardActivity.class);
+        Intent intent = new Intent(this, WebWhiteBoardActivity.class);
         startActivity(intent);
     }
 

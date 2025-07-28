@@ -71,10 +71,10 @@ public class Constant {
 
     public static int ProcessState = 0xFF;
 
-    public static int PrintWidth = 50;
-    public static int PrintHeight = 50;
-    public static double PrintStartX = 175;
-    public static double PrintStartY = 175;
+    public static int PrintWidth = PlatformWidth;
+    public static int PrintHeight = PlatformHeight;
+    public static double PrintStartX = 0;
+    public static double PrintStartY =PlatformHeight;
 
     public static boolean IsOfficial = true;
 
