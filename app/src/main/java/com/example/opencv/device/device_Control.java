@@ -66,7 +66,7 @@ public class device_Control extends AppCompatActivity {
     private Button button_Zup;
     private Button button_Zdown;
     private Toolbar toolbar;
-
+    private Switch[] doSwitches = new Switch[8];
     private ConstraintLayout allAxisLayout;
 
     private GridLayout zControls, moveControls;
@@ -119,18 +119,19 @@ public class device_Control extends AppCompatActivity {
         // 初始化DO控制
         GridLayout doGrid = findViewById(R.id.doGrid);
         for (int i = 1; i <= 8; i++) {
-            Switch doSwitch = new Switch(this);
+            //Switch doSwitch = new Switch(this);
             final int doNumber = i;
-            doSwitch.setText("DO" + i);
+            doSwitches[doNumber-1] = new Switch(this);
+            doSwitches[doNumber-1].setText("DO" + i);
             if (apiClient.isConnected.get() && apiClient.isInfo.get()) {
-                doSwitch.setChecked(apiClient.machineInfo.getMc().getDO()[i - 1]);
+                doSwitches[doNumber-1].setChecked(apiClient.machineInfo.getMc().getDO()[i - 1]);
             } else {
-                doSwitch.setChecked(false);
+                doSwitches[doNumber-1].setChecked(false);
             }
-            doSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            doSwitches[doNumber-1].setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    setDO(doNumber, isChecked, doSwitch);
+                    setDO(doNumber, isChecked,  doSwitches[doNumber-1]);
                 }
             });
 
@@ -147,7 +148,7 @@ public class device_Control extends AppCompatActivity {
 //            // 应用 LayoutParams
 //            doSwitch.setLayoutParams(params);
 
-            doGrid.addView(doSwitch);
+            doGrid.addView( doSwitches[doNumber-1]);
         }
 
         // 初始化DI显示
@@ -165,6 +166,7 @@ public class device_Control extends AppCompatActivity {
                 }
             }
         }
+        
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -173,12 +175,17 @@ public class device_Control extends AppCompatActivity {
                         Thread.sleep(100);
                         if (apiClient.isConnected.get() && apiClient.isInfo.get()) {
                             MachineInfo.MachineStatus mc = apiClient.machineInfo.getMc();
+                            boolean[] doState = mc.getDO();
+                            if (doState.length != 0) {
+                                updateDOState(doState);
+                            }
                             boolean[] di = mc.getDi();
                             if (di.length != 0) {
                                 updateDIState(di);
                             }
                         } else {
                             shutDwonDI();
+                            shutDwonDO();
                         }
                     } catch (InterruptedException e) {
                         e.printStackTrace();
@@ -202,6 +209,22 @@ public class device_Control extends AppCompatActivity {
                 });
             }
         }
+    }
+
+    private void updateDOState(boolean[] doState) {
+        runOnUiThread(() -> {
+        for (int i = 0; i < doState.length; i++) {
+            doSwitches[i].setChecked(doState[i]);
+        }
+        });
+    }
+
+    private void shutDwonDO() {
+        runOnUiThread(() -> {
+        for (int i = 0; i < doSwitches.length; i++) {
+            doSwitches[i].setChecked(false);
+        }
+        });
     }
 
     private void shutDwonDI() {
