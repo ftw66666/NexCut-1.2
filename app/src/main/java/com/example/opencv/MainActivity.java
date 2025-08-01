@@ -422,7 +422,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
     public void showConfirmationDialog(File selectedFile) {
         Toast.makeText(this, "已选择: " + selectedFile.getAbsolutePath(), Toast.LENGTH_SHORT).show();
 
@@ -446,12 +445,11 @@ public class MainActivity extends AppCompatActivity {
         executor.execute(() -> {
             try {
                 control.FileTransfer(selectedFile, MainActivity.this);
-            }
-             finally {
+            } finally {
                 executor.shutdown();
             }
         });
-        }
+    }
 
     private void startFileShare(File selectedFile) {
         if (selectedFile == null || !selectedFile.exists()) {
@@ -504,8 +502,8 @@ public class MainActivity extends AppCompatActivity {
             imageUri = data.getData();
             try {
                 //bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
-                Intent intent = new Intent(MainActivity.this, ImageEditActivity.class);
-                intent.putExtra("imageUri", imageUri.toString());
+                Intent intent = new Intent(MainActivity.this, WebWhiteBoardActivity.class);
+                intent.putExtra("imagePath", imageUri.toString());
                 startActivity(intent);
 
                 //imageView.setImageBitmap(bitmap);
@@ -536,13 +534,11 @@ public class MainActivity extends AppCompatActivity {
 //            }
 
             // 传递 URI 给下一个 Activity
-            Intent intent = new Intent(MainActivity.this, ImageEditActivity.class);
-            intent.putExtra("imageUri", photoUri.toString());
+            Intent intent = new Intent(MainActivity.this, WebWhiteBoardActivity.class);
+            intent.putExtra("imagePath", photoUri.toString());
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             startActivity(intent);
-        }
-        else if (requestCode == VECTOR_IMAGE && resultCode == RESULT_OK)
-        {
+        } else if (requestCode == VECTOR_IMAGE && resultCode == RESULT_OK) {
             convertSvgToPngAndUpdateUri(data.getData());
             Intent intent = new Intent(MainActivity.this, ImageEditActivity.class);
             intent.putExtra("imageUri", photoUri.toString());
@@ -596,8 +592,7 @@ public class MainActivity extends AppCompatActivity {
                 // 2a. SVG有明确尺寸，直接使用
                 renderWidth = svg.getDocumentWidth();
                 renderHeight = svg.getDocumentHeight();
-            }
-            else {
+            } else {
                 // 2b. SVG没有明确尺寸，使用宽高比来计算
                 aspectRatio = svg.getDocumentAspectRatio();
 
@@ -612,7 +607,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             // 2. 创建一个高质量的Bitmap作为画布
-            bitmap = Bitmap.createBitmap((int)(RESOLUTION * aspectRatio), (int)RESOLUTION, Bitmap.Config.ARGB_8888);
+            bitmap = Bitmap.createBitmap((int) (RESOLUTION * aspectRatio), (int) RESOLUTION, Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(bitmap);
             // 3. (可选) 如果 SVG 有固定的尺寸，可以设置渲染的视口以正确缩放
             if (svg.getDocumentWidth() != -1) {
@@ -675,6 +670,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
     // 创建临时图片文件
     private File createImageFile() throws IOException {
         String imageFileName = "PNG_" + System.currentTimeMillis() + "_";
@@ -869,6 +865,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * 按钮点击事件，用于打开文件选择器
+     *
      * @param view 触发事件的视图
      */
     public void openVectorFile(View view) {
@@ -914,7 +911,6 @@ public class MainActivity extends AppCompatActivity {
                     String assetPath = "showimage/" + fileName;
 
 
-
                     ImageView imageView = new ImageView(this);
                     LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                             dpToPx(120), dpToPx(120)); // 缩小尺寸
@@ -934,11 +930,10 @@ public class MainActivity extends AppCompatActivity {
                             .into(imageView);
 
 
-
                     // 点击事件
                     imageView.setOnClickListener(v -> {
                         String uri = (String) v.getTag();
-                        if(uri != null) onImageClick(uri); // 传给你的函数
+                        if (uri != null) onImageClick(uri); // 传给你的函数
                     });
 
                     // 添加到容器
@@ -955,8 +950,8 @@ public class MainActivity extends AppCompatActivity {
 
         //Toast.makeText(this, "点击图片：" + uri, Toast.LENGTH_SHORT).show();
         // TODO: 你可以在这里打开预览、下载、设置背景等
-        Intent intent = new Intent(MainActivity.this, ImageEditActivity.class);
-        intent.putExtra("imageUri", uri);
+        Intent intent = new Intent(MainActivity.this, WebWhiteBoardActivity.class);
+        intent.putExtra("imagePath", uri);
         startActivity(intent);
     }
 
@@ -982,9 +977,10 @@ public class MainActivity extends AppCompatActivity {
         float density = getResources().getDisplayMetrics().density;
         return Math.round(dp * density);
     }
+
     @Override
     protected void onDestroy() {
-        control.Logout(MainActivity.this,false);
+        control.Logout(MainActivity.this, false);
         super.onDestroy();
         // 执行你需要的方法
     }
