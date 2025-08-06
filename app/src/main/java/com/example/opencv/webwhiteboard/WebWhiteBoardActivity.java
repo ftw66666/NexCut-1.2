@@ -8,6 +8,8 @@ import android.webkit.WebViewClient;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.ValueCallback;
+import android.webkit.DownloadListener;
+import android.webkit.URLUtil;
 import android.content.Intent;
 import android.net.Uri;
 import android.app.Activity;
@@ -16,6 +18,10 @@ import android.content.pm.PackageManager;
 import android.widget.Toast;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import android.os.Environment;
+import android.content.Context;
+import android.app.DownloadManager;
+import android.os.Build;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -39,6 +45,10 @@ public class WebWhiteBoardActivity extends AppCompatActivity {
     private ValueCallback<Uri[]> uploadMessage;
     private final static int FILE_CHOOSER_RESULT_CODE = 10000;
     private final static int CAMERA_PERMISSION_REQUEST_CODE = 10001;
+    private final static int STORAGE_PERMISSION_REQUEST_CODE = 10002;
+
+    // 自定义下载路径，默认为 Downloads 文件夹
+    private String customDownloadPath = Environment.DIRECTORY_DOWNLOADS;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +81,13 @@ public class WebWhiteBoardActivity extends AppCompatActivity {
             // 返回原始 insets，让系统继续处理
             return insets;
         });
+
+        // 设置自定义下载路径为 gcodes 文件夹
+        File gcodesDir = getExternalFilesDir("gcodes");
+        if (gcodesDir != null) {
+            customDownloadPath = gcodesDir.getAbsolutePath();
+        }
+
         // 实例化 WebView 并设置为内容视图 (只执行一次)
         webView = findViewById(R.id.webView);
 //        webView = new WebView(this);
@@ -86,6 +103,33 @@ public class WebWhiteBoardActivity extends AppCompatActivity {
         // 启用摄像头和麦克风权限
         webSettings.setMediaPlaybackRequiresUserGesture(false);
         webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+
+        // 设置下载监听器
+        webView.setDownloadListener(new DownloadListener() {
+            @Override
+            public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {
+                // 检查是否是 blob URL
+                if (url.startsWith("blob:")) {
+                    // 处理 blob URL
+                    handleBlobDownload(url, contentDisposition, mimeType);
+                    return;
+                }
+
+                // 检查存储权限
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (ContextCompat.checkSelfPermission(WebWhiteBoardActivity.this,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(WebWhiteBoardActivity.this,
+                                new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                                STORAGE_PERMISSION_REQUEST_CODE);
+                        return;
+                    }
+                }
+
+                // 开始下载
+                startDownload(url, contentDisposition, mimeType);
+            }
+        });
 
         // 支持input type=file文件选择
         webView.setWebChromeClient(new WebChromeClient() {
@@ -159,6 +203,62 @@ public class WebWhiteBoardActivity extends AppCompatActivity {
             public String getPlatformSize() {
                 return String.format("{\"width\":%d,\"height\":%d}", Constant.PlatformWidth, Constant.PlatformHeight);
             }
+
+            // 新增：设置自定义下载路径
+            @JavascriptInterface
+            public void setDownloadPath(String path) {
+                runOnUiThread(() -> {
+                    customDownloadPath = path;
+                    Toast.makeText(WebWhiteBoardActivity.this, "下载路径已设置为: " + path, Toast.LENGTH_SHORT).show();
+                });
+            }
+
+            // 新增：获取当前下载路径
+            @JavascriptInterface
+            public String getDownloadPath() {
+                return customDownloadPath;
+            }
+
+            // 新增：保存 blob 文件
+            @JavascriptInterface
+            public void saveBlobFile(String base64, String fileName, String mimeType) {
+                runOnUiThread(() -> {
+                    try {
+                        // 解码 base64 数据
+                        byte[] decodedBytes = android.util.Base64.decode(base64, android.util.Base64.DEFAULT);
+
+                        // 创建目标文件
+                        File targetFile;
+                        if (customDownloadPath.startsWith("/")) {
+                            // 绝对路径
+                            File downloadDir = new File(customDownloadPath);
+                            if (!downloadDir.exists()) {
+                                downloadDir.mkdirs();
+                            }
+                            targetFile = new File(downloadDir, fileName);
+                        } else {
+                            // 相对路径（相对于外部存储）
+                            File downloadDir = new File(Environment.getExternalStoragePublicDirectory(customDownloadPath), fileName);
+                            targetFile = downloadDir;
+                        }
+
+                        // 写入文件
+                        java.io.FileOutputStream fos = new java.io.FileOutputStream(targetFile);
+                        fos.write(decodedBytes);
+                        fos.close();
+
+                        Toast.makeText(WebWhiteBoardActivity.this,
+                                "文件已保存: " + fileName + " 到 " + customDownloadPath,
+                                Toast.LENGTH_SHORT).show();
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Toast.makeText(WebWhiteBoardActivity.this,
+                                "保存文件失败: " + e.getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
         }, "Android");
 
         // 设置WebViewClient来处理页面加载完成后的操作
@@ -223,6 +323,7 @@ public class WebWhiteBoardActivity extends AppCompatActivity {
                     // 当imagePath为空或不存在时，直接跳转到白板界面
                     String jsCode = "window.setWhiteboardImage();";
                     webView.evaluateJavascript(jsCode, null);
+
                     // 旧方案：通过base64参数传递（已注释，保留作为备份）
                     /*
                     String imageBase64 = getIntent().getStringExtra("imageBase64");
@@ -236,6 +337,96 @@ public class WebWhiteBoardActivity extends AppCompatActivity {
         });
 
         webView.loadUrl("file:///android_asset/whiteboard/index.html");
+    }
+
+    /**
+     * 设置自定义下载路径
+     * @param path 下载路径，可以是相对路径或绝对路径
+     */
+    public void setCustomDownloadPath(String path) {
+        this.customDownloadPath = path;
+    }
+
+    /**
+     * 获取当前下载路径
+     * @return 当前下载路径
+     */
+    public String getCustomDownloadPath() {
+        return this.customDownloadPath;
+    }
+
+    /**
+     * 开始下载文件
+     */
+    private void startDownload(String url, String contentDisposition, String mimeType) {
+        try {
+            // 获取文件名
+            String fileName = URLUtil.guessFileName(url, contentDisposition, mimeType);
+
+            // 创建下载请求
+            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+            request.setTitle("下载文件");
+            request.setDescription("正在下载: " + fileName);
+            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+
+            // 根据自定义路径设置下载位置
+            if (customDownloadPath.startsWith("/")) {
+                // 绝对路径
+                File downloadDir = new File(customDownloadPath);
+                if (!downloadDir.exists()) {
+                    downloadDir.mkdirs();
+                }
+                request.setDestinationUri(Uri.fromFile(new File(downloadDir, fileName)));
+            } else {
+                // 相对路径（相对于外部存储）
+                request.setDestinationInExternalPublicDir(customDownloadPath, fileName);
+            }
+
+            request.setMimeType(mimeType);
+
+            // 获取下载管理器
+            DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+            if (downloadManager != null) {
+                long downloadId = downloadManager.enqueue(request);
+                Toast.makeText(this, "开始下载: " + fileName + " 到 " + customDownloadPath, Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "下载管理器不可用", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "下载失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * 处理 blob URL 下载
+     */
+    private void handleBlobDownload(String url, String contentDisposition, String mimeType) {
+        try {
+            // 获取文件名
+            String fileName = URLUtil.guessFileName(url, contentDisposition, mimeType);
+
+            // 通过 JavaScript 获取 blob 数据
+            String jsCode = String.format(
+                    "(function() {" +
+                            "  var xhr = new XMLHttpRequest();" +
+                            "  xhr.open('GET', '%s', false);" +
+                            "  xhr.responseType = 'blob';" +
+                            "  xhr.send();" +
+                            "  var reader = new FileReader();" +
+                            "  reader.onload = function() {" +
+                            "    var base64 = reader.result.split(',')[1];" +
+                            "    Android.saveBlobFile(base64, '%s', '%s');" +
+                            "  };" +
+                            "  reader.readAsDataURL(xhr.response);" +
+                            "})();", url, fileName, mimeType);
+
+            webView.evaluateJavascript(jsCode, null);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "下载失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
@@ -268,6 +459,14 @@ public class WebWhiteBoardActivity extends AppCompatActivity {
             } else {
                 // 摄像头权限被拒绝
                 Toast.makeText(this, "摄像头权限被拒绝，拍照功能将无法使用", Toast.LENGTH_LONG).show();
+            }
+        } else if (requestCode == STORAGE_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // 存储权限已授予
+                Toast.makeText(this, "存储权限已授予，可以正常下载文件", Toast.LENGTH_SHORT).show();
+            } else {
+                // 存储权限被拒绝
+                Toast.makeText(this, "存储权限被拒绝，无法下载文件", Toast.LENGTH_LONG).show();
             }
         }
     }
