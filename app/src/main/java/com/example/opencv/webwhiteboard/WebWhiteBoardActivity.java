@@ -16,8 +16,10 @@ import android.app.Activity;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.widget.Toast;
+
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
 import android.os.Environment;
 import android.content.Context;
 import android.app.DownloadManager;
@@ -183,6 +185,7 @@ public class WebWhiteBoardActivity extends AppCompatActivity {
                     // finish();
                 });
             }
+
             @JavascriptInterface
             public String saveTempFile(String base64, String fileName) {
                 try {
@@ -198,6 +201,7 @@ public class WebWhiteBoardActivity extends AppCompatActivity {
                     return "";
                 }
             }
+
             // 新增：前端主动请求画布大小
             @JavascriptInterface
             public String getPlatformSize() {
@@ -269,6 +273,7 @@ public class WebWhiteBoardActivity extends AppCompatActivity {
 
                 // 处理图片传递
                 String imagePath = getIntent().getStringExtra("imagePath");
+                String vectorIMAGE = getIntent().getStringExtra("vectorIMAGE");
                 //Uri imageUri = getIntent().getParcelableExtra("imageUri");
 
                 if (imagePath != null && !imagePath.isEmpty()) {
@@ -319,6 +324,59 @@ public class WebWhiteBoardActivity extends AppCompatActivity {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+                } else if (vectorIMAGE != null && !vectorIMAGE.isEmpty()) {
+                    try {
+                        File file;
+                        if (vectorIMAGE.startsWith("content://")) {
+                            Uri uri = Uri.parse(vectorIMAGE);
+                            InputStream is = getContentResolver().openInputStream(uri);
+                            // 读取为字符串
+                            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+                            byte[] buffer = new byte[4096];
+                            int len;
+                            while ((len = is.read(buffer)) > 0) {
+                                baos.write(buffer, 0, len);
+                            }
+                            is.close();
+                            String content = new String(baos.toByteArray(), "UTF-8");
+
+                            // 尝试从 uri 推断扩展名
+                            String ext = "svg";
+                            String path = uri.getPath();
+                            if (path != null) {
+                                String lower = path.toLowerCase();
+                                if (lower.endsWith(".dxf")) ext = "dxf";
+                                else if (lower.endsWith(".plt")) ext = "plt";
+                                else if (lower.endsWith(".svg")) ext = "svg";
+                            }
+                            String temp = JSONObject.quote(content);
+                            String js = "window.setWhiteboardVector(" + JSONObject.quote(content) + ", '" + ext + "')";
+                            webView.evaluateJavascript(js, null);
+                        } else {
+                            if (vectorIMAGE.startsWith("file://")) {
+                                vectorIMAGE = vectorIMAGE.substring(7);
+                            }
+                            file = new File(vectorIMAGE);
+                            if (file.exists()) {
+                                FileInputStream fis = new FileInputStream(file);
+                                byte[] bytes = new byte[(int) file.length()];
+                                int read = fis.read(bytes);
+                                fis.close();
+                                String content = new String(bytes, "UTF-8");
+
+                                String ext = "svg";
+                                String fileName = file.getName().toLowerCase();
+                                if (fileName.endsWith(".dxf")) ext = "dxf";
+                                else if (fileName.endsWith(".plt")) ext = "plt";
+                                else if (fileName.endsWith(".svg")) ext = "svg";
+
+                                String js = "window.setWhiteboardVector(" + JSONObject.quote(content) + ", '" + ext + "')";
+                                webView.evaluateJavascript(js, null);
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 } else {
                     // 当imagePath为空或不存在时，直接跳转到白板界面
                     String jsCode = "window.setWhiteboardImage();";
@@ -341,6 +399,7 @@ public class WebWhiteBoardActivity extends AppCompatActivity {
 
     /**
      * 设置自定义下载路径
+     *
      * @param path 下载路径，可以是相对路径或绝对路径
      */
     public void setCustomDownloadPath(String path) {
@@ -349,6 +408,7 @@ public class WebWhiteBoardActivity extends AppCompatActivity {
 
     /**
      * 获取当前下载路径
+     *
      * @return 当前下载路径
      */
     public String getCustomDownloadPath() {
