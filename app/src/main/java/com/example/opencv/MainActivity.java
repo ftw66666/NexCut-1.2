@@ -539,9 +539,9 @@ public class MainActivity extends AppCompatActivity {
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             startActivity(intent);
         } else if (requestCode == VECTOR_IMAGE && resultCode == RESULT_OK) {
-            convertSvgToPngAndUpdateUri(data.getData());
-            Intent intent = new Intent(MainActivity.this, ImageEditActivity.class);
-            intent.putExtra("imageUri", photoUri.toString());
+            //convertSvgToPngAndUpdateUri(data.getData());
+            Intent intent = new Intent(MainActivity.this, WebWhiteBoardActivity.class);
+            intent.putExtra("vectorIMAGE", data.getData().toString());
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             startActivity(intent);
         }
@@ -874,6 +874,7 @@ public class MainActivity extends AppCompatActivity {
 
         // 设置 MIME 类型。 "image/svg+xml" 是标准的SVG类型。
         // 使用 "*/*" 并通过 EXTRA_MIME_TYPES 限定是一种更兼容的方式。
+
         intent.setType("*/*");
         String[] mimeTypes = {"image/svg+xml"};
         intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);

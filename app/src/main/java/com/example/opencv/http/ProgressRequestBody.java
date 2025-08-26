@@ -58,6 +58,26 @@ public class ProgressRequestBody extends RequestBody {
 
 
     }
+//    @Override
+//    public void writeTo(BufferedSink sink) throws IOException {
+//        BufferedSink bufferedSink = Okio.buffer(new ForwardingSink(sink) {
+//            private long bytesWritten = 0L;
+//            private long contentLength = 0L;
+//
+//            @Override
+//            public void write(Buffer source, long byteCount) throws IOException {
+//                super.write(source, byteCount);
+//                if (contentLength == 0) {
+//                    contentLength = contentLength();
+//                }
+//                bytesWritten += byteCount;
+//                progressListener.onProgress(bytesWritten, contentLength);
+//            }
+//        });
+//
+//        originalRequestBody.writeTo(bufferedSink);
+//        bufferedSink.flush();
+//    }
 
 
     public interface ProgressListener {
