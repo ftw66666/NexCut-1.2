@@ -198,7 +198,7 @@
                             android:backgroundTint="@color/white"
                             android:backgroundTintMode="screen"
                             android:minHeight="100dp"
-                            android:onClick="openVectorFile"
+                            android:onClick="appAbout"
                             android:stateListAnimator="@anim/anim_scale_in"
                             android:text="@string/File"
                             android:textColorLink="@color/light_black"
