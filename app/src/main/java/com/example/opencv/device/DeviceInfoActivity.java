@@ -128,6 +128,7 @@ public class DeviceInfoActivity extends AppCompatActivity {
                                     // 通知Adapter数据已更新
                                     adapter.notifyDataSetChanged();
                                 }
+
                             });
                         }
                         Thread.sleep(100);

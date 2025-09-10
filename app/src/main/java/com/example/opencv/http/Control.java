@@ -290,8 +290,19 @@ public class Control {
                 if (response.isSuccessful()) {
                     String json = response.body().string();
                     MachineInfoResponse machineInfoResponse = apiClient.gson.fromJson(json, MachineInfoResponse.class);
-                    apiClient.machineInfo.updateFrom(machineInfoResponse);
-                    apiClient.isInfo.set(true);
+                    if (machineInfoResponse.getFtc() == null || machineInfoResponse.getMc() == null) {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(context, "连接已断开", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                        apiClient.isConnected.set(false);
+                        apiClient.isInfo.set(false);
+                    } else {
+                        apiClient.machineInfo.updateFrom(machineInfoResponse);
+                        apiClient.isInfo.set(true);
+                    }
                 } else {
                     handler.post(new Runnable() {
                         @Override
