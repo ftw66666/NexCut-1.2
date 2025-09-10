@@ -758,10 +758,10 @@ public class MainActivity extends AppCompatActivity {
         //预设
         //版本
         button = findViewById(R.id.button4);
-        drawable = getResources().getDrawable(R.drawable.vector_icon);
+        drawable = getResources().getDrawable(R.drawable.about_icon);
         drawable.setBounds(0, 0, 180, 180); // 设置大小
         imageSpan = new CenteredImageSpan(drawable);
-        spannable = new SpannableString(" " + "矢量图");
+        spannable = new SpannableString(" " + "关于");
         spannable.setSpan(imageSpan, 0, 1, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
         button.setText(spannable);
     }

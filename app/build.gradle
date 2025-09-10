@@ -65,7 +65,7 @@ dependencies {
     implementation 'com.quickbirdstudios:opencv-contrib:4.5.3.0'
     implementation libs.cardview
     implementation libs.recyclerview
-    implementation files('D:\\AndroidProject\\NexCut-1.2\\app\\libs\\fotoapparat-2.7.0.jar')
+    implementation files('libs\\fotoapparat-2.7.0.jar')
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
     implementation 'com.github.yalantis:ucrop:2.2.10'
