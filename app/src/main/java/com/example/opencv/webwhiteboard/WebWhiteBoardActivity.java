@@ -37,7 +37,6 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.opencv.Constant;
 import com.example.opencv.MainActivity;
 import com.example.opencv.R;
-import com.example.opencv.whiteboard.SettingActivity;
 
 import org.json.JSONObject;
 
@@ -382,8 +381,8 @@ public class WebWhiteBoardActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                 } else {
-                    // 当imagePath为空或不存在时，直接跳转到白板界面
-                    String jsCode = "window.setWhiteboardImage();";
+                    // 当既没有位图也没有矢量数据时，调用首页接口但不传递任何数据
+                    String jsCode = "window.setHomePageImage();";
                     webView.evaluateJavascript(jsCode, null);
 
                     // 旧方案：通过base64参数传递（已注释，保留作为备份）
@@ -544,7 +543,6 @@ public class WebWhiteBoardActivity extends AppCompatActivity {
         startActivity(intent);
         finish();
     }
-
     public void goBack(View view) {
         Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
         view.startAnimation(scaleIn);
