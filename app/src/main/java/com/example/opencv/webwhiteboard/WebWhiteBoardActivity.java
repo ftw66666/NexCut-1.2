@@ -54,10 +54,12 @@ public class WebWhiteBoardActivity extends AppCompatActivity {
 
     // 自定义下载路径，默认为 Downloads 文件夹
     private String customDownloadPath = Environment.DIRECTORY_DOWNLOADS;
+    private boolean shouldClearLocalStorageOnLoad = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        shouldClearLocalStorageOnLoad = true;
         // 1. 启用 EdgeToEdge 模式
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_webwhiteboard);
@@ -249,7 +251,7 @@ public class WebWhiteBoardActivity extends AppCompatActivity {
                             targetFile = downloadDir;
                         }
 
-                        // 写入文件
+                        // 写入文件0417
                         java.io.FileOutputStream fos = new java.io.FileOutputStream(targetFile);
                         fos.write(decodedBytes);
                         fos.close();
@@ -273,6 +275,18 @@ public class WebWhiteBoardActivity extends AppCompatActivity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
+
+                /// 9.18
+                // 检查是否需要清除 localStorage
+                if (shouldClearLocalStorageOnLoad) {
+                    // 执行清除操作
+                    view.evaluateJavascript("localStorage.clear();", null);
+                    // 重置标志位，防止在页面内部跳转时重复清除
+                    shouldClearLocalStorageOnLoad = false;
+
+                    // 打印日志以便调试
+                    android.util.Log.d("WebViewDebug", "LocalStorage cleared on page finished.");
+                }
 
                 // 处理图片传递
                 String imagePath = getIntent().getStringExtra("imagePath");
