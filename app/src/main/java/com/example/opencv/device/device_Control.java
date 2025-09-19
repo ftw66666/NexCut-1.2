@@ -66,7 +66,7 @@ public class device_Control extends AppCompatActivity {
     private Button button_Zup;
     private Button button_Zdown;
     private Toolbar toolbar;
-    private Switch[] doSwitches = new Switch[8];
+    private Switch[] doSwitches = new Switch[10]; // Changed from 8 to 10 DO switches
     private ConstraintLayout allAxisLayout;
 
     private GridLayout zControls, moveControls;
@@ -118,20 +118,29 @@ public class device_Control extends AppCompatActivity {
 
         // 初始化DO控制
         GridLayout doGrid = findViewById(R.id.doGrid);
-        for (int i = 1; i <= 8; i++) {
+        for (int i = 1; i <= 10; i++) { // Changed from 8 to 10 DO controls
             //Switch doSwitch = new Switch(this);
             final int doNumber = i;
-            doSwitches[doNumber-1] = new Switch(this);
-            doSwitches[doNumber-1].setText("DO" + i);
+            doSwitches[doNumber - 1] = new Switch(this);
+            doSwitches[doNumber - 1].setText("DO" + i);
             if (apiClient.isConnected.get() && apiClient.isInfo.get()) {
-                doSwitches[doNumber-1].setChecked(apiClient.machineInfo.getMc().getDO()[i - 1]);
+                // 初始时禁用DO9和DO10，直到确认服务器支持
+                if (doNumber > 8 && apiClient.machineInfo.getMc().getDO().length == 8) {
+                    doSwitches[doNumber - 1].setEnabled(false);
+                } else {
+                    doSwitches[doNumber - 1].setChecked(apiClient.machineInfo.getMc().getDO()[i - 1]);
+                }
             } else {
-                doSwitches[doNumber-1].setChecked(false);
+                if (doNumber > 8) {
+                    doSwitches[doNumber - 1].setEnabled(false);
+                } else {
+                    doSwitches[doNumber - 1].setChecked(false);
+                }
             }
-            doSwitches[doNumber-1].setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            doSwitches[doNumber - 1].setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    setDO(doNumber, isChecked,  doSwitches[doNumber-1]);
+                    setDO(doNumber, isChecked, doSwitches[doNumber - 1]);
                 }
             });
 
@@ -148,7 +157,7 @@ public class device_Control extends AppCompatActivity {
 //            // 应用 LayoutParams
 //            doSwitch.setLayoutParams(params);
 
-            doGrid.addView( doSwitches[doNumber-1]);
+            doGrid.addView(doSwitches[doNumber - 1]);
         }
 
         // 初始化DI显示
@@ -166,7 +175,7 @@ public class device_Control extends AppCompatActivity {
                 }
             }
         }
-        
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -213,17 +222,26 @@ public class device_Control extends AppCompatActivity {
 
     private void updateDOState(boolean[] doState) {
         runOnUiThread(() -> {
-        for (int i = 0; i < doState.length; i++) {
-            doSwitches[i].setChecked(doState[i]);
-        }
+            for (int i = 0; i < doState.length; i++) {
+                doSwitches[i].setChecked(doState[i]);
+            }
+            // 如果接收到的DO状态长度为8，则禁用DO9和DO10
+            if (doState.length == 8 && doSwitches.length > 8) {
+                doSwitches[8].setEnabled(false);  // DO9
+                doSwitches[9].setEnabled(false);  // DO10
+            } else if (doState.length > 8) {
+                // 如果状态长度大于8，确保DO9和DO10是启用的
+                doSwitches[8].setEnabled(true);
+                doSwitches[9].setEnabled(true);
+            }
         });
     }
 
     private void shutDwonDO() {
         runOnUiThread(() -> {
-        for (int i = 0; i < doSwitches.length; i++) {
-            doSwitches[i].setChecked(false);
-        }
+            for (int i = 0; i < doSwitches.length; i++) {
+                doSwitches[i].setChecked(false);
+            }
         });
     }
 
