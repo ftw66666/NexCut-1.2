@@ -222,9 +222,6 @@ public class device_Control extends AppCompatActivity {
 
     private void updateDOState(boolean[] doState) {
         runOnUiThread(() -> {
-            for (int i = 0; i < doState.length; i++) {
-                doSwitches[i].setChecked(doState[i]);
-            }
             // 如果接收到的DO状态长度为8，则禁用DO9和DO10
             if (doState.length == 8 && doSwitches.length > 8) {
                 doSwitches[8].setEnabled(false);  // DO9
@@ -233,6 +230,9 @@ public class device_Control extends AppCompatActivity {
                 // 如果状态长度大于8，确保DO9和DO10是启用的
                 doSwitches[8].setEnabled(true);
                 doSwitches[9].setEnabled(true);
+            }
+            for (int i = 0; i < doState.length; i++) {
+                doSwitches[i].setChecked(doState[i]);
             }
         });
     }
