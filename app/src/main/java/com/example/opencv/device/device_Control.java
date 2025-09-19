@@ -184,10 +184,10 @@ public class device_Control extends AppCompatActivity {
                         Thread.sleep(100);
                         if (apiClient.isConnected.get() && apiClient.isInfo.get()) {
                             MachineInfo.MachineStatus mc = apiClient.machineInfo.getMc();
-                            boolean[] doState = mc.getDO();
-                            if (doState.length != 0) {
-                                updateDOState(doState);
-                            }
+//                            boolean[] doState = mc.getDO();
+//                            if (doState.length != 0) {
+//                                updateDOState(doState);
+//                            }
                             boolean[] di = mc.getDi();
                             if (di.length != 0) {
                                 updateDIState(di);
