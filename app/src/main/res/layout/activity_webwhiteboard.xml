@@ -66,10 +66,10 @@
                 android:layout_marginVertical="10dp"
                 android:layout_weight="0.4"
                 android:adjustViewBounds="true"
-                android:src="@drawable/goback_icon"
                 android:background="@null"
                 android:onClick="goBack"
-                android:scaleType="fitCenter" />
+                android:scaleType="fitCenter"
+                android:src="@drawable/exit_icon" />
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>

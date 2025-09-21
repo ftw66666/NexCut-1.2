@@ -119,7 +119,9 @@
         <activity
             android:name=".webwhiteboard.WebWhiteBoardActivity"
             android:exported="true"
-            android:windowSoftInputMode="adjustResize|stateHidden"/>
+            android:screenOrientation="sensorPortrait"
+            android:windowSoftInputMode="adjustResize|stateHidden"
+            />
         <!--
         <activity
             android:name=".whiteboard.WhiteboardActivity"
