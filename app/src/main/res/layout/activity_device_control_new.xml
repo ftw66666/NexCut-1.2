@@ -559,7 +559,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:paddingBottom="8dp"
-                        android:text="DO控制 (1-8)"
+                        android:text="DO控制 (1-10)"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
