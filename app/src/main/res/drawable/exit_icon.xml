@@ -1,0 +1,23 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="1024"
+    android:viewportHeight="1024">
+
+    <!--
+        通过 <group> 标签实现水平翻转:
+        - scaleX="-1" : 将X轴坐标乘以-1，实现镜像效果。
+        - pivotX="512" : 设置翻转的中心轴为视口宽度的一半 (1024 / 2)，
+                         确保图标在原位置翻转而不是飞出画布。
+    -->
+    <group
+        android:scaleX="-1"
+        android:pivotX="512">
+
+        <path
+            android:fillColor="#386ccb"
+            android:pathData="M768,819.2H512V204.8L256,102.4h512v102.4h102.4V0H0v819.2L512,1024v-102.4h358.4v-204.8h-102.4v102.4zM1024,460.8l-256,-153.6v102.4H563.2V512h204.8v102.4L1024,460.8z" />
+
+    </group>
+
+</vector>
