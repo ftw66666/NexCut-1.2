@@ -131,11 +131,7 @@ public class device_Control extends AppCompatActivity {
                     doSwitches[doNumber - 1].setChecked(apiClient.machineInfo.getMc().getDO()[i - 1]);
                 }
             } else {
-                if (doNumber > 8) {
-                    doSwitches[doNumber - 1].setEnabled(false);
-                } else {
-                    doSwitches[doNumber - 1].setChecked(false);
-                }
+                doSwitches[doNumber - 1].setEnabled(false);
             }
             doSwitches[doNumber - 1].setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
