@@ -396,8 +396,8 @@ public class WebWhiteBoardActivity extends AppCompatActivity {
                     }
                 } else {
                     // 当既没有位图也没有矢量数据时，调用首页接口但不传递任何数据
-                    String jsCode = "window.setHomePageImage();";
-                    webView.evaluateJavascript(jsCode, null);
+//                    String jsCode = "window.setHomePageImage();";
+//                    webView.evaluateJavascript(jsCode, null);
 
                     // 旧方案：通过base64参数传递（已注释，保留作为备份）
                     /*
@@ -411,7 +411,18 @@ public class WebWhiteBoardActivity extends AppCompatActivity {
             }
         });
 
-        webView.loadUrl("file:///android_asset/whiteboard/index.html");
+        //webView.loadUrl("file:///android_asset/whiteboard/index.html");
+        // 根据是否有数据决定首屏路由：有数据去首页，无数据去白板
+        String startImagePath = getIntent().getStringExtra("imagePath");
+        String startVector = getIntent().getStringExtra("vectorIMAGE");
+        String startImageBase64 = getIntent().getStringExtra("imageBase64");
+        boolean hasData = (startImagePath != null && !startImagePath.isEmpty())
+                || (startVector != null && !startVector.isEmpty())
+                || (startImageBase64 != null && !startImageBase64.isEmpty());
+        String startUrl = hasData
+                ? "file:///android_asset/whiteboard/index.html#/"
+                : "file:///android_asset/whiteboard/index.html#/whiteboard";
+        webView.loadUrl(startUrl);
     }
 
     /**
