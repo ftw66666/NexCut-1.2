@@ -17,6 +17,7 @@ import android.net.Uri;
 import android.app.Activity;
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
@@ -86,6 +87,27 @@ public class WebWhiteBoardActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, bottomPadding);
 
             // 返回原始 insets，让系统继续处理
+            return insets;
+        });
+
+        View rootLayout = findViewById(R.id.main);
+        LinearLayout rgTab = findViewById(R.id.rg_tab);
+        // 2. 为根布局设置 WindowInsets 监听器
+        // 2. 为根布局设置 WindowInsets 监听器
+        ViewCompat.setOnApplyWindowInsetsListener(rootLayout, (v, insets) -> {
+            // 检查软键盘（IME）是否可见
+            boolean isKeyboardVisible = insets.isVisible(WindowInsetsCompat.Type.ime());
+
+            // 3. 根据键盘可见性，更新 rg_tab 的可见状态
+            if (isKeyboardVisible) {
+                // 键盘弹出了，隐藏 rg_tab
+                rgTab.setVisibility(View.GONE);
+            } else {
+                // 键盘收起了，显示 rg_tab
+                rgTab.setVisibility(View.VISIBLE);
+            }
+
+            // 返回原始的 insets，让系统继续处理其他内边距（如状态栏）
             return insets;
         });
 
@@ -214,6 +236,7 @@ public class WebWhiteBoardActivity extends AppCompatActivity {
             }
 
             // 新增：设置自定义下载路径
+
             @JavascriptInterface
             public void setDownloadPath(String path) {
                 runOnUiThread(() -> {

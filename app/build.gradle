@@ -13,7 +13,7 @@ android {
         minSdk 26
         targetSdk 35
         versionCode 3       // 整数，每次发布必须 +1
-        versionName "1.3.1" // 字符串，用户看到的版本号
+        versionName "1.3.3" // 字符串，用户看到的版本号
 
         ndk {
             abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"

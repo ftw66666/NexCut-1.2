@@ -67,7 +67,8 @@
 
 
 
-        <activity android:name="com.yalantis.ucrop.UCropActivity" />
+        <activity android:name="com.yalantis.ucrop.UCropActivity"
+            android:screenOrientation="sensorPortrait"/>
         <service
             android:name=".device.InfoService"
             android:enabled="true"
@@ -81,6 +82,7 @@
 
         <activity
             android:name=".device.DeviceInfoActivity"
+            android:screenOrientation="sensorPortrait"
             android:exported="false" />
         <!-- 配置 FileProvider -->
 <!--        <provider-->
@@ -93,18 +95,23 @@
 <!--                android:resource="@xml/filepaths" />-->
 <!--        </provider> &lt;!&ndash; 启动 Activity &ndash;&gt;-->
         <activity android:name=".misc.AboutActivity"
+            android:screenOrientation="sensorPortrait"
             android:exported="true" />
         <activity
             android:name=".device.DeviceActivity"
+            android:screenOrientation="sensorPortrait"
             android:exported="false" />
         <activity
             android:name=".device.device_Control"
+            android:screenOrientation="sensorPortrait"
             android:exported="false" />
         <activity
             android:name=".image.ImageEditActivity"
+            android:screenOrientation="sensorPortrait"
             android:exported="true" />
         <activity 
             android:name=".image.LayerPreviewActivity"
+            android:screenOrientation="sensorPortrait"
             android:exported="true"
             android:windowSoftInputMode="adjustResize"
             />
@@ -115,12 +122,13 @@
         -->
         <activity
             android:name=".whiteboard.SettingActivity"
+            android:screenOrientation="sensorPortrait"
             android:exported="true" />
         <activity
             android:name=".webwhiteboard.WebWhiteBoardActivity"
             android:exported="true"
             android:screenOrientation="sensorPortrait"
-            android:windowSoftInputMode="adjustResize|stateHidden"
+
             />
         <!--
         <activity
@@ -129,6 +137,7 @@
         -->
         <activity
             android:name=".MainActivity"
+            android:screenOrientation="sensorPortrait"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -136,26 +145,26 @@
 
             </intent-filter></activity>
 
-        <activity
-            android:name=".misc.NCActivity"
-            android:exported="true"
-            android:launchMode="singleTop">
-            <intent-filter>
-                <action android:name="android.intent.action.SEND" />
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="file"/>
-                <data android:scheme="content"/>
-                <data android:scheme="http"/>
-                <data android:scheme="https"/>
-                <data android:mimeType="*/*" />
-                <data android:pathPattern=".*\\.nc"/>
-                <data android:pathPattern=".*\\.enc"/>
+<!--        <activity-->
+<!--            android:name=".misc.NCActivity"-->
+<!--            android:exported="true"-->
+<!--            android:launchMode="singleTop">-->
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.SEND" />-->
+<!--                <action android:name="android.intent.action.VIEW"/>-->
+<!--                <category android:name="android.intent.category.DEFAULT"/>-->
+<!--                <category android:name="android.intent.category.BROWSABLE"/>-->
+<!--                <data android:scheme="file"/>-->
+<!--                <data android:scheme="content"/>-->
+<!--                <data android:scheme="http"/>-->
+<!--                <data android:scheme="https"/>-->
+<!--                <data android:mimeType="*/*" />-->
+<!--                <data android:pathPattern=".*\\.nc"/>-->
+<!--                <data android:pathPattern=".*\\.enc"/>-->
 
-            </intent-filter>
+<!--            </intent-filter>-->
 
-        </activity>
+<!--        </activity>-->
     </application>
 
 </manifest>
