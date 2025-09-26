@@ -33,34 +33,35 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:visibility="visible">
                 <!-- 大框尺寸设置 -->
-                    <EditText
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:id="@+id/etBigWidth"
-                        android:hint="画布宽度"
-                        android:inputType="number"
-                        android:layout_weight="1"/>
-                    <EditText
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:id="@+id/etBigHeight"
-                        android:hint="画布高度"
-                        android:inputType="number"
-                        android:layout_weight="1"/>
-                    <Button
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:id="@+id/btnSetBig"
-                        android:text="设置画布区域宽高"/>
+                <EditText
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/etBigWidth"
+                    android:hint="大框宽度"
+                    android:inputType="number"
+                    android:layout_weight="1"/>
+                <EditText
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/etBigHeight"
+                    android:hint="大框高度"
+                    android:inputType="number"
+                    android:layout_weight="1"/>
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/btnSetBig"
+                    android:text="设置平台区域宽高"/>
             </LinearLayout>
             <!-- 小框尺寸设置 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:visibility="gone">
                 <EditText
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -79,14 +80,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/btnSetSmall"
-                    android:text="设置打印区域宽高"/>
+                    android:text="设置绘图区"/>
             </LinearLayout>
 
             <!-- 位置控制 -->
             <LinearLayout
                 android:layout_width="match_parent"
-                android:visibility="gone"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:visibility="gone">
                 <EditText
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -105,14 +106,21 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/btnSetPosition"
-                    android:text="设置打印区域位置"/>
+                    android:text="设置停靠点"/>
             </LinearLayout>
 
             <TextView
                 android:id="@+id/tvSizeInfo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="画布尺寸：400x400"/>
+                android:text="大框：400x400"/>
+
+            <TextView
+                android:id="@+id/etSizeInfo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:text="小框：100x100"/>
 
             <TextView
                 android:id="@+id/tvPosition"
@@ -122,12 +130,21 @@
                 android:text="坐标显示"/>
 
             <!-- 自定义View -->
+
             <com.example.opencv.whiteboard.DragBoxView
                 android:id="@+id/dragBoxView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:visibility="visible"
-                android:layout_weight="1"/>
+                android:layout_weight="1" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/saveConstants"
+                android:layout_gravity="center"
+                android:text="保存设定到本地"
+                android:visibility="gone"/>
+
         </LinearLayout>
         <LinearLayout
             android:id="@+id/rg_tab"

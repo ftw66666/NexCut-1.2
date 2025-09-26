@@ -1,6 +1,7 @@
 package com.example.opencv.webwhiteboard;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -55,24 +56,40 @@ public class WebWhiteBoardActivity extends AppCompatActivity {
 
     // 自定义下载路径，默认为 Downloads 文件夹
     private String customDownloadPath = Environment.DIRECTORY_DOWNLOADS;
+    private static boolean isFirstLaunchInProcess = true;
     private boolean shouldClearLocalStorageOnLoad = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        shouldClearLocalStorageOnLoad = true;
+        // --- 核心修改部分 2：根据静态标志位来决定是否清空 ---
+        // --- 结束核心修改部分 2 ---
         // 1. 启用 EdgeToEdge 模式
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_webwhiteboard);
 
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-
         // 隐藏导航栏和状态栏
         View decorView = getWindow().getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
         decorView.setSystemUiVisibility(uiOptions);
 
+        View rootLayout = findViewById(R.id.main);
+        LinearLayout rgTab = findViewById(R.id.rg_tab);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+
+            // 检查软键盘（IME）是否可见
+            boolean isKeyboardVisible = insets.isVisible(WindowInsetsCompat.Type.ime());
+
+            // 3. 根据键盘可见性，更新 rg_tab 的可见状态
+            if (isKeyboardVisible) {
+                // 键盘弹出了，隐藏 rg_tab
+                rgTab.setVisibility(View.GONE);
+            } else {
+                // 键盘收起了，显示 rg_tab
+                rgTab.setVisibility(View.VISIBLE);
+            }
+
             // 获取系统栏（状态栏、导航栏）的 Insets
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             // 获取键盘（IME）的 Insets
@@ -90,26 +107,19 @@ public class WebWhiteBoardActivity extends AppCompatActivity {
             return insets;
         });
 
-        View rootLayout = findViewById(R.id.main);
-        LinearLayout rgTab = findViewById(R.id.rg_tab);
-        // 2. 为根布局设置 WindowInsets 监听器
-        // 2. 为根布局设置 WindowInsets 监听器
-        ViewCompat.setOnApplyWindowInsetsListener(rootLayout, (v, insets) -> {
-            // 检查软键盘（IME）是否可见
-            boolean isKeyboardVisible = insets.isVisible(WindowInsetsCompat.Type.ime());
 
-            // 3. 根据键盘可见性，更新 rg_tab 的可见状态
-            if (isKeyboardVisible) {
-                // 键盘弹出了，隐藏 rg_tab
-                rgTab.setVisibility(View.GONE);
-            } else {
-                // 键盘收起了，显示 rg_tab
-                rgTab.setVisibility(View.VISIBLE);
-            }
+        // 检查当前进程中是否是首次启动
+        if (isFirstLaunchInProcess) {
+            // 如果是，则设置清空标志
+            shouldClearLocalStorageOnLoad = true;
 
-            // 返回原始的 insets，让系统继续处理其他内边距（如状态栏）
-            return insets;
-        });
+            // 立即将静态标志位设为 false，这样当前进程中后续再打开本 Activity 就不会清空了
+            isFirstLaunchInProcess = false;
+
+            Log.d("WebWhiteBoardActivity", "应用进程首次启动，将在页面加载后清空 LocalStorage。");
+        } else {
+            Log.d("WebWhiteBoardActivity", "在同一进程中再次启动，不执行清空操作。");
+        }
 
         // 设置自定义下载路径为 gcodes 文件夹
         File gcodesDir = getExternalFilesDir("gcodes");
