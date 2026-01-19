@@ -1,0 +1,26 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 背景图片，假设是 180x180 -->
+    <item
+        android:drawable="@drawable/centerbtn_background" />
+
+    <!-- 中间的箭头图标（内联） -->
+    <item android:gravity="center">
+        <inset
+            android:insetLeft="60dp"
+            android:insetTop="60dp"
+            android:insetRight="60dp"
+            android:insetBottom="60dp">
+            <vector
+                android:width="120dp"
+                android:height="120dp"
+                android:viewportWidth="24"
+                android:viewportHeight="24">
+                <path
+                    android:fillColor="@color/white"
+                    android:pathData="M20,12l-7,-7v4H5v6h8v4z" />
+            </vector>
+        </inset>
+    </item>
+
+</layer-list>

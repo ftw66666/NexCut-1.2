@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- 顶部按钮区域 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <!-- 选择图片按钮 -->
+        <Button
+            android:id="@+id/btnSelect"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="选择图片" />
+
+        <!-- 拍摄照片按钮 -->
+        <Button
+            android:id="@+id/btnCapture"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="拍摄照片" />
+    </LinearLayout>
+
+    <!-- 图片显示区域 -->
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scaleType="fitCenter"
+        android:background="@android:color/darker_gray" />
+
+    <!-- 底部滑动操作栏 -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- 应用灰度处理 -->
+            <Button
+                android:id="@+id/btnGrayscale"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="灰度化" />
+
+            <!-- 应用高斯模糊 -->
+            <Button
+                android:id="@+id/btnBlur"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="高斯模糊" />
+
+            <!-- 应用 Canny 边缘检测 -->
+            <Button
+                android:id="@+id/btnEdge"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="边缘检测" />
+
+            <!-- 旋转图片 -->
+            <Button
+                android:id="@+id/btnRotate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="旋转" />
+
+            <!-- 裁剪图片 -->
+            <Button
+                android:id="@+id/btnCrop"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="裁剪" />
+
+            <!-- 生成G代码 -->
+            <Button
+                android:id="@+id/GCodeGen"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="生成G代码" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

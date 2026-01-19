@@ -1,0 +1,189 @@
+<resources>
+    <string name="app_name">NexCut-X1 Space</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+    <string name="CAMERA">拍摄</string>
+    <string name="GALLERY">相册</string>
+    <string name="EditImage">编辑</string>
+    <string name="Prefab">文件</string>
+    <string name="noboringactionbar_title">Beautiful picture</string>
+    <string name="company_name">au3tech</string>
+    <string name="user">user</string>
+    <string name="File">文件</string>
+    <string name="action_settings">Settings</string>
+    <string name="picture2_text">雷峰夕照</string>
+    <string name="picture3_text">南屏晚钟</string>
+    <!-- 中英文切换核心文案 -->
+    <string name="language">语言</string>
+    <string name="sure_to_switch_language">确定要切换语言吗？</string>
+    <string name="language_zh">中文</string>
+    <string name="language_en">English</string>
+    <string name="confirm">确认</string>
+    <string name="cancel">取消</string>
+
+    <string name="default_device_name">NexCut-X1</string>
+    <string name="device_status_template">%1$s\n %2$s</string>
+    <string name="device_status_disconnected">未连接</string>
+    <string name="device_status_idle">待机中</string>
+    <string name="device_status_processing">加工中</string>
+    <string name="device_status_alarm">告警</string>
+    <string name="device_status_unknown">未知错误</string>
+
+    <string name="featured_gallery">精选图库</string>
+    <string name="view_more">查看更多 ></string>
+    <string name="gcode_list_title">选择一个加工文件</string>
+    <string name="community_feature_in_progress">社区功能开发中</string>
+    <string name="toast_camera_permission_granted">摄像头权限已授予</string>
+    <string name="toast_camera_permission_denied">摄像头权限被拒绝，拍照功能将无法使用</string>
+    <string name="toast_storage_permission_granted">存储权限已授予，可以正常下载文件</string>
+    <string name="toast_storage_permission_denied">存储权限被拒绝，无法下载文件</string>
+    <string name="dialog_reset">重置</string>
+    <string name="dialog_close">关闭</string>
+    <string name="hint_big_width">大框宽度</string>
+    <string name="hint_big_height">大框高度</string>
+    <string name="hint_small_width">小框宽度</string>
+    <string name="hint_small_height">小框高度</string>
+    <string name="hint_pos_x">X坐标</string>
+    <string name="hint_pos_y">Y坐标</string>
+    <string name="btn_set_platform_size">设置画布尺寸</string>
+    <string name="btn_set_small_area">设置绘图区</string>
+    <string name="btn_set_position">设置停靠点</string>
+    <string name="btn_save_to_local">保存设定到本地</string>
+    <string name="position_placeholder">坐标显示</string>
+    <string name="size_big_placeholder">画布尺寸（红框）：</string>
+    <string name="size_small_placeholder">绘图区(红框)：--</string>
+    <string name="error_platform_positive">平台尺寸必须大于0</string>
+    <string name="error_invalid_number">请输入有效数字</string>
+    <string name="error_small_positive">打印尺寸必须大于0</string>
+    <string name="error_small_width_exceed">打印宽度不能超过平台宽度</string>
+    <string name="error_small_height_exceed">打印长度不能超过平台长度</string>
+    <string name="error_x_range">X坐标需在0~%1$.1f之间</string>
+    <string name="error_y_range">Y坐标需在0~%1$.1f之间</string>
+    <string name="toast_params_saved">参数已保存</string>
+    <string name="size_big_format">画布尺寸(红框)：%1$dx%2$d</string>
+    <string name="size_small_format">绘图区(红框)：%1$dx%2$d</string>
+    <string name="position_format">实时坐标：X=%1$.1f, Y=%2$.1f</string>
+    <string name="DeviceInfo">设备信息</string>
+
+    <!-- 项目原有文案（补充中文，示例） -->
+    <string name="setting">设置</string>
+    <string name="about">关于</string>
+    <string name="camera">拍照</string>
+    <string name="gallery">相册</string>
+    <string name="file">文件</string>
+    <string name="DeviceControl">设备控制</string>
+    <string name="CantFand">找不到目标设备？</string>
+    <string name="WIFISet">配置WI-FI</string>
+    <string name="DIState">DI口状态（1-12）</string>
+    <string name="DOControl">DO控制（1-10）</string>
+    <string name="device_model">设备型号</string>
+    <string name="Device_number">设备编号</string>
+    <string name="File_creation_failed">创建文件失败</string>
+    <string name="No_camera_app_found">无法找到相机软件</string>
+    <string name="reset_file">是否重置为默认文件？</string>
+    <string name="fail_to_clear_gcode">清空 GCode 目录失败</string>
+    <string name="reset_finish">重置完成</string>
+    <string name="yixuanze">已选则：</string>
+    <string name="transmit_decide">是否选择传输：</string>
+    <string name="share">分享</string>
+    <string name="File_does_not_exist">文件不存在</string>
+    <string name="Share_File">分享文件</string>
+    <string name="No_available_apps_to_share_the_file">没有可用的应用来分享文件</string>
+    <string name="Unable_to_open_the_browser">无法打开浏览器</string>
+    <string name="File_imported">已导入文件：</string>
+    <string name="Failed_to_load_image">加载图片失败：</string>
+    <string name="Import_failed">导入失败：</string>
+    <string name="The_file_has_been_copied_to">文件已复制到：</string>
+    <string name="File_copy_failed">文件复制失败：</string>
+    <string name="user_problem">已有用户登录，是否强制退出所有用户登录?：</string>
+    <string name="Login_Successful">登陆成功</string>
+    <string name="Login_failed">登录失败</string>
+    <string name="Logout_successful">注销成功</string>
+    <string name="Logout_fail">注销失败</string>
+    <string name="Upload_failed">上传失败</string>
+    <string name="Load_or_not">是否加载</string>
+    <string name="Connection_lost">连接已断开</string>
+    <string name="Move_failed">移动失败</string>
+    <string name="Return_failed">回原失败</string>
+    <string name="Homing_failed">回零失败</string>
+    <string name="Failed_to_walk_along_the_edge">走边框失败</string>
+    <string name="Singleaxis_stop_faile">单轴停止失败</string>
+    <string name="Failed_to_retrieve">获取失败</string>
+    <string name="Failed_to_get_the_file">获取文件失败</string>
+    <string name="No_local_files">没有本地文件</string>
+    <string name="Local_File_List">本地文件列表</string>
+    <string name="Load">是否加载:</string>
+    <string name="Loading_failed">加载失败:</string>
+    <string name="Startup_failed">启动失败:</string>
+    <string name="Stop_failure">停止失败:</string>
+    <string name="Clear_failed">清除失败:</string>
+    <string name="Failed_to_set_DA">设置DA失败:</string>
+    <string name="Failed_to_set_DO">设置DO失败:</string>
+    <string name="FTC_calibration_failed">FTC标定失败:</string>
+    <string name="FTC_follow_failure">FTC跟随失败:</string>
+    <string name="FTC_failure_to_stop">FTC停止失败:</string>
+    <string name="FTC_move_failure">FTC移动失败:</string>
+
+    <string name="Reconnection_failed">重连失败:</string>
+    <string name="Reconnection_failed_info">read超过最大重试次数(3次):</string>
+    <string name="CHECK_CONNECT">请检查连接是否正常</string>
+
+    <string name="No_layer_data">没有图层数据</string>
+
+    <string name="layer">; 图层: </string>
+    <string name="Processing_failed">处理失败: </string>
+    <string name="Image_failed_to_load">图片加载失败 </string>
+    <string name="No_image_restoration">没有原始图像可还原 </string>
+    <string name="image_first">请先选择图片 </string>
+    <string name="Enter_file_name">请输入文件名 </string>
+    <string name="save">保存 </string>
+    <string name="Saved_successfully">保存成功 </string>
+    <string name="no_gcode_found">没有找到已复制的 GCode 文件 </string>
+    <string name="transmit">是否选择传输： </string>
+    <string name="In_operation">运算中 </string>
+    <string name="Image_processing_failed">图片处理失败 </string>
+    <string name="File_has_been_saved">文件已保存 :</string>
+    <string name="to">到</string>
+    <string name="Failed_to_save_file">保存文件失败</string>
+    <string name="FTC_Status">FTC状态</string>
+    <string name="Enable">使能</string>
+    <string name="Disabled">失能</string>
+    <string name="Connection_Status">连接状态</string>
+    <string name="Connected">已连接</string>
+    <string name="Coordinates">坐标</string>
+    <string name="Progress">进度</string>
+    <string name="Warning">有警告</string>
+    <string name="No_Warning">无警告</string>
+    <string name="restarting_printer">请尝试重启打印机</string>
+    <string name="Confirm_deletion">确认删除</string>
+    <string name="Delete_file">确定要删除文件：</string>
+    <string name="Delete">删除</string>
+    <string name="Deleted">已删除：</string>
+    <string name="Delete_fail">删除失败：</string>
+    <string name="Connect">是否选择连接:</string>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <string-array name="axis_numbers">
+        <item>轴0</item>
+        <item>轴1</item>
+        <item>轴2</item>
+        <item>轴3</item>
+    </string-array>
+</resources>
