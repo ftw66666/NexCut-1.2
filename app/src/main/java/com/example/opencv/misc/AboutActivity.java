@@ -111,49 +111,4 @@ public class AboutActivity extends BaseActivity {
 //        }
 //        return super.onOptionsItemSelected(item);
 //    }
-
-
-    public void mainPage(View view) {
-        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
-        view.startAnimation(scaleIn);
-
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        startActivity(intent);
-        finish();
-    }
-
-    public void editImage(View view) {
-        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
-        view.startAnimation(scaleIn);
-
-        Intent intent = new Intent(this, WebWhiteBoardActivity.class);
-        startActivity(intent);
-    }
-
-    public void onClickSetting(View view) {
-        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
-        view.startAnimation(scaleIn);
-
-        Intent intent = new Intent(this, SettingActivity.class);
-        startActivity(intent);
-    }
-
-    public void goBack(View view) {
-        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
-        view.startAnimation(scaleIn);
-
-        // 方式1：直接调用返回键逻辑（API 29+）
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            getOnBackPressedDispatcher().onBackPressed();
-        }
-        // 方式2：兼容旧版本
-        else {
-            if (!isFinishing()) {
-                finish();
-                // 如果需要带动画
-                //overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-            }
-        }
-    }
 }

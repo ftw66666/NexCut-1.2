@@ -441,26 +441,11 @@ public class device_Control extends BaseActivity {
     }
 
     public void editImage(View view) {
-        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
-        view.startAnimation(scaleIn);
-
-        Intent intent = new Intent(this, WebWhiteBoardActivity.class);
-        startActivity(intent);
+        super.editImage(view);
     }
 
     public void OnClickDeviceControl(View view) {
-        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
-        view.startAnimation(scaleIn);
-        Intent intent = new Intent(device_Control.this, DeviceActivity.class);
-        startActivity(intent);
-    }
-
-    public void onClickSetting(View view) {
-        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
-        view.startAnimation(scaleIn);
-
-        Intent intent = new Intent(this, SettingActivity.class);
-        startActivity(intent);
+        navigateTo(view, DeviceActivity.class);
     }
 
 }

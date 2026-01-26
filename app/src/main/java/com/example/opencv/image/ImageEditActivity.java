@@ -1469,28 +1469,10 @@ private void graffitiToGCode() {
         */
     }
 
-    public void mainPage(View view)
-    {
-        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
-        view.startAnimation(scaleIn);
-
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        startActivity(intent);
-        finish();
-    }
-
     public void editImage(View view) {
         graffiti();
     }
 
-    public void onClickSetting(View view) {
-        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
-        view.startAnimation(scaleIn);
-
-        Intent intent = new Intent(this, SettingActivity.class);
-        startActivity(intent);
-    }
 
 
 }

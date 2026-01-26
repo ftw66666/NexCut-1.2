@@ -28,6 +28,7 @@ import com.example.opencv.Constant;
 import com.example.opencv.LanguageManager;
 import com.example.opencv.MainActivity;
 import com.example.opencv.R;
+import com.example.opencv.http.Control;
 import com.example.opencv.webwhiteboard.WebLanguageBridge;
 
 import org.json.JSONObject;
@@ -346,6 +347,9 @@ public class WebWhiteBoardActivity extends BaseActivity {
                         java.io.FileOutputStream fos = new java.io.FileOutputStream(targetFile);
                         fos.write(decodedBytes);
                         fos.close();
+
+                        // --- 核心修改：保存成功后直接调用分享 ---
+                        showConfirmationDialog(targetFile);
 
                         Toast.makeText(WebWhiteBoardActivity.this,
                                 R.string.File_has_been_saved + fileName + R.string.to + customDownloadPath,
@@ -737,32 +741,43 @@ public class WebWhiteBoardActivity extends BaseActivity {
                         + "}catch(err){console.error('apply language failed',err);}})();";
         view.evaluateJavascript(script, null);
     }
-
-    public void mainPage(View view) {
-        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
-        view.startAnimation(scaleIn);
-
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        startActivity(intent);
-        finish();
+    Control control = new Control();
+    private void startFileTransfer(File selectedFile) {
+        // 开启线程执行传输，防止阻塞 UI
+        java.util.concurrent.ExecutorService executor = java.util.concurrent.Executors.newSingleThreadExecutor();
+        executor.execute(() -> {
+            try {
+                control.FileTransfer(selectedFile, WebWhiteBoardActivity.this);
+            } finally {
+                executor.shutdown();
+            }
+        });
+    }
+    public void showConfirmationDialog(File selectedFile) {
+        new AlertDialog.Builder(this)
+                .setMessage(getString(R.string.transmit_decide) + " " + selectedFile.getName())
+                .setPositiveButton(R.string.confirm, (dialog, which) -> startFileTransfer(selectedFile))
+                .setNegativeButton(R.string.cancel, (dialog, which) -> dialog.dismiss())
+                .setNeutralButton(R.string.share, (dialog, which) -> {
+                    startFileShare(selectedFile);
+                })
+                .show();
     }
 
-    public void goBack(View view) {
-        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
-        view.startAnimation(scaleIn);
+    private void startFileShare(File selectedFile) {
+        Uri fileUri = androidx.core.content.FileProvider.getUriForFile(this,
+                getPackageName() + ".provider",
+                selectedFile);
 
-        // 方式1：直接调用返回键逻辑（API 29+）
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            getOnBackPressedDispatcher().onBackPressed();
-        }
-        // 方式2：兼容旧版本
-        else {
-            if (!isFinishing()) {
-                finish();
-                // 如果需要带动画
-                //overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-            }
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("*/*");
+        shareIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
+        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+        try {
+            startActivity(Intent.createChooser(shareIntent, "分享文件"));
+        } catch (Exception e) {
+            Toast.makeText(this, R.string.No_available_apps_to_share_the_file, Toast.LENGTH_SHORT).show();
         }
     }
 }

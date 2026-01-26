@@ -233,31 +233,4 @@ public class NCActivity extends BaseActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("输入参数");
     }
-
-
-    public void mainPage(View view) {
-        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
-        view.startAnimation(scaleIn);
-
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        startActivity(intent);
-        finish();
-    }
-
-    public void editImage(View view) {
-        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
-        view.startAnimation(scaleIn);
-
-        Intent intent = new Intent(this, WebWhiteBoardActivity.class);
-        startActivity(intent);
-    }
-
-    public void onClickSetting(View view) {
-        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
-        view.startAnimation(scaleIn);
-
-        Intent intent = new Intent(this, SettingActivity.class);
-        startActivity(intent);
-    }
 }

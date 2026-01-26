@@ -153,7 +153,6 @@ public class MainActivity extends BaseActivity {
 
         new Thread(() -> FileUtils.clearAppPicturesDir(this)).start();
 
-
         textColor = getResources().getColor(R.color.light_black);
         backgroundColor = getResources().getColor(R.color.white);
 
@@ -174,7 +173,6 @@ public class MainActivity extends BaseActivity {
 //        // 启动监听 Service
 //        Intent serviceIntent = new Intent(this, ExitMonitorService.class);
 //        startForegroundService(serviceIntent);
-
 
         handleImportIntent(getIntent());
 
@@ -214,36 +212,17 @@ public class MainActivity extends BaseActivity {
     }
 
     public void onClickDevice(View view) {
-        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
-        view.startAnimation(scaleIn);
-
-        Intent intent = new Intent(MainActivity.this, DeviceActivity.class);
-        startActivity(intent);
+        navigateTo(view, DeviceActivity.class);
     }
 
     public void OnClickDeviceInfo(View view) {
-        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
-        view.startAnimation(scaleIn);
-
-        Intent intent = new Intent(MainActivity.this, DeviceInfoActivity.class);
-        startActivity(intent);
+        navigateTo(view, DeviceInfoActivity.class);
     }
 
     public void OnClickDeviceControl(View view) {
-        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
-        view.startAnimation(scaleIn);
-
-        Intent intent = new Intent(MainActivity.this, device_Control.class);
-        startActivity(intent);
+        navigateTo(view, device_Control.class);
     }
 
-    public void onClickSetting(View view) {
-        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
-        view.startAnimation(scaleIn);
-
-        Intent intent = new Intent(MainActivity.this, SettingActivity.class);
-        startActivity(intent);
-    }
 
     public void onClickLanguageSetting(View view) {
         Map<String, Integer> supportLanguages = LanguageManager.getSupportLanguages();
@@ -300,16 +279,11 @@ public class MainActivity extends BaseActivity {
     }
 
     public void editImage(View view) {
-        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
-        view.startAnimation(scaleIn);
-
-        Intent intent = new Intent(MainActivity.this, WebWhiteBoardActivity.class);
-        startActivity(intent);
+        super.editImage(view);
     }
 
     public void selectImage(View view) {
-        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
-        view.startAnimation(scaleIn);
+        animateClick(view);
 
         Intent intent1 = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(intent1, PICK_IMAGE);
@@ -551,10 +525,20 @@ public class MainActivity extends BaseActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == EDIT_IMAGE && resultCode == RESULT_OK) {
+            if (!Constant.IsOfficial) {
+                Toast.makeText(this, "请先连接至NexCut官方设备", Toast.LENGTH_SHORT).show();
+                // dialog.dismiss(); // 根据你的流程考虑是否关闭对话框
+                return; // 如果不是官方设备，阻止后续处理
+            }
             Intent intent = new Intent(MainActivity.this, ImageEditActivity.class);
             startActivity(intent);
         }
         if (requestCode == PICK_IMAGE && resultCode == RESULT_OK && data != null) {
+            if (!Constant.IsOfficial) {
+                Toast.makeText(this, "请先连接至NexCut官方设备", Toast.LENGTH_SHORT).show();
+                // dialog.dismiss(); // 根据你的流程考虑是否关闭对话框
+                return; // 如果不是官方设备，阻止后续处理
+            }
             imageUri = data.getData();
             try {
                 //bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
@@ -567,6 +551,11 @@ public class MainActivity extends BaseActivity {
                 e.printStackTrace();
             }
         } else if (requestCode == CAPTURE_IMAGE && resultCode == RESULT_OK) {
+            if (!Constant.IsOfficial) {
+                Toast.makeText(this, "请先连接至NexCut官方设备", Toast.LENGTH_SHORT).show();
+                // dialog.dismiss(); // 根据你的流程考虑是否关闭对话框
+                return; // 如果不是官方设备，阻止后续处理
+            }
 //            bitmap = (Bitmap) data.getExtras().get("data");
 //            // 将 Bitmap 保存到临时文件并获取其 URI
 //            try {

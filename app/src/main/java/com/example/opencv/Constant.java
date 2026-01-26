@@ -74,7 +74,7 @@ public class Constant {
     public static int PrintWidth = PlatformWidth;
     public static int PrintHeight = PlatformHeight;
     public static double PrintStartX = 0;
-    public static double PrintStartY =PlatformHeight;
+    public static double PrintStartY = PlatformHeight;
 
     public static boolean IsOfficial = true;
 

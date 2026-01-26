@@ -277,30 +277,4 @@ public class DeviceActivity extends BaseActivity implements UdpReceiver.OnDevice
         builder.setNegativeButton("取消", (dialog, which) -> dialog.dismiss());
         builder.show();
     }
-
-    public void mainPage(View view) {
-        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
-        view.startAnimation(scaleIn);
-
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        startActivity(intent);
-        finish();
-    }
-
-    public void editImage(View view) {
-        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
-        view.startAnimation(scaleIn);
-
-        Intent intent = new Intent(this, WebWhiteBoardActivity.class);
-        startActivity(intent);
-    }
-
-    public void onClickSetting(View view) {
-        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
-        view.startAnimation(scaleIn);
-
-        Intent intent = new Intent(this, SettingActivity.class);
-        startActivity(intent);
-    }
 }
