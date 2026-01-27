@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+    <!-- 重构Toolbar：添加语言切换按钮到右上角 -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/toolbar"
+        app:titleTextColor="@android:color/white">
+
+<!--        &lt;!&ndash; Toolbar标题（保留原有） &ndash;&gt;-->
+<!--        <TextView-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="@string/app_name"-->
+<!--            android:textColor="@android:color/white"-->
+<!--            android:textSize="18sp"-->
+<!--            android:layout_gravity="center_vertical" />-->
+
+        <ImageButton
+            android:id="@+id/buttonLanguage"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="end|center_vertical"
+            android:layout_marginEnd="15dp"
+            android:alpha="1.0"
+            android:background="@null"
+            android:elevation="2dp"
+            android:foreground="?attr/selectableItemBackgroundBorderless"
+            android:onClick="onClickLanguageSetting"
+            android:scaleType="fitCenter"
+            android:scaleX="0.7"
+            android:scaleY="0.7"
+            android:src="@drawable/language_switch_1" />
+
+<!--        &lt;!&ndash; 语言切换按钮：图片样式（无文字） &ndash;&gt;-->
+<!--        <androidx.appcompat.widget.AppCompatButton-->
+<!--            android:id="@+id/buttonLanguage"-->
+<!--            android:layout_width="48dp"-->
+<!--            android:layout_height="48dp"-->
+<!--            android:layout_gravity="end|center_vertical"-->
+<!--            android:layout_marginEnd="15dp"-->
+<!--            android:background="@drawable/language_switch"-->
+<!--            android:backgroundTint="@android:color/transparent"-->
+<!--            android:foreground="?attr/selectableItemBackgroundBorderless"-->
+<!--            android:onClick="onClickLanguageSetting"-->
+<!--            android:stateListAnimator="@anim/anim_scale_in"-->
+<!--            android:text=""-->
+<!--            android:textSize="0sp" />-->
+
+        <!-- 语言切换按钮：Toolbar右上角 -->
+<!--        <androidx.appcompat.widget.AppCompatButton-->
+<!--            android:id="@+id/buttonLanguage"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_gravity="end|center_vertical"-->
+<!--            android:layout_marginEnd="15dp"-->
+<!--            android:background="@drawable/btn1"-->
+<!--            android:backgroundTint="@android:color/transparent"-->
+<!--            android:minWidth="80dp"-->
+<!--            android:minHeight="40dp"-->
+<!--            android:onClick="onClickLanguageSetting"-->
+<!--            android:stateListAnimator="@anim/anim_scale_in"-->
+<!--            android:text="@string/language"-->
+<!--            android:textColorLink="@color/DI_False"-->
+<!--            android:textSize="12sp"-->
+<!--            android:textColor="@android:color/white"/>-->
+
+    </androidx.appcompat.widget.Toolbar>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/background_color"
+        android:gravity="top"
+        android:orientation="vertical"
+        android:weightSum="1"
+        tools:context=".MainActivity">
+        <ScrollView
+            android:layout_height="0dp"
+            android:layout_width="match_parent"
+            android:layout_weight="0.925">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/background_color"
+                android:gravity="top"
+                android:orientation="vertical"
+                android:padding="16dp"
+                tools:context=".MainActivity">
+
+                <ImageButton
+                    android:id="@+id/myImageView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center|center_vertical"
+                    android:adjustViewBounds="true"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="false"
+                    android:contentDescription="@string/company_name"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/new_banner" />
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/button0"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center|end"
+                    android:layout_marginVertical="10dp"
+                    android:adjustViewBounds="true"
+                    android:background="@drawable/printer_btn"
+                    android:backgroundTint="@android:color/transparent"
+                    android:backgroundTintMode="screen"
+                    android:minHeight="180dp"
+                    android:onClick="onClickDevice"
+                    android:paddingEnd="-180dp"
+                    android:stateListAnimator="@anim/anim_scale_in"
+                    android:text="NexCut-X1\n未连接"
+                    android:textAlignment="gravity"
+                    android:textAllCaps="false"
+                    android:textColorLink="@color/light_black"
+                    android:textSize="16sp" />
+
+                <androidx.gridlayout.widget.GridLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="0dp"
+                    app:alignmentMode="alignMargins"
+                    app:columnCount="2"
+                    app:rowCount="2">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="30dp"
+                        android:orientation="vertical"
+                        app:layout_column="0"
+                        app:layout_columnWeight="1"
+                        app:layout_row="0"
+                        app:layout_rowWeight="1">
+
+                        <androidx.appcompat.widget.AppCompatButton
+                            android:id="@+id/button1"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:layout_margin="5dp"
+                            android:background="@drawable/btn1"
+                            android:gravity="center"
+                            android:minHeight="100dp"
+                            android:onClick="captureImage"
+                            android:stateListAnimator="@anim/anim_scale_in"
+                            android:text="@string/CAMERA"
+                            android:textAllCaps="false"
+                            android:textColorLink="@color/light_black"
+                            android:textSize="16dp" />
+
+                        <TextView
+                            android:id="@+id/text1"
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:gravity="center"
+                            android:text="Text1"
+                            android:textColor="#03A9F4" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        app:layout_column="1"
+                        app:layout_columnWeight="1"
+                        app:layout_row="0"
+                        app:layout_rowWeight="1">
+
+                        <androidx.appcompat.widget.AppCompatButton
+                            android:id="@+id/button2"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:layout_margin="5dp"
+                            android:background="@drawable/btn1"
+                            android:gravity="center"
+                            android:minHeight="100dp"
+                            android:onClick="selectImage"
+                            android:stateListAnimator="@anim/anim_scale_in"
+                            android:text="@string/GALLERY"
+                            android:textAllCaps="false"
+                            android:textColorLink="@color/light_black"
+                            android:textSize="16dp" />
+
+                        <TextView
+                            android:id="@+id/text2"
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:gravity="center"
+                            android:text="@string/GALLERY"
+                            android:textColor="#03A9F4" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        app:layout_column="0"
+                        app:layout_columnWeight="1"
+                        app:layout_row="1"
+                        app:layout_rowWeight="1">
+
+                        <androidx.appcompat.widget.AppCompatButton
+                            android:id="@+id/button3"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:layout_margin="5dp"
+                            android:background="@drawable/btn1"
+                            android:gravity="center"
+                            android:minHeight="100dp"
+                            android:onClick="readGCode"
+                            android:stateListAnimator="@anim/anim_scale_in"
+                            android:text="@string/file"
+                            android:textAllCaps="false"
+                            android:textColorLink="@color/light_black"
+                            android:textSize="16dp" />
+
+                        <TextView
+                            android:id="@+id/text3"
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:gravity="center"
+                            android:text="@string/file"
+                            android:textColor="#03A9F4" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        app:layout_column="1"
+                        app:layout_columnWeight="1"
+                        app:layout_row="1"
+                        app:layout_rowWeight="1">
+
+                        <androidx.appcompat.widget.AppCompatButton
+                            android:id="@+id/button4"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:layout_margin="5dp"
+                            android:background="@drawable/btn1"
+                            android:backgroundTint="@color/white"
+                            android:backgroundTintMode="screen"
+                            android:minHeight="100dp"
+                            android:onClick="appAbout"
+                            android:stateListAnimator="@anim/anim_scale_in"
+                            android:text="@string/about"
+                            android:textAllCaps="false"
+                            android:textColorLink="@color/light_black"
+                            android:textSize="16dp" />
+
+                        <TextView
+                            android:id="@+id/text4"
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:gravity="center"
+                            android:text="@string/File"
+                            android:textColor="#03A9F4" />
+                    </LinearLayout>
+
+                </androidx.gridlayout.widget.GridLayout>
+
+                <!-- 移除原位置的buttonLanguage -->
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="5dp"
+                    android:minHeight="30dp">
+
+                    <TextView
+                        android:id="@+id/title2"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="@string/featured_gallery"
+                        android:textColor="@color/light_black"
+                        android:textSize="20sp"
+                        android:layout_marginStart="8dp"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toStartOf="@id/button5"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        android:maxLines="1"
+                        android:ellipsize="end" />
+
+                    <TextView
+                        android:id="@+id/button5"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/view_more"
+                        android:textColor="@color/gray"
+                        android:textSize="14sp"
+                        android:onClick="onClickOpenBrowser"
+                        android:layout_marginEnd="8dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+                <HorizontalScrollView
+                    android:id="@+id/image_scroll"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fillViewport="true"
+                    android:scrollbars="none">
+
+                    <LinearLayout
+                        android:id="@+id/image_container"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="8dp"/>
+                </HorizontalScrollView>
+
+            </LinearLayout>
+
+        </ScrollView>
+
+        <LinearLayout
+            android:id="@+id/rg_tab"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.075"
+            android:background="@color/white"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:weightSum="1">
+
+            <ImageButton
+                android:id="@+id/bottom_button1"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_marginVertical="10dp"
+                android:layout_weight="0.4"
+                android:adjustViewBounds="true"
+                android:src="@drawable/home_icon"
+                android:background="@null"
+                android:scaleType="fitCenter" />
+
+            <ImageButton
+                android:id="@+id/bottom_button2"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_marginVertical="0dp"
+                android:layout_weight="0.2"
+                android:adjustViewBounds="true"
+                android:src="@drawable/add_icon"
+                android:background="@null"
+                android:onClick="editImage"
+                android:scaleType="fitCenter" />
+
+            <ImageButton
+                android:id="@+id/bottom_button3"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_marginVertical="10dp"
+                android:layout_weight="0.4"
+                android:adjustViewBounds="true"
+                android:src="@drawable/setting_icon"
+                android:background="@null"
+                android:onClick="onClickSetting"
+                android:scaleType="fitCenter" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

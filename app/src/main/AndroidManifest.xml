@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example.opencv">
+    <!-- 添加必要的权限 -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <!-- 下载权限 -->
+    <uses-permission android:name="android.permission.DOWNLOAD_WITHOUT_NOTIFICATION" />
+    <!-- Devices running Android 12L (API level 32) or lower  -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <!-- 添加以下权限 -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
+    <!-- Devices running Android 13 (API level 33) or higher -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+
+    <!-- To handle the reselection within the app on devices running Android 14
+         or higher if your app targets Android 14 (API level 34) or higher.  -->
+    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
+
+    <queries>
+        <!-- 声明查询相机Intent的权限 -->
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
+        </intent>
+        <!-- 华为相机包名，显式声明可见性 -->
+        <package android:name="com.huawei.camera" />
+<!--        &lt;!&ndash; 兼容其他安卓手机系统相机 &ndash;&gt;-->
+<!--        <package android:name="com.android.camera2" />-->
+    </queries>
+
+    <application
+        android:name=".MyApp"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:hardwareAccelerated="true"
+        android:icon="@mipmap/app_icon"
+        android:label="@string/app_name"
+        android:largeHeap="true"
+        android:requestLegacyExternalStorage="true"
+        android:roundIcon="@mipmap/app_icon"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.OpenCV"
+        android:usesCleartextTraffic="true"
+        android:networkSecurityConfig="@xml/network_security_config"
+        tools:targetApi="31">
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.example.opencv.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/filepaths" />
+        </provider>
+
+
+
+        <activity android:name="com.yalantis.ucrop.UCropActivity"
+            android:screenOrientation="sensorPortrait"/>
+        <service
+            android:name=".device.InfoService"
+            android:enabled="true"
+            android:exported="true"
+            android:foregroundServiceType="dataSync"
+            tools:ignore="ForegroundServicePermission" />
+
+        <service
+            android:name=".misc.ExitMonitorService"
+            android:exported="false" />
+
+        <activity
+            android:name=".device.DeviceInfoActivity"
+            android:screenOrientation="sensorPortrait"
+            android:exported="false" />
+        <!-- 配置 FileProvider -->
+<!--        <provider-->
+<!--            android:name="androidx.core.content.FileProvider"-->
+<!--            android:authorities="com.example.opencv.fileprovider"-->
+<!--            android:exported="false"-->
+<!--            android:grantUriPermissions="true">-->
+<!--            <meta-data-->
+<!--                android:name="android.support.FILE_PROVIDER_PATHS"-->
+<!--                android:resource="@xml/filepaths" />-->
+<!--        </provider> &lt;!&ndash; 启动 Activity &ndash;&gt;-->
+        <activity android:name=".misc.AboutActivity"
+            android:screenOrientation="sensorPortrait"
+            android:exported="true" />
+        <activity
+            android:name=".device.DeviceActivity"
+            android:screenOrientation="sensorPortrait"
+            android:exported="false" />
+        <activity
+            android:name=".device.device_Control"
+            android:screenOrientation="sensorPortrait"
+            android:exported="false" />
+        <activity
+            android:name=".image.ImageEditActivity"
+            android:screenOrientation="sensorPortrait"
+            android:exported="true" />
+        <activity
+            android:name=".image.LayerPreviewActivity"
+            android:screenOrientation="sensorPortrait"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize"
+            />
+        <!-- 已注释，被WebWhiteBoardActivity替代
+        <activity
+            android:name=".whiteboard.WhiteboardActivity"
+            android:exported="true" />
+        -->
+        <activity
+            android:name=".whiteboard.SettingActivity"
+            android:screenOrientation="sensorPortrait"
+            android:exported="true" />
+        <activity
+            android:name=".webwhiteboard.WebWhiteBoardActivity"
+            android:exported="true"
+            android:screenOrientation="sensorPortrait"
+
+            />
+        <!--
+        <activity
+            android:name=".whiteboard.WhiteboardActivity"
+            android:exported="true" />
+        -->
+        <activity
+            android:name=".MainActivity"
+            android:screenOrientation="sensorPortrait"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+
+            </intent-filter></activity>
+
+<!--        <activity-->
+<!--            android:name=".misc.NCActivity"-->
+<!--            android:exported="true"-->
+<!--            android:launchMode="singleTop">-->
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.SEND" />-->
+<!--                <action android:name="android.intent.action.VIEW"/>-->
+<!--                <category android:name="android.intent.category.DEFAULT"/>-->
+<!--                <category android:name="android.intent.category.BROWSABLE"/>-->
+<!--                <data android:scheme="file"/>-->
+<!--                <data android:scheme="content"/>-->
+<!--                <data android:scheme="http"/>-->
+<!--                <data android:scheme="https"/>-->
+<!--                <data android:mimeType="*/*" />-->
+<!--                <data android:pathPattern=".*\\.nc"/>-->
+<!--                <data android:pathPattern=".*\\.enc"/>-->
+
+<!--            </intent-filter>-->
+
+<!--        </activity>-->
+    </application>
+
+</manifest>

@@ -1,0 +1,175 @@
+<resources>
+    <!-- 英文文案（key与中文完全一致） -->
+    <string name="app_name">NexCut-X1 Space</string>
+    <string name="setting">Settings</string>
+    <string name="about">About</string>
+    <string name="camera">Camera</string>
+    <string name="gallery">Gallery</string>
+    <string name="file">File</string>
+    <string name="File">File</string>
+    <string name="Prefab">File  </string>
+
+    <!-- 中英文切换核心文案 -->
+    <string name="language">Language</string>
+    <string name="sure_to_switch_language">Are you sure to switch language?</string>
+    <string name="language_zh">Chinese</string>
+    <string name="language_en">English</string>
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
+    <string name="default_device_name">NexCut-X1</string>
+    <string name="device_status_template">%1$s\n %2$s</string>
+    <string name="device_status_disconnected">Disconnected</string>
+    <string name="device_status_idle">Idle</string>
+    <string name="device_status_processing">Processing</string>
+    <string name="device_status_alarm">Alarm</string>
+    <string name="device_status_unknown">Unknown</string>
+    <string name="featured_gallery">Featured Gallery</string>
+    <string name="view_more">View more ></string>
+    <string name="gcode_list_title">Choose a job file</string>
+    <string name="community_feature_in_progress">Community feature under development</string>
+    <string name="toast_camera_permission_granted">Camera permission granted</string>
+    <string name="toast_camera_permission_denied">Camera permission denied, capture will not work</string>
+    <string name="toast_storage_permission_granted">Storage permission granted, downloads available</string>
+    <string name="toast_storage_permission_denied">Storage permission denied, cannot download files</string>
+    <string name="dialog_reset">Reset</string>
+    <string name="dialog_close">Close</string>
+    <string name="hint_big_width">Platform width</string>
+    <string name="hint_big_height">Platform height</string>
+    <string name="hint_small_width">Work area width</string>
+    <string name="hint_small_height">Work area height</string>
+    <string name="hint_pos_x">X coordinate</string>
+    <string name="hint_pos_y">Y coordinate</string>
+    <string name="btn_set_platform_size">Set platform size</string>
+    <string name="btn_set_small_area">Set work area</string>
+    <string name="btn_set_position">Set docking point</string>
+    <string name="btn_save_to_local">Save to local</string>
+    <string name="position_placeholder">Coordinates</string>
+    <string name="size_big_placeholder">Canvas Size (Red): --</string>
+    <string name="size_small_placeholder">Work area (red): --</string>
+    <string name="error_platform_positive">Platform size must be greater than 0</string>
+    <string name="error_invalid_number">Please enter a valid number</string>
+    <string name="error_small_positive">Work area size must be greater than 0</string>
+    <string name="error_small_width_exceed">Work area width cannot exceed platform width</string>
+    <string name="error_small_height_exceed">Work area height cannot exceed platform height</string>
+    <string name="error_x_range">X must be between 0 and %1$.1f</string>
+    <string name="error_y_range">Y must be between 0 and %1$.1f</string>
+    <string name="toast_params_saved">Parameters saved</string>
+    <string name="size_big_format">Platform (red): %1$dx%2$d</string>
+    <string name="size_small_format">Work area (red): %1$dx%2$d</string>
+    <string name="position_format">Coordinates: X=%1$.1f, Y=%2$.1f</string>
+    <string name="DeviceInfo">Device Info</string>
+    <string name="DeviceControl">Device Control</string>
+    <string name="CantFand">Can`t find the target device?</string>
+    <string name="WIFISet">WI-FI Settings</string>
+    <string name="DIState">DI Port State（1-12）</string>
+    <string name="DOControl">DO Control（1-10）</string>
+    <string name="device_model">Device Model</string>
+    <string name="Device_number">Device Number</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+    <string name="CAMERA">Camera</string>
+    <string name="GALLERY">Gallery</string>
+    <string name="EditImage">Edit</string>
+    <string name="noboringactionbar_title">Beautiful picture</string>
+    <string name="company_name">au3tech</string>
+    <string name="user">user</string>
+    <string name="action_settings">Settings</string>
+    <string name="picture2_text">Leifeng Pagoda at Sunset</string>
+    <string name="picture3_text">Evening Bell at Nanping</string>
+    <string name="File_creation_failed">File creation failed</string>
+    <string name="No_camera_app_found">No camera app found</string>
+    <string name="reset_file">Reset to the default file?</string>
+    <string name="fail_to_clear_gcode">Failed to clear GCode directory</string>
+    <string name="reset_finish">Reset complete</string>
+    <string name="yixuanze">Selected：</string>
+    <string name="transmit_decide">Transmit?：</string>
+    <string name="share">Share</string>
+    <string name="File_does_not_exist">File does not exist</string>
+    <string name="Share_File">Share File</string>
+    <string name="No_available_apps_to_share_the_file">No available apps to share the file</string>
+    <string name="Unable_to_open_the_browser">Unable to open the browser</string>
+    <string name="File_imported">File imported：</string>
+    <string name="Failed_to_load_image">Failed to load image：</string>
+    <string name="Import_failed">Import failed：</string>
+    <string name="The_file_has_been_copied_to">The file has been copied to：</string>
+    <string name="File_copy_failed">File copy failed：</string>
+    <string name="user_problem">A user is already logged in. Do you want to force log out all users?：</string>
+    <string name="Login_Successful">Login Successful</string>
+    <string name="Login_failed">Login failed</string>
+    <string name="Logout_successful">注销成功</string>
+    <string name="Logout_fail">Logout fail</string>
+    <string name="Upload_failed">上传失败</string>
+    <string name="Load_or_not">Load？</string>
+    <string name="Connection_lost">Connection lost</string>
+    <string name="Move_failed">Move failed </string>
+    <string name="Return_failed">Return failed </string>
+    <string name="Homing_failed">Homing failed </string>
+    <string name="Failed_to_walk_along_the_edge">Failed to walk along the edge</string>
+    <string name="Singleaxis_stop_faile">Single-axis stop faile</string>
+    <string name="Failed_to_retrieve">Failed to retrieve</string>
+    <string name="Failed_to_get_the_file">Failed to get the file</string>
+    <string name="No_local_files">No local files</string>
+    <string name="Local_File_List">Local File List</string>
+    <string name="Load">Load:</string>
+    <string name="Loading_failed">Loading failed:</string>
+    <string name="Startup_failed">Startup failed:</string>
+    <string name="Stop_failure">Stop failure:</string>
+    <string name="Clear_failed">Clear failed:</string>
+    <string name="Failed_to_set_DA">Failed to set DA:</string>
+    <string name="Failed_to_set_DO">Failed to set DO:</string>
+    <string name="FTC_calibration_failed">FTC calibration failed:</string>
+    <string name="FTC_follow_failure">FTC follow failure:</string>
+    <string name="FTC_failure_to_stop">FTC failure to stop:</string>
+    <string name="FTC_move_failure">FTC move failure:</string>
+
+    <string name="Reconnection_failed">Reconnection failed:</string>
+    <string name="Reconnection_failed_info">Read exceeded the maximum retry count (3 times):</string>
+    <string name="CHECK_CONNECT">Please check if the connection is working properly.</string>
+
+    <string name="No_layer_data">No layer data</string>
+
+    <string name="layer">; layer: </string>
+    <string name="Processing_failed">Processing failed : </string>
+    <string name="Image_failed_to_load">Image failed to load </string>
+    <string name="No_image_restoration">No original image available for restoration </string>
+    <string name="image_first">Please select an image first </string>
+    <string name="Enter_file_name">Enter file name </string>
+    <string name="save">save </string>
+    <string name="Saved_successfully">Saved successfully</string>
+    <string name="no_gcode_found">No copied GCode file found</string>
+    <string name="transmit">Do you want to transmit： </string>
+    <string name="In_operation">In operation </string>
+    <string name="Image_processing_failed">Image processing failed </string>
+    <string name="File_has_been_saved">File has been saved: </string>
+    <string name="to">to</string>
+    <string name="Failed_to_save_file">Failed to save file</string>
+    <string name="FTC_Status">FTC Status</string>
+    <string name="Enable">Enable</string>
+    <string name="Disabled">Disabled</string>
+    <string name="Connection_Status">Connection Status</string>
+    <string name="Connected">Connected</string>
+    <string name="Coordinates">Coordinates</string>
+    <string name="Progress">Progress</string>
+    <string name="Warning">Warning</string>
+    <string name="No_Warning">No Warning</string>
+    <string name="restarting_printer">Please try restarting the printer.</string>
+    <string name="Confirm_deletion">Confirm deletion</string>
+    <string name="Delete_file">Delete the file：</string>
+    <string name="Delete">Delete</string>
+    <string name="Deleted">Deleted：</string>
+    <string name="Delete_fail">Deletion failed：</string>
+    <string name="Connect">Connect:</string>
+    <string name="Connect_to_official_device">Please connect to the official NexCut device first</string>
+
+
+
+
+
+
+
+
+
+
+
+</resources>

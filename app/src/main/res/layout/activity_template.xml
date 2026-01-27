@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/toolbar"
+        android:title="@string/app_name"
+        app:titleTextColor="@android:color/white" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/background_color"
+        android:gravity="top"
+        android:orientation="vertical"
+        android:weightSum="1"
+        tools:context=".MainActivity">
+
+
+        <LinearLayout
+            android:id="@+id/rg_tab"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.075"
+            android:background="@color/white"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:weightSum="1">
+
+            <ImageButton
+                android:id="@+id/bottom_button1"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_marginVertical="10dp"
+                android:layout_weight="0.4"
+                android:adjustViewBounds="true"
+                android:src="@drawable/home_icon"
+                android:background="@null"
+
+                android:scaleType="fitCenter" />
+
+            <ImageButton
+                android:id="@+id/bottom_button2"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_marginVertical="0dp"
+                android:layout_weight="0.2"
+                android:adjustViewBounds="true"
+                android:src="@drawable/add_icon"
+                android:background="@null"
+                android:onClick="editImage"
+                android:scaleType="fitCenter" />
+
+            <ImageButton
+                android:id="@+id/bottom_button3"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_marginVertical="10dp"
+                android:layout_weight="0.4"
+                android:adjustViewBounds="true"
+                android:src="@drawable/setting_icon"
+                android:background="@null"
+                android:onClick="onClickDevice"
+                android:scaleType="fitCenter" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>
