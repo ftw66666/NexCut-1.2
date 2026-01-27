@@ -284,7 +284,6 @@ public class MainActivity extends BaseActivity {
 
     public void selectImage(View view) {
         animateClick(view);
-
         Intent intent1 = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(intent1, PICK_IMAGE);
     }
@@ -303,8 +302,7 @@ public class MainActivity extends BaseActivity {
     }
 
     public void captureImage(View view) {
-        Animation scaleIn = AnimationUtils.loadAnimation(this, R.anim.anim_scale_in);
-        view.startAnimation(scaleIn);
+        animateClick(view);
 
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         //takePictureIntent.addFlags(0);
