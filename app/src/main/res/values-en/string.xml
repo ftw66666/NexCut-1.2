@@ -1,6 +1,7 @@
 <resources>
     <!-- 英文文案（key与中文完全一致） -->
     <string name="app_name">NexCut-X1 Space</string>
+    <string name="app_name_short">NexCut</string>
     <string name="setting">Settings</string>
     <string name="about">About</string>
     <string name="camera">Camera</string>
@@ -160,8 +161,7 @@
     <string name="Deleted">Deleted：</string>
     <string name="Delete_fail">Deletion failed：</string>
     <string name="Connect">Connect:</string>
-
-
+    <string name="NotOfficialError">Please Connect to NexCut Device!</string>
 
 
 

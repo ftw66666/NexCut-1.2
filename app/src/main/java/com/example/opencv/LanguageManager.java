@@ -78,34 +78,35 @@ public class LanguageManager {
         return newContext;
     }
 
-//    private static Locale getLocaleByCode(String code) {
-//        switch (code) {
-//            case "zh":
-//                // 原有代码：return Locale.SIMPLIFIED_CHINESE;
-//                return new Locale("zh", "CN"); // 仅改这1行，强制返回zh_CN（MIUI唯一稳定识别的中文编码）
-//            case "en":
-//                return Locale.ENGLISH; // 英文逻辑不动
-//            default:
-//                return new Locale("zh", "CN"); // 兜底也改为zh_CN
-//        }
-//    }
-//
-//    @SuppressWarnings("deprecation")
-//    private static Context updateContextLocale(Context context, Locale targetLocale) {
-//        Context newContext = context;
-//        android.content.res.Resources resources = newContext.getResources();
-//        android.content.res.Configuration config = resources.getConfiguration();
-//
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-//            config.setLocale(targetLocale);
-//            config.setLocales(new LocaleList(targetLocale));
-//            newContext = newContext.createConfigurationContext(config);
-//        } else {
-//            config.locale = targetLocale;
-//            resources.updateConfiguration(config, resources.getDisplayMetrics());
-//        }
-//        return newContext;
-//    }
+    // private static Locale getLocaleByCode(String code) {
+    // switch (code) {
+    // case "zh":
+    // // 原有代码：return Locale.SIMPLIFIED_CHINESE;
+    // return new Locale("zh", "CN"); // 仅改这1行，强制返回zh_CN（MIUI唯一稳定识别的中文编码）
+    // case "en":
+    // return Locale.ENGLISH; // 英文逻辑不动
+    // default:
+    // return new Locale("zh", "CN"); // 兜底也改为zh_CN
+    // }
+    // }
+    //
+    // @SuppressWarnings("deprecation")
+    // private static Context updateContextLocale(Context context, Locale
+    // targetLocale) {
+    // Context newContext = context;
+    // android.content.res.Resources resources = newContext.getResources();
+    // android.content.res.Configuration config = resources.getConfiguration();
+    //
+    // if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+    // config.setLocale(targetLocale);
+    // config.setLocales(new LocaleList(targetLocale));
+    // newContext = newContext.createConfigurationContext(config);
+    // } else {
+    // config.locale = targetLocale;
+    // resources.updateConfiguration(config, resources.getDisplayMetrics());
+    // }
+    // return newContext;
+    // }
 
     private static SharedPreferences getSP(Context context) {
         return context.getSharedPreferences(SP_NAME, Context.MODE_PRIVATE);

@@ -524,7 +524,7 @@ public class MainActivity extends BaseActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == EDIT_IMAGE && resultCode == RESULT_OK) {
             if (!Constant.IsOfficial) {
-                Toast.makeText(this, "请先连接至NexCut官方设备", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.NotOfficialError, Toast.LENGTH_SHORT).show();
                 // dialog.dismiss(); // 根据你的流程考虑是否关闭对话框
                 return; // 如果不是官方设备，阻止后续处理
             }
@@ -533,7 +533,7 @@ public class MainActivity extends BaseActivity {
         }
         if (requestCode == PICK_IMAGE && resultCode == RESULT_OK && data != null) {
             if (!Constant.IsOfficial) {
-                Toast.makeText(this, "请先连接至NexCut官方设备", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.NotOfficialError, Toast.LENGTH_SHORT).show();
                 // dialog.dismiss(); // 根据你的流程考虑是否关闭对话框
                 return; // 如果不是官方设备，阻止后续处理
             }
@@ -550,7 +550,7 @@ public class MainActivity extends BaseActivity {
             }
         } else if (requestCode == CAPTURE_IMAGE && resultCode == RESULT_OK) {
             if (!Constant.IsOfficial) {
-                Toast.makeText(this, "请先连接至NexCut官方设备", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.NotOfficialError, Toast.LENGTH_SHORT).show();
                 // dialog.dismiss(); // 根据你的流程考虑是否关闭对话框
                 return; // 如果不是官方设备，阻止后续处理
             }

@@ -11,7 +11,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Bridge for providing localization data from native Android to the WebView layer.
+ * Bridge for providing localization data from native Android to the WebView
+ * layer.
  */
 public class WebLanguageBridge {
     private final String languageCode;
@@ -96,9 +97,12 @@ public class WebLanguageBridge {
         map.put("保存失败", "Save failed");
         map.put("生成G代码失败", "Failed to generate G-code");
         map.put("已保存", "Saved");
-        map.put("坐标系统：白板坐标 (左下角为原点，X向右，Y向上)", "Coordinate system: Whiteboard coordinates (origin at the bottom left corner, X to the right, Y upward)");
-        map.put("注意：拖拽时实际坐标会实时更新，此处仅做显示换算", "Note: The actual coordinates will update in real-time when dragging; this is for display conversion only.");
-        map.put("选择对象所属的图层，不同图层可以设置不同的打印参数。", "Select the layer to which the object belongs; different layers can have different print settings.");
+        map.put("坐标系统：白板坐标 (左下角为原点，X向右，Y向上)",
+                "Coordinate system: Whiteboard coordinates (origin at the bottom left corner, X to the right, Y upward)");
+        map.put("注意：拖拽时实际坐标会实时更新，此处仅做显示换算",
+                "Note: The actual coordinates will update in real-time when dragging; this is for display conversion only.");
+        map.put("选择对象所属的图层，不同图层可以设置不同的打印参数。",
+                "Select the layer to which the object belongs; different layers can have different print settings.");
         map.put("图层属性在创建后不可修改", "Layer properties cannot be modified after creation");
         map.put("保存修改", "Save Changes");
         map.put("删除项目", "Delete Project");
@@ -114,7 +118,10 @@ public class WebLanguageBridge {
         map.put("扫描图层", "Scan Layer");
         map.put("反向移动偏移:", "Reverse Move Offset:");
         map.put("孔距中心距离", "Hole center distance");
-
+        map.put("对齐到画布", "Align to Canvas");
+        map.put("Floyd-Steinberg 误差扩散", "Floyd-Steinberg Error Diffusion");
+        map.put("AM 网点半调", "AM Network Half Adjustment");
+        map.put("描边宽度", "Stroke Width");
 
         // ========== 原有短关键词（保持原有顺序，移到完整句之后） ==========
         // Shape names and basic tools
@@ -183,6 +190,7 @@ public class WebLanguageBridge {
         map.put("打印方式:", "Printing method:");
         map.put("功率 (%):", "Power (%) :");
         map.put("切割图层", "Cut Layer");
+        map.put("颜色", "Color");
 
         // Toolbar labels
         map.put("选择", "Select");
@@ -284,7 +292,8 @@ public class WebLanguageBridge {
         map.put("取消", "Cancel");
         map.put("请使用HTTPS协议访问此页面，或者使用\"从相册选择\"功能。", "Please use HTTPS or choose from album.");
         map.put("从相册选择", "Choose from Album");
-        map.put("您的浏览器不支持摄像头功能，请使用现代浏览器或尝试\"从相册选择\"功能。", "Your browser does not support the camera. Please use a modern browser or choose from album.");
+        map.put("您的浏览器不支持摄像头功能，请使用现代浏览器或尝试\"从相册选择\"功能。",
+                "Your browser does not support the camera. Please use a modern browser or choose from album.");
         map.put("无法访问摄像头", "Unable to access camera");
         map.put("摄像头权限被拒绝，请在浏览器设置中允许摄像头访问", "Camera permission denied. Please enable it in browser settings.");
         map.put("未找到摄像头设备", "Camera not found");
@@ -357,10 +366,15 @@ public class WebLanguageBridge {
         map.put("精选图库", "Featured Gallery");
         map.put("查看更多 >", "View more >");
         map.put("关闭", "Close");
-        //toolbar property
+        // toolbar property
         map.put("位置", "Location");
         map.put("X坐标", "X Coordinate");
         map.put("Y坐标", "Y Coordinate");
+        map.put("上", "Up");
+        map.put("下", "Down");
+        map.put("左", "Left");
+        map.put("右", "Right");
+        map.put("居中", "Center");
 
         // Additional replacements for punctuation variations
         map.put("：", ":");

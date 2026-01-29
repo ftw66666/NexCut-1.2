@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">NexCut-X1 Space</string>
+    <string name="app_name_short">NexCut</string>
     <string name="title_home">Home</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
@@ -84,7 +85,7 @@
     <string name="reset_file">是否重置为默认文件？</string>
     <string name="fail_to_clear_gcode">清空 GCode 目录失败</string>
     <string name="reset_finish">重置完成</string>
-    <string name="yixuanze">已选则：</string>
+    <string name="yixuanze">已选择：</string>
     <string name="transmit_decide">是否选择传输：</string>
     <string name="share">分享</string>
     <string name="File_does_not_exist">文件不存在</string>
@@ -163,6 +164,7 @@
     <string name="Delete_fail">删除失败：</string>
     <string name="Connect">是否选择连接:</string>
 
+    <string name="NotOfficialError">请先连接至NexCut官方设备</string>
 
 
 
