@@ -119,6 +119,7 @@ public class WebLanguageBridge {
         map.put("反向移动偏移:", "Reverse Move Offset:");
         map.put("孔距中心距离", "Hole center distance");
         map.put("对齐到画布", "Align to Canvas");
+        map.put("半调模式","Halftone Mode");
         map.put("Floyd-Steinberg 误差扩散", "Floyd-Steinberg Error Diffusion");
         map.put("AM 网点半调", "AM Network Half Adjustment");
         map.put("描边宽度", "Stroke Width");
@@ -161,7 +162,7 @@ public class WebLanguageBridge {
         map.put("返回", "Back");
         map.put("导出预览", "Export Preview");
         map.put("生成", "Generate");
-        map.put("生成G代码", "Generate G-code");
+        map.put("生成G代码", "Generate");
         map.put("GenerateG代码", "Generate G-code");
         map.put("G代码", "G-code");
         map.put("生成G代码失败", "Failed to generate G-code");
