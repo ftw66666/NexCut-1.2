@@ -124,6 +124,15 @@ public class WebLanguageBridge {
         map.put("AM 网点半调", "AM Network Half Adjustment");
         map.put("描边宽度", "Stroke Width");
 
+        // 半调网屏相关
+        map.put("图像处理模式","Halftone mode");
+        map.put("半调网屏 (AM网点)","AM Halftone");
+        map.put("当前为灰度模式 (根据亮度调整激光功率)","Currently in greyscale mode (adjusts laser power based on brightness)");
+        map.put("使用网点大小模拟灰度 (适合印刷风格)","Simulate greyscale using dot size (suitable for printed styles)");
+        map.put("使用像素抖动模拟灰度 (适合照片还原)","Simulate greyscale using pixel dithering (suitable for photographic reproduction)");
+        map.put("1bit抖动 (误差扩散)","1bit dithering");
+
+
         // ========== 原有短关键词（保持原有顺序，移到完整句之后） ==========
         // Shape names and basic tools
         map.put("矩形", "Rectangle");

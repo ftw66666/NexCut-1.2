@@ -76,6 +76,6 @@ public class Constant {
     public static double PrintStartX = 0;
     public static double PrintStartY = PlatformHeight;
 
-    public static boolean IsOfficial = true;
+    public static boolean IsOfficial = false;
 
 }
